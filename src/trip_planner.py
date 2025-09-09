@@ -4,8 +4,148 @@ from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
 
+def logout():
+    """Logout user and clear session state"""
+    # Clear all session state variables
+    keys_to_clear = [
+        'logged_in', 'user', 'current_trip', 'trip_id', 
+        'active_profile_tab', 'trip_planner_page', 'form_data'
+    ]
+    
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # Clear any Google OAuth related session state
+    google_keys = [key for key in st.session_state.keys() if key.startswith('google_')]
+    for key in google_keys:
+        del st.session_state[key]
+    
+    st.success("✅ Successfully logged out!")
+    st.rerun()
+
+def check_auth():
+    """Check if user is authenticated"""
+    if 'logged_in' not in st.session_state or not st.session_state.logged_in:
+        return False
+    return True
+
+def show_dashboard():
+    """Show user dashboard with overview"""
+    st.title("🏠 Dashboard")
+    
+    if 'user' not in st.session_state:
+        st.error("❌ Please log in to view dashboard!")
+        return
+    
+    user = st.session_state.user
+    
+    # Welcome message
+    st.markdown(f"### 👋 Welcome back, {user['name'] or user['username']}!")
+    st.markdown("Here's your trip planning overview")
+    
+    # Quick stats
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            label="📅 Total Trips",
+            value=len(db.get_user_trips(user['id'])),
+            delta=None
+        )
+    
+    with col2:
+        st.metric(
+            label="🗺️ Active Trips",
+            value=len([trip for trip in db.get_user_trips(user['id']) if trip['status'] == 'active']),
+            delta=None
+        )
+    
+    with col3:
+        st.metric(
+            label="✅ Completed Trips",
+            value=len([trip for trip in db.get_user_trips(user['id']) if trip['status'] == 'completed']),
+            delta=None
+        )
+    
+    with col4:
+        st.metric(
+            label="💰 Total Budget",
+            value=f"${sum(trip['budget'] for trip in db.get_user_trips(user['id'])):,.0f}",
+            delta=None
+        )
+    
+    # Quick actions
+    st.subheader("🚀 Quick Actions")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🗺️ Plan New Trip", type="primary", use_container_width=True):
+            # Set navigation target and rerun
+            st.session_state.navigation_target = "🗺️ Plan New Trip"
+            st.rerun()
+    
+    with col2:
+        if st.button("📚 View My Trips", type="secondary", use_container_width=True):
+            st.session_state.navigation_target = "📚 My Trips"
+            st.rerun()
+    
+    with col3:
+        if st.button("👤 Edit Profile", type="secondary", use_container_width=True):
+            st.session_state.navigation_target = "👤 Profile"
+            st.rerun()
+    
+    # Recent trips
+    st.subheader("📜 Recent Trips")
+    trips = db.get_user_trips(user['id'])
+    
+    if trips:
+        # Show last 3 trips
+        for trip in trips[:3]:
+            with st.container():
+                col1, col2, col3 = st.columns([3, 1, 1])
+                
+                with col1:
+                    st.write(f"**{trip['destination']}**")
+                    st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
+                    st.write(f"💰 ${trip['budget']:,.2f}")
+                
+                with col2:
+                    st.write(f"Status: {trip['status'].title()}")
+                
+                with col3:
+                    if st.button("View", key=f"view_{trip['id']}"):
+                        st.session_state.selected_trip = trip
+                        st.session_state.navigation_target = "📚 My Trips"
+                        st.rerun()
+                
+                st.divider()
+    else:
+        st.info("No trips found. Start planning your first trip!")
+    
+    # Tips and suggestions
+    st.subheader("💡 Tips & Suggestions")
+    
+    tips = [
+        "🗺️ Use the AI trip planner to get personalized recommendations",
+        "📚 Save your favorite trips for future reference",
+        "📊 Check your analytics to see your travel patterns",
+        "👤 Keep your profile updated for better recommendations"
+    ]
+    
+    for tip in tips:
+        st.write(tip)
+
 def show_trip_planner():
     """Main trip planner interface"""
+    
+    # Check for navigation target from dashboard
+    if 'navigation_target' in st.session_state:
+        target = st.session_state.navigation_target
+        del st.session_state.navigation_target  # Clear the target
+        # Set the radio selection to the target
+        st.session_state.trip_planner_page = target
     
     # Sidebar navigation
     with st.sidebar:
@@ -13,26 +153,42 @@ def show_trip_planner():
         
         # User info
         if 'user' in st.session_state:
-            st.write(f"Welcome, {st.session_state.user['name'] or st.session_state.user['username']}!")
+            st.write(f"👋 Welcome, {st.session_state.user['name'] or st.session_state.user['username']}!")
         else:
             st.error("Please log in first!")
             return
         
-        # Navigation
+        st.divider()  # Add a visual separator
+        
+        # Navigation menu with appropriate icons
         page = st.radio(
-            "Choose an option:",
-            ["Plan New Trip", "My Trips", "Analytics", "Profile"],
+            "🎯 Navigation Menu",
+            [
+                "🏠 Dashboard", 
+                "🗺️ Plan New Trip", 
+                "📚 My Trips", 
+                "📊 Analytics", 
+                "👤 Profile"
+            ],
             key="trip_planner_page"
         )
+        
+        st.divider()  # Add another separator
+        
+        # Logout button at the bottom
+        if st.button("🚪 Logout", type="secondary", use_container_width=True):
+            logout()
     
     # Main content area
-    if page == "Plan New Trip":
+    if page == "🏠 Dashboard":
+        show_dashboard()
+    elif page == "🗺️ Plan New Trip":
         plan_new_trip()
-    elif page == "My Trips":
+    elif page == "📚 My Trips":
         show_my_trips()
-    elif page == "Analytics":
+    elif page == "📊 Analytics":
         show_analytics()
-    elif page == "Profile":
+    elif page == "👤 Profile":
         show_profile()
 
 def plan_new_trip():
@@ -336,7 +492,7 @@ def show_trip_details(trip_data):
     
     # AI suggestions
     if suggestions:
-        st.subheader("🤖 AI Recommendations")
+        st.subheader("📋 AI Recommendations")
         
         # Itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
@@ -448,7 +604,7 @@ def show_analytics():
         st.metric("Favorite Destination", stats['popular_destination'])
 
 def show_profile():
-    """Show user profile and settings"""
+    """Show user profile and settings with edit functionality"""
     st.title("👤 Profile")
     
     if 'user' not in st.session_state:
@@ -457,20 +613,182 @@ def show_profile():
     
     user = st.session_state.user
     
-    # Profile information
-    st.subheader("Profile Information")
+    # Initialize active tab in session state
+    if 'active_profile_tab' not in st.session_state:
+        st.session_state.active_profile_tab = 0  # 0 = View Profile, 1 = Edit Profile
     
-    col1, col2 = st.columns(2)
+    # Create tabs for viewing and editing profile
+    tab1, tab2 = st.tabs(["👀 View Profile", "✏️ Edit Profile"])
+    
+    # Use session state to control which tab content is shown
+    if st.session_state.active_profile_tab == 0:
+        # View Profile Tab
+        st.subheader("Profile Information")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Username:** {user['username']}")
+            st.write(f"**Email:** {user['email']}")
+            st.write(f"**Name:** {user.get('name', 'Not set')}")
+            st.write(f"**Login Method:** {user.get('login_method', 'email').title()}")
+        
+        with col2:
+            st.write(f"**Member Since:** {user.get('created_at', 'Unknown')}")
+            st.write(f"**Last Login:** {user.get('last_login', 'Unknown')}")
+            st.write(f"**Status:** {'Active' if user.get('is_active', True) else 'Inactive'}")
+        
+        # Contact Information
+        st.subheader("📞 Contact Information")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Personal Number:** {user.get('personal_number', 'Not provided')}")
+            st.write(f"**Alternate Number:** {user.get('alternate_number', 'Not provided')}")
+        with col2:
+            st.write(f"**Address:** {user.get('address', 'Not provided')}")
+            st.write(f"**Pincode:** {user.get('pincode', 'Not provided')}")
+            st.write(f"**State:** {user.get('state', 'Not provided')}")
+        
+        # Button to switch to edit tab
+        if st.button("✏️ Edit Profile", type="primary"):
+            st.session_state.active_profile_tab = 1
+            st.rerun()
+    
+    else:
+        # Edit Profile Tab
+        st.subheader("Edit Profile Information")
+        st.info("💡 You can update your personal information below. Fields marked with * are required.")
+        
+        with st.form("edit_profile_form", clear_on_submit=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Basic Information**")
+                name = st.text_input(
+                    "Full Name *",
+                    value=user.get('name', ''),
+                    help="Enter your full name"
+                )
+                
+                personal_number = st.text_input(
+                    "Personal Number",
+                    value=user.get('personal_number', ''),
+                    help="Your primary contact number"
+                )
+                
+                alternate_number = st.text_input(
+                    "Alternate Number",
+                    value=user.get('alternate_number', ''),
+                    help="Secondary contact number (optional)"
+                )
+            
+            with col2:
+                st.write("**Address Information**")
+                address = st.text_area(
+                    "Address",
+                    value=user.get('address', ''),
+                    help="Your complete address",
+                    height=100
+                )
+                
+                pincode = st.text_input(
+                    "Pincode",
+                    value=user.get('pincode', ''),
+                    help="Postal/ZIP code"
+                )
+                
+                state = st.text_input(
+                    "State",
+                    value=user.get('state', ''),
+                    help="State or Province"
+                )
+            
+            # Submit button
+            submitted = st.form_submit_button(
+                "💾 Update Profile",
+                type="primary",
+                use_container_width=True
+            )
+            
+            # Handle form submission
+            if submitted:
+                # Validation
+                if not name or not name.strip():
+                    st.error("❌ Please enter your full name")
+                else:
+                    # Prepare update data
+                    update_data = {
+                        'name': name.strip(),
+                        'personal_number': personal_number.strip() if personal_number else None,
+                        'address': address.strip() if address else None,
+                        'pincode': pincode.strip() if pincode else None,
+                        'state': state.strip() if state else None,
+                        'alternate_number': alternate_number.strip() if alternate_number else None
+                    }
+                    
+                    # Update profile in database
+                    try:
+                        success, message = db.update_user_profile(user['id'], **update_data)
+                        
+                        if success:
+                            # Update session state with new data
+                            st.session_state.user.update(update_data)
+                            
+                            # Refresh user data from database
+                            updated_user = db.get_user_by_id(user['id'])
+                            if updated_user:
+                                st.session_state.user = updated_user
+                            
+                            # Switch to view profile tab
+                            st.session_state.active_profile_tab = 0
+                            st.success("✅ Profile updated successfully! Redirecting to view profile...")
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Failed to update profile: {message}")
+                    
+                    except Exception as e:
+                        st.error(f"❌ Error updating profile: {str(e)}")
+        
+        # Button to switch back to view tab
+        if st.button("👀 View Profile", type="secondary"):
+            st.session_state.active_profile_tab = 0
+            st.rerun()
+    
+    # Account Actions (removed logout button)
+    st.subheader("👥 Account Actions")
+    
+    col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.write(f"**Username:** {user['username']}")
-        st.write(f"**Email:** {user['email']}")
-        st.write(f"**Name:** {user.get('name', 'Not set')}")
-        st.write(f"**Login Method:** {user.get('login_method', 'email').title()}")
+        if st.button("🔄 Refresh Profile", type="secondary"):
+            # Refresh user data from database
+            updated_user = db.get_user_by_id(user['id'])
+            if updated_user:
+                st.session_state.user = updated_user
+                st.success("✅ Profile refreshed!")
+                st.rerun()
     
     with col2:
-        st.write(f"**Member Since:** {user.get('created_at', 'Unknown')}")
-        st.write(f"**Last Login:** {user.get('last_login', 'Unknown')}")
-        st.write(f"**Status:** {'Active' if user.get('is_active', True) else 'Inactive'}")
+        if st.button("📊 View Analytics", type="secondary"):
+            st.session_state.trip_planner_page = "📊 Analytics"
+            st.rerun()
+    
+    with col3:
+        if st.button("🗺️ Plan New Trip", type="secondary"):
+            st.session_state.trip_planner_page = "🗺️ Plan New Trip"
+            st.rerun()
+    
+    # Security Information
+    with st.expander("🔒 Security Information"):
+        st.write("**Account Security:**")
+        st.write(f"• Login Method: {user.get('login_method', 'email').title()}")
+        st.write(f"• Email Verified: {'Yes' if user.get('verified_email') else 'No'}")
+        st.write(f"• Account Status: {'Active' if user.get('is_active', True) else 'Inactive'}")
+        st.write(f"• Last Login: {user.get('last_login', 'Unknown')}")
+        
+        if user.get('login_method') == 'google':
+            st.info("🔐 This account is secured with Google OAuth. Your password is managed by Google.")
+        else:
+            st.info("🔐 This account uses email/password authentication. Keep your password secure.")
 
 # Initialize the trip planner
 if __name__ == "__main__":
