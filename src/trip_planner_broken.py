@@ -175,17 +175,32 @@ def plan_new_trip():
                 
                 # Show a preview
                 st.subheader("📋 Trip Preview")
-                if 'itinerary' in suggestions:
+                if 'itinerary' in suggestions and suggestions['itinerary']:
                     st.write("**Daily Itinerary:**")
-                    for day, activities in list(suggestions['itinerary'].items())[:3]:  # Show first 3 days
-                        with st.expander(f"Day {day}"):
-                            for activity in activities:
-                                st.write(f"• {activity}")
+                    # Handle itinerary as list of dictionaries
+                    if isinstance(suggestions['itinerary'], list):
+                        for day_info in suggestions['itinerary'][:3]:  # Show first 3 days
+                            with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')}"):
+                                if 'activities' in day_info:
+                                    for activity in day_info['activities']:
+                                        st.write(f"• {activity}")
+                                if 'meals' in day_info:
+                                    st.write("**Meals:**")
+                                    for meal in day_info['meals']:
+                                        st.write(f"🍽️ {meal}")
+                    else:
+                        # Fallback for dictionary format
+                        for day, activities in list(suggestions['itinerary'].items())[:3]:
+                            with st.expander(f"Day {day}"):
+                                for activity in activities:
+                                    st.write(f"• {activity}")
                 
                 if 'accommodations' in suggestions and suggestions['accommodations']:
                     st.write("**Recommended Accommodations:**")
                     for hotel in suggestions['accommodations'][:2]:  # Show first 2
-                        st.write(f"🏨 **{hotel['name']}** - ${hotel['price']}/night")
+                        # Use price_range instead of price
+                        price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
+                        st.write(f"🏨 **{hotel['name']}** - {price_info}")
                 
                 st.info("💡 Go to 'My Trips' to view the complete trip plan!")
                 st.rerun()
@@ -194,13 +209,14 @@ def plan_new_trip():
                 
         except Exception as e:
             st.error(f"❌ Error saving trip: {str(e)}")
+            st.write(f"Debug info: {str(e)}")
 
 def show_trip_details(trip_data):
     """Display detailed trip information"""
     try:
         suggestions = json.loads(trip_data['ai_suggestions']) if isinstance(trip_data['ai_suggestions'], str) else trip_data['ai_suggestions']
-    except:
-        st.error("Error loading trip details")
+    except Exception as e:
+        st.error(f"Error loading trip details: {str(e)}")
         return
     
     st.subheader(f"🗺️ {trip_data['destination']}")
@@ -221,10 +237,24 @@ def show_trip_details(trip_data):
         # Itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
             st.subheader("📅 Daily Itinerary")
-            for day, activities in suggestions['itinerary'].items():
-                with st.expander(f"Day {day}"):
-                    for activity in activities:
-                        st.write(f"• {activity}")
+            # Handle itinerary as list of dictionaries
+            if isinstance(suggestions['itinerary'], list):
+                for day_info in suggestions['itinerary']:
+                    with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')} ({day_info.get('date', '')})"):
+                        if 'activities' in day_info:
+                            st.write("**Activities:**")
+                            for activity in day_info['activities']:
+                                st.write(f"• {activity}")
+                        if 'meals' in day_info:
+                            st.write("**Meals:**")
+                            for meal in day_info['meals']:
+                                st.write(f"🍽️ {meal}")
+            else:
+                # Fallback for dictionary format
+                for day, activities in suggestions['itinerary'].items():
+                    with st.expander(f"Day {day}"):
+                        for activity in activities:
+                            st.write(f"• {activity}")
         
         # Accommodations
         if 'accommodations' in suggestions and suggestions['accommodations']:
@@ -232,10 +262,16 @@ def show_trip_details(trip_data):
             for hotel in suggestions['accommodations']:
                 with st.container():
                     st.write(f"**{hotel['name']}**")
-                    st.write(f"📍 {hotel['location']}")
-                    st.write(f"💰 ${hotel['price']}/night")
+                    st.write(f"📍 {hotel.get('location', 'Location not specified')}")
+                    # Use price_range instead of price
+                    price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
+                    st.write(f"💰 {price_info}")
                     if 'rating' in hotel:
                         st.write(f"⭐ {hotel['rating']}/5")
+                    if 'type' in hotel:
+                        st.write(f"🏷️ {hotel['type']}")
+                    if 'amenities' in hotel:
+                        st.write(f"✨ Amenities: {', '.join(hotel['amenities'])}")
                     st.write("---")
         
         # Activities
@@ -244,9 +280,11 @@ def show_trip_details(trip_data):
             for activity in suggestions['activities']:
                 with st.container():
                     st.write(f"**{activity['name']}**")
-                    st.write(f"📍 {activity['location']}")
-                    st.write(f"💰 ${activity['cost']}")
-                    st.write(f"⏰ {activity['duration']}")
+                    st.write(f"📍 {activity.get('location', 'Location not specified')}")
+                    st.write(f"💰 {activity.get('cost', 'Cost not specified')}")
+                    st.write(f"⏰ {activity.get('duration', 'Duration not specified')}")
+                    if 'description' in activity:
+                        st.write(f"📝 {activity['description']}")
                     st.write("---")
         
         # Restaurants
@@ -255,8 +293,8 @@ def show_trip_details(trip_data):
             for restaurant in suggestions['restaurants']:
                 with st.container():
                     st.write(f"**{restaurant['name']}**")
-                    st.write(f"📍 {restaurant['location']}")
-                    st.write(f"💰 {restaurant['price_range']}")
+                    st.write(f"📍 {restaurant.get('location', 'Location not specified')}")
+                    st.write(f"💰 {restaurant.get('price_range', 'Price not available')}")
                     if 'cuisine' in restaurant:
                         st.write(f"🍴 {restaurant['cuisine']}")
                     st.write("---")
@@ -267,8 +305,8 @@ def show_trip_details(trip_data):
             for transport in suggestions['transportation']:
                 with st.container():
                     st.write(f"**{transport['type']}**")
-                    st.write(f"📍 {transport['route']}")
-                    st.write(f"💰 ${transport['cost']}")
+                    st.write(f"📍 {transport.get('route', 'Route not specified')}")
+                    st.write(f"💰 ${transport.get('cost', 'Cost not specified')}")
                     st.write("---")
         
         # Tips

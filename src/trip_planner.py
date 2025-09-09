@@ -14,6 +14,9 @@ def show_trip_planner():
         # User info
         if 'user' in st.session_state:
             st.write(f"Welcome, {st.session_state.user['name'] or st.session_state.user['username']}!")
+        else:
+            st.error("Please log in first!")
+            return
         
         # Navigation
         page = st.radio(
@@ -36,10 +39,89 @@ def plan_new_trip():
     """Plan a new trip with AI assistance"""
     st.title("🗺️ Plan Your Perfect Trip")
     
+    # Check if user is logged in
+    if 'user' not in st.session_state:
+        st.error("❌ Please log in to plan a trip!")
+        return
+    
     # Initialize Vertex AI
     vertex_ai = VertexAITripPlanner()
     
-    # Create form
+    # Check if we have a trip to display
+    if 'current_trip' in st.session_state and st.session_state.current_trip:
+        # Display the generated trip
+        suggestions = st.session_state.current_trip
+        trip_id = st.session_state.get('trip_id', 'Unknown')
+        
+        st.success("🎉 Trip plan generated successfully!")
+        st.subheader("📋 Your Trip Plan")
+        
+        # Show trip details
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"**Destination:** {suggestions.get('destination', 'N/A')}")
+            st.write(f"**Duration:** {suggestions.get('duration', 'N/A')} days")
+        with col2:
+            st.write(f"**Budget:** ${suggestions.get('budget', 'N/A')}")
+            st.write(f"**Trip ID:** {trip_id}")
+        
+        # Show itinerary
+        if 'itinerary' in suggestions and suggestions['itinerary']:
+            st.subheader("📅 Daily Itinerary")
+            if isinstance(suggestions['itinerary'], list):
+                for day_info in suggestions['itinerary']:
+                    with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')}"):
+                        if 'activities' in day_info:
+                            st.write("**Activities:**")
+                            for activity in day_info['activities']:
+                                st.write(f"• {activity}")
+                        if 'meals' in day_info:
+                            st.write("**Meals:**")
+                            for meal in day_info['meals']:
+                                st.write(f"🍽️ {meal}")
+            else:
+                for day, activities in suggestions['itinerary'].items():
+                    with st.expander(f"Day {day}"):
+                        for activity in activities:
+                            st.write(f"• {activity}")
+        
+        # Show accommodations
+        if 'accommodations' in suggestions and suggestions['accommodations']:
+            st.subheader("🏨 Recommended Accommodations")
+            for hotel in suggestions['accommodations']:
+                price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
+                st.write(f"**{hotel['name']}** - {price_info}")
+                if 'description' in hotel:
+                    st.write(f"*{hotel['description']}*")
+        
+        # Show additional info
+        if 'additional_info' in suggestions and suggestions['additional_info']:
+            st.subheader("ℹ️ Additional Information")
+            st.write(suggestions['additional_info'])
+        
+        # Action buttons
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("🔄 Generate New Trip", type="secondary"):
+                # Clear current trip and show form again
+                if 'current_trip' in st.session_state:
+                    del st.session_state.current_trip
+                if 'trip_id' in st.session_state:
+                    del st.session_state.trip_id
+                st.rerun()
+        
+        with col2:
+            if st.button("👁️ View in My Trips", type="primary"):
+                st.session_state.page = "my_trips"
+                st.rerun()
+        
+        with col3:
+            if st.button("💾 Save & Continue", type="secondary"):
+                st.success("✅ Trip saved! You can view it in 'My Trips' anytime.")
+        
+        return
+    
+    # Create form for new trip planning
     with st.form("trip_planning_form", clear_on_submit=False):
         st.subheader("Trip Details")
         
@@ -96,120 +178,142 @@ def plan_new_trip():
         )
         
         # Submit button
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            submitted = st.form_submit_button(
-                "🤖 Generate Trip Plan", 
-                type="primary",
-                use_container_width=True
-            )
-    
-    # Handle form submission
-    if submitted:
-        st.write("🔍 Processing your request...")
+        submitted = st.form_submit_button(
+            "🤖 Generate Trip Plan", 
+            type="primary",
+            use_container_width=True
+        )
         
-        # Validation
-        if not destination or not destination.strip():
-            st.error("❌ Please enter a destination")
-            return
-        
-        if start_date >= end_date:
-            st.error("❌ End date must be after start date")
-            return
-        
-        if budget <= 0:
-            st.error("❌ Please enter a valid budget")
-            return
-        
-        st.success("✅ Form validation passed!")
-        
-        # Prepare preferences string
-        preferences_str = ", ".join(preferences) if preferences else "General travel"
-        if additional_preferences and additional_preferences.strip():
-            preferences_str += f" | Additional: {additional_preferences.strip()}"
-        
-        st.write(f"📍 Destination: {destination}")
-        st.write(f"📅 Dates: {start_date} to {end_date}")
-        st.write(f"💰 Budget: ${budget:,}")
-        st.write(f"🎯 Preferences: {preferences_str}")
-        
-        # Generate suggestions
-        try:
-            with st.spinner("🤖 AI is planning your perfect trip... This may take a moment."):
-                suggestions = vertex_ai.generate_trip_suggestions(
-                    destination=destination.strip(),
-                    start_date=start_date.strftime("%Y-%m-%d"),
-                    end_date=end_date.strftime("%Y-%m-%d"),
-                    budget=float(budget),
-                    preferences=preferences_str
-                )
-            
-            if not suggestions:
-                st.error("❌ Failed to generate trip suggestions. Please try again.")
+        # Handle form submission INSIDE the form context
+        if submitted:
+            # Validation
+            if not destination or not destination.strip():
+                st.error("❌ Please enter a destination")
                 return
             
-            st.success("✅ Trip suggestions generated successfully!")
+            if start_date >= end_date:
+                st.error("❌ End date must be after start date")
+                return
             
-        except Exception as e:
-            st.error(f"❌ Error generating suggestions: {str(e)}")
-            return
-        
-        # Save trip to database
-        try:
-            success, message = db.create_trip(
-                st.session_state.user['id'],
-                destination.strip(),
-                start_date.strftime("%Y-%m-%d"),
-                end_date.strftime("%Y-%m-%d"),
-                float(budget),
-                preferences_str,
-                json.dumps(suggestions)
-            )
+            if budget <= 0:
+                st.error("❌ Please enter a valid budget")
+                return
             
-            if success:
-                # Extract trip_id from message
-                trip_id = int(message.split("ID: ")[1])
-                st.session_state.current_trip = suggestions
-                st.session_state.trip_id = trip_id
-                st.success("🎉 Trip plan generated and saved successfully!")
+            st.success("✅ Form validation passed!")
+            
+            # Prepare preferences string
+            preferences_str = ", ".join(preferences) if preferences else "General travel"
+            if additional_preferences and additional_preferences.strip():
+                preferences_str += f" | Additional: {additional_preferences.strip()}"
+            
+            # Store form data in session state
+            st.session_state.form_data = {
+                'destination': destination.strip(),
+                'start_date': start_date.strftime("%Y-%m-%d"),
+                'end_date': end_date.strftime("%Y-%m-%d"),
+                'budget': float(budget),
+                'preferences': preferences_str,
+                'travel_type': travel_type,
+                'accommodation_type': accommodation_type
+            }
+            
+            # Generate suggestions
+            try:
+                with st.spinner("🤖 AI is planning your perfect trip... This may take a moment."):
+                    suggestions = vertex_ai.generate_trip_suggestions(
+                        destination=destination.strip(),
+                        start_date=start_date.strftime("%Y-%m-%d"),
+                        end_date=end_date.strftime("%Y-%m-%d"),
+                        budget=float(budget),
+                        preferences=preferences_str
+                    )
                 
-                # Show a preview
-                st.subheader("📋 Trip Preview")
-                if 'itinerary' in suggestions and suggestions['itinerary']:
-                    st.write("**Daily Itinerary:**")
-                    # Handle itinerary as list of dictionaries
-                    if isinstance(suggestions['itinerary'], list):
-                        for day_info in suggestions['itinerary'][:3]:  # Show first 3 days
-                            with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')}"):
-                                if 'activities' in day_info:
-                                    for activity in day_info['activities']:
-                                        st.write(f"• {activity}")
-                                if 'meals' in day_info:
-                                    st.write("**Meals:**")
-                                    for meal in day_info['meals']:
-                                        st.write(f"🍽️ {meal}")
+                if not suggestions:
+                    st.error("❌ Failed to generate trip suggestions. Please try again.")
+                    return
+                
+                st.success("✅ Trip suggestions generated successfully!")
+                
+            except Exception as e:
+                st.error(f"❌ Error generating suggestions: {str(e)}")
+                return
+            
+            # Save trip to database
+            try:
+                success, message = db.create_trip(
+                    st.session_state.user['id'],
+                    destination.strip(),
+                    start_date.strftime("%Y-%m-%d"),
+                    end_date.strftime("%Y-%m-%d"),
+                    float(budget),
+                    preferences_str,
+                    json.dumps(suggestions)
+                )
+                
+                if success:
+                    # Extract trip_id from message
+                    trip_id = int(message.split("ID: ")[1])
+                    st.session_state.current_trip = suggestions
+                    st.session_state.trip_id = trip_id
+                    st.success("🎉 Trip plan generated and saved successfully!")
+                    st.rerun()
+                else:
+                    st.error(f"❌ Failed to save trip: {message}")
+                    
+            except Exception as e:
+                st.error(f"❌ Error saving trip: {str(e)}")
+                st.write(f"Debug info: {str(e)}")
+
+def show_my_trips():
+    """Display user's saved trips"""
+    st.title("🗺️ My Trips")
+    
+    if 'user' not in st.session_state:
+        st.error("Please log in to view your trips")
+        return
+    
+    user_id = st.session_state.user['id']
+    trips = db.get_user_trips(user_id)
+    
+    if not trips:
+        st.info("No trips found. Start planning your first trip!")
+        return
+    
+    # Display trips
+    for trip in trips:
+        with st.container():
+            col1, col2, col3 = st.columns([3, 1, 1])
+            
+            with col1:
+                st.subheader(f"🗺️ {trip['destination']}")
+                st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
+                st.write(f"💰 Budget: ${trip['budget']:,.2f}")
+                st.write(f"📊 Status: {trip['status'].title()}")
+            
+            with col2:
+                if st.button("View Details", key=f"view_{trip['id']}"):
+                    st.session_state.selected_trip = trip
+                    st.rerun()
+            
+            with col3:
+                if st.button("Delete", key=f"delete_{trip['id']}"):
+                    success, message = db.delete_trip(trip['id'], user_id)
+                    if success:
+                        st.success("Trip deleted successfully!")
+                        st.rerun()
                     else:
-                        # Fallback for dictionary format
-                        for day, activities in list(suggestions['itinerary'].items())[:3]:
-                            with st.expander(f"Day {day}"):
-                                for activity in activities:
-                                    st.write(f"• {activity}")
-                
-                if 'accommodations' in suggestions and suggestions['accommodations']:
-                    st.write("**Recommended Accommodations:**")
-                    for hotel in suggestions['accommodations'][:2]:  # Show first 2
-                        # Use price_range instead of price
-                        price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
-                        st.write(f"🏨 **{hotel['name']}** - {price_info}")
-                
-                st.info("💡 Go to 'My Trips' to view the complete trip plan!")
-                st.rerun()
-            else:
-                st.error(f"❌ Failed to save trip: {message}")
-                
-        except Exception as e:
-            st.error(f"❌ Error saving trip: {str(e)}")
-            st.write(f"Debug info: {str(e)}")
+                        st.error(f"Error deleting trip: {message}")
+            
+            st.write("---")
+    
+    # Show selected trip details
+    if 'selected_trip' in st.session_state:
+        st.subheader("Trip Details")
+        show_trip_details(st.session_state.selected_trip)
+        
+        if st.button("Close Details"):
+            del st.session_state.selected_trip
+            st.rerun()
 
 def show_trip_details(trip_data):
     """Display detailed trip information"""
@@ -322,57 +426,6 @@ def show_trip_details(trip_data):
             st.write(f"**Temperature:** {weather.get('temperature', 'N/A')}")
             st.write(f"**Conditions:** {weather.get('conditions', 'N/A')}")
             st.write(f"**Packing:** {weather.get('packing', 'N/A')}")
-
-def show_my_trips():
-    """Display user's saved trips"""
-    st.title("🗺️ My Trips")
-    
-    if 'user' not in st.session_state:
-        st.error("Please log in to view your trips")
-        return
-    
-    user_id = st.session_state.user['id']
-    trips = db.get_user_trips(user_id)
-    
-    if not trips:
-        st.info("No trips found. Start planning your first trip!")
-        return
-    
-    # Display trips
-    for trip in trips:
-        with st.container():
-            col1, col2, col3 = st.columns([3, 1, 1])
-            
-            with col1:
-                st.subheader(f"🗺️ {trip['destination']}")
-                st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
-                st.write(f"💰 Budget: ${trip['budget']:,.2f}")
-                st.write(f"📊 Status: {trip['status'].title()}")
-            
-            with col2:
-                if st.button("View Details", key=f"view_{trip['id']}"):
-                    st.session_state.selected_trip = trip
-                    st.rerun()
-            
-            with col3:
-                if st.button("Delete", key=f"delete_{trip['id']}"):
-                    success, message = db.delete_trip(trip['id'], user_id)
-                    if success:
-                        st.success("Trip deleted successfully!")
-                        st.rerun()
-                    else:
-                        st.error(f"Error deleting trip: {message}")
-            
-            st.write("---")
-    
-    # Show selected trip details
-    if 'selected_trip' in st.session_state:
-        st.subheader("Trip Details")
-        show_trip_details(st.session_state.selected_trip)
-        
-        if st.button("Close Details"):
-            del st.session_state.selected_trip
-            st.rerun()
 
 def show_analytics():
     """Show trip analytics and statistics"""
