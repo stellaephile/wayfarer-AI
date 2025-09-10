@@ -4,6 +4,18 @@ from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
 
+# # Configure page FIRST - before any other Streamlit commands
+# st.set_page_config(
+#     page_title="AI Trip Planner",
+#     page_icon="🗺️",
+#     layout="wide",
+#     initial_sidebar_state="expanded"
+# )
+
+# Now import other modules
+from auth import show_auth_pages, check_auth
+# from trip_planner import show_trip_planner
+
 def logout():
     """Logout user and clear session state"""
     # Clear all session state variables
@@ -83,7 +95,7 @@ def show_dashboard():
     with col1:
         if st.button("🗺️ Plan New Trip", type="primary", use_container_width=True):
             # Set navigation target and rerun
-            st.session_state.navigation_target = "🗺️ Plan New Trip"
+            st.session_state.navigation_target = "🗺️ Plan Trip"
             st.rerun()
     
     with col2:
@@ -138,51 +150,73 @@ def show_dashboard():
         st.write(tip)
 
 def show_trip_planner():
-    """Main trip planner interface"""
+    """Main trip planner interface with optimized sidebar"""
     
     # Check for navigation target from dashboard
     if 'navigation_target' in st.session_state:
         target = st.session_state.navigation_target
-        del st.session_state.navigation_target  # Clear the target
-        # Set the radio selection to the target
+        del st.session_state.navigation_target
         st.session_state.trip_planner_page = target
     
-    # Sidebar navigation
+    # Optimized sidebar
     with st.sidebar:
-        st.title("🗺️ Trip Planner")
+        # Compact header with app name and icon
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 2rem; margin-right: 0.5rem;">🗺️</span>
+                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Trip Planner</h1>
+            </div>
+            <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # User info
+        # Compact user info
         if 'user' in st.session_state:
-            st.write(f"👋 Welcome, {st.session_state.user['name'] or st.session_state.user['username']}!")
+            user = st.session_state.user
+            st.markdown(f"""
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 35px; height: 35px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 0.75rem; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        <span style="color: white; font-weight: 600; font-size: 0.9rem;">{(user['name'] or user['username'])[0].upper()}</span>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{user['name'] or user['username']}</div>
+                        <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@{user['username']}</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         else:
             st.error("Please log in first!")
             return
         
-        st.divider()  # Add a visual separator
-        
-        # Navigation menu with appropriate icons
+        # Compact navigation menu
+        st.markdown("### 🎯 Menu")
         page = st.radio(
-            "🎯 Navigation Menu",
+            "",
             [
                 "🏠 Dashboard", 
-                "🗺️ Plan New Trip", 
+                "🗺️ Plan Trip", 
                 "📚 My Trips", 
                 "📊 Analytics", 
                 "👤 Profile"
             ],
-            key="trip_planner_page"
+            key="trip_planner_page",
+            label_visibility="collapsed"
         )
         
-        st.divider()  # Add another separator
+        # Compact divider
+        st.markdown("---")
         
-        # Logout button at the bottom
-        if st.button("🚪 Logout", type="secondary", use_container_width=True):
+        # Compact logout button
+        if st.button("🚪 Logout", type="secondary", use_container_width=True, key="logout_btn"):
             logout()
     
     # Main content area
     if page == "🏠 Dashboard":
         show_dashboard()
-    elif page == "🗺️ Plan New Trip":
+    elif page == "🗺️ Plan Trip":
         plan_new_trip()
     elif page == "📚 My Trips":
         show_my_trips()
