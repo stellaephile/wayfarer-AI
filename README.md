@@ -56,7 +56,11 @@ A modern, AI-powered trip planning application built with Streamlit and Google V
 
 4. **Configure secrets (optional)**
    ```bash
-   # Edit .streamlit/secrets.toml with your Google Cloud credentials
+   # Copy example configuration files
+   cp .env.example .env
+   cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+   
+   # Edit the configuration files with your settings
    ```
 
 5. **Run the application**
@@ -68,6 +72,17 @@ A modern, AI-powered trip planning application built with Streamlit and Google V
    Navigate to `http://localhost:8501`
 
 ## 🔧 Configuration
+
+### Vertex AI Setup (Optional but Recommended)
+
+For AI-powered trip planning, you'll need to set up Google Vertex AI:
+
+1. **Follow the detailed setup guide**: [VERTEX_AI_SETUP.md](VERTEX_AI_SETUP.md)
+2. **Quick setup**:
+   - Create a Google Cloud project
+   - Enable Vertex AI API
+   - Set up authentication
+   - Configure environment variables
 
 ### Google Cloud Setup (Optional)
 
@@ -118,185 +133,186 @@ VERTEX_AI_MODEL = "gemini-pro"
 - **Overview**: Quick statistics of your trips and budget
 - **Recent Trips**: View your latest trip plans
 - **Quick Actions**: Fast access to planning and management features
-- **Tips & Suggestions**: Helpful travel advice and recommendations
 
-### 3. Plan a Trip
-- **Trip Details**: Enter destination, dates, and budget
-- **Preferences**: Specify interests (adventure, culture, food, etc.)
-- **Travel Type**: Select solo, couple, family, or business travel
-- **AI Generation**: Get personalized trip suggestions
-- **Real-time Preview**: See your trip plan immediately after generation
+### 3. AI Trip Planning
+- **Smart Recommendations**: AI-powered suggestions based on your preferences
+- **Budget Optimization**: Intelligent budget allocation across categories
+- **Personalized Itineraries**: Custom daily schedules tailored to your interests
+- **Real-time Planning**: Get instant trip plans with detailed recommendations
 
 ### 4. Trip Management
-- **My Trips**: View all saved trip plans with status indicators
-- **Trip Details**: Comprehensive view of itinerary, accommodations, and activities
-- **Edit/Delete**: Manage your trip plans
-- **Analytics**: Visualize your travel patterns and spending
+- **Save Trips**: Store your favorite trip plans
+- **Edit Details**: Modify existing trip information
+- **Delete Trips**: Remove unwanted trip plans
+- **View Analytics**: Track your travel patterns and spending
 
 ### 5. Profile Management
-- **Personal Info**: Update name, email, and contact details
-- **Address**: Add personal number, address, pincode, and state
-- **Security**: View account security information
-- **Preferences**: Manage travel preferences and settings
+- **Personal Information**: Update your contact details and preferences
+- **Travel Preferences**: Set your interests and travel style
+- **Account Settings**: Manage your account security and preferences
 
-## 🎨 UI/UX Features
+## 🏗️ Architecture
 
-### Modern Design
-- **Gradient Backgrounds**: Beautiful color schemes throughout the app
-- **Smooth Animations**: Hover effects and transitions for better UX
-- **Responsive Layout**: Optimized for all screen sizes
-- **Professional Typography**: Inter font family for clean readability
+### Backend
+- **Streamlit**: Web application framework
+- **SQLite**: Local database for user data and trip storage
+- **Vertex AI**: Google's AI platform for trip planning
+- **Google OAuth**: Authentication and user management
 
-### Enhanced Components
-- **Interactive Cards**: Hover effects and visual feedback
-- **Smart Forms**: Real-time validation and user-friendly inputs
-- **Status Indicators**: Clear visual cues for trip status and progress
-- **Compact Sidebar**: Optimized navigation with minimal space usage
+### Frontend
+- **Streamlit Components**: Interactive UI elements
+- **Custom CSS**: Modern styling and responsive design
+- **Plotly**: Data visualization and analytics
 
-### User Experience
-- **Intuitive Navigation**: Easy-to-use menu system
-- **Quick Actions**: Fast access to common tasks
-- **Visual Feedback**: Clear success/error messages
-- **Loading States**: Smooth progress indicators
+### AI Integration
+- **Vertex AI Gemini**: Large language model for trip planning
+- **Structured Prompts**: Optimized prompts for consistent JSON responses
+- **Error Handling**: Graceful fallback to mock data when AI is unavailable
+- **Response Parsing**: Robust JSON parsing with validation
 
-## 🗄️ Database Schema
+## 🔒 Security
 
-### Users Table
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT,
-    name TEXT,
-    google_id TEXT UNIQUE,
-    picture TEXT,
-    verified_email BOOLEAN DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP,
-    is_active BOOLEAN DEFAULT 1,
-    login_method TEXT DEFAULT 'email',
-    personal_number TEXT,
-    address TEXT,
-    pincode TEXT,
-    state TEXT,
-    alternate_number TEXT
-);
+- **Password Hashing**: bcrypt for secure password storage
+- **Session Management**: Secure session handling
+- **Input Validation**: Comprehensive input sanitization
+- **Error Handling**: Secure error messages without sensitive information
+
+## 🚀 Deployment
+
+### Local Development
+```bash
+streamlit run src/app.py
 ```
 
-### Trips Table
-```sql
-CREATE TABLE trips (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    destination TEXT NOT NULL,
-    start_date DATE,
-    end_date DATE,
-    budget REAL,
-    preferences TEXT,
-    ai_suggestions TEXT,
-    status TEXT DEFAULT 'planned',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id)
-);
+### Docker Deployment
+```bash
+# Build the image
+docker build -t ai-trip-planner .
+
+# Run the container
+docker run -p 8501:8501 ai-trip-planner
 ```
+
+### Docker Compose
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+```
+
+## 📊 Features in Detail
+
+### AI Trip Planning
+- **Destination Analysis**: AI analyzes your destination and provides contextual recommendations
+- **Budget Optimization**: Smart allocation of budget across accommodation, food, activities, and transportation
+- **Preference Matching**: Recommendations tailored to your interests (adventure, culture, food, etc.)
+- **Seasonal Considerations**: Weather and seasonal factors included in planning
+- **Local Insights**: Authentic local recommendations and hidden gems
+
+### User Interface
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Modern Styling**: Gradient backgrounds, smooth animations, and professional design
+- **Intuitive Navigation**: Easy-to-use sidebar navigation and quick actions
+- **Real-time Updates**: Instant feedback and updates throughout the application
+
+### Data Management
+- **Persistent Storage**: All trips and user data saved locally
+- **Data Export**: Export trip plans and analytics
+- **Backup Options**: Easy backup and restore functionality
+- **Privacy Focused**: All data stored locally, no external data sharing
 
 ## 🛠️ Development
 
 ### Project Structure
 ```
-trip-planner-genAI/
+streamlit-vertexai-demo/
 ├── src/
-│   ├── app.py                 # Main Streamlit application with modern UI
-│   ├── auth.py                # Authentication logic
-│   ├── database.py            # Database operations
-│   ├── google_auth.py         # Google OAuth integration
-│   ├── trip_planner.py        # Trip planning interface with optimized sidebar
-│   └── vertex_ai_utils.py     # Vertex AI integration
-├── .streamlit/
-│   ├── config.toml            # Streamlit configuration
-│   └── secrets.toml           # Secrets (not in git)
-├── requirements.txt           # Python dependencies
-├── Dockerfile                 # Docker configuration
-├── docker-compose.yml         # Docker Compose setup
-└── README.md                  # This file
+│   ├── app.py              # Main application entry point
+│   ├── auth.py             # Authentication and user management
+│   ├── database.py         # Database operations
+│   ├── trip_planner.py     # Trip planning interface
+│   ├── vertex_ai_utils.py  # Vertex AI integration
+│   └── google_auth.py      # Google OAuth integration
+├── credentials/            # Service account keys (not in git)
+├── data/                   # SQLite database files
+├── logs/                   # Application logs
+├── .streamlit/             # Streamlit configuration
+├── docker-compose.yml      # Docker Compose configuration
+├── Dockerfile              # Docker image definition
+└── requirements.txt        # Python dependencies
 ```
 
-### Key Features Implemented
-- ✅ Modern UI/UX with gradient designs and animations
-- ✅ User authentication and profile management
-- ✅ AI-powered trip planning with mock data
-- ✅ Database integration with SQLite
-- ✅ Responsive UI with Streamlit
-- ✅ Trip management and analytics
-- ✅ Google OAuth integration (optional)
-- ✅ Docker support for deployment
-- ✅ Optimized sidebar and navigation
-- ✅ Enhanced form validation and user feedback
+### Adding New Features
+1. **Backend Logic**: Add new functions in appropriate modules
+2. **UI Components**: Create new Streamlit components
+3. **Database Schema**: Update database.py for new data structures
+4. **AI Integration**: Extend vertex_ai_utils.py for new AI features
 
-## 🐳 Docker Deployment
-
-### Using Docker Compose
+### Testing
 ```bash
-docker-compose up -d
+# Run the application in test mode
+STREAMLIT_SERVER_HEADLESS=true streamlit run src/app.py
+
+# Test with mock data (no AI required)
+VERTEX_AI_PROJECT_ID=your-project-id streamlit run src/app.py
 ```
 
-### Using Docker
-```bash
-docker build -t trip-planner .
-docker run -p 8501:8501 trip-planner
-```
+## 📈 Performance
 
-## 📊 Technologies Used
+### Optimization Features
+- **Lazy Loading**: Components loaded only when needed
+- **Caching**: Intelligent caching of AI responses
+- **Efficient Queries**: Optimized database queries
+- **Resource Management**: Proper cleanup and memory management
 
-- **Frontend**: Streamlit with custom CSS and animations
-- **Backend**: Python 3.8+
-- **Database**: SQLite with enhanced schema
-- **AI/ML**: Google Vertex AI (Gemini Pro)
-- **Authentication**: bcrypt, Google OAuth2
-- **Styling**: Custom CSS with Google Fonts (Inter)
-- **Deployment**: Docker, Docker Compose
-
-## 🎯 Recent Updates
-
-### UI/UX Improvements
-- **Modern Design System**: Gradient backgrounds, smooth animations, and professional styling
-- **Optimized Sidebar**: Compact navigation with proper icon and app name placement
-- **Enhanced Components**: Better buttons, cards, forms, and visual feedback
-- **Responsive Design**: Improved mobile and tablet experience
-- **Clean Codebase**: Removed test files and backup files for better organization
-
-### New Features
-- **Dashboard Overview**: Quick statistics and recent trips display
-- **Profile Management**: Complete user profile editing with contact information
-- **Enhanced Trip Display**: Better visualization of trip details and recommendations
-- **Improved Navigation**: Streamlined menu system with quick actions
+### Monitoring
+- **Logging**: Comprehensive logging for debugging
+- **Error Tracking**: Detailed error reporting and handling
+- **Performance Metrics**: Track response times and resource usage
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
-- Google Vertex AI for AI capabilities
-- Streamlit for the amazing web framework
-- The open-source community for various Python packages
+- **Streamlit**: For the amazing web framework
+- **Google Vertex AI**: For powerful AI capabilities
+- **Open Source Community**: For various Python packages and tools
 
 ## 📞 Support
 
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Check the documentation
-- Contact the maintainers
+If you encounter any issues:
+
+1. Check the [troubleshooting guide](VERTEX_AI_SETUP.md#troubleshooting)
+2. Review the application logs
+3. Verify your configuration
+4. Create an issue on GitHub
+
+## 🔄 Changelog
+
+### Version 2.0.0
+- ✅ Full Vertex AI integration
+- ✅ Enhanced AI trip planning
+- ✅ Improved error handling
+- ✅ Better fallback mechanisms
+- ✅ Comprehensive documentation
+
+### Version 1.0.0
+- ✅ Basic trip planning functionality
+- ✅ User authentication
+- ✅ Mock data integration
+- ✅ Modern UI design
 
 ---
 

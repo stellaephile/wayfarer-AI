@@ -3,6 +3,15 @@ import json
 import os
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part
+from google.cloud import aiplatform
+from google.oauth2 import service_account
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class VertexAITripPlanner:
     def __init__(self):
@@ -27,22 +36,246 @@ class VertexAITripPlanner:
         
         if not self.is_configured:
             st.warning("⚠️ Vertex AI not configured. Using demo mode with mock data.")
+            self.model = None
+        else:
+            try:
+                # Initialize Vertex AI
+                self._initialize_vertex_ai()
+                self.model = GenerativeModel(self.model_name)
+                logger.info(f"Vertex AI initialized successfully with model: {self.model_name}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Vertex AI: {str(e)}")
+                st.error(f"❌ Failed to initialize Vertex AI: {str(e)}")
+                self.is_configured = False
+                self.model = None
+    
+    def _initialize_vertex_ai(self):
+        """Initialize Vertex AI with proper authentication"""
+        try:
+            # Try to get credentials from service account file
+            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            if credentials_path and os.path.exists(credentials_path):
+                credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
+            else:
+                # Try to use default credentials
+                vertexai.init(project=self.project_id, location=self.location)
+            
+            # Initialize AI Platform
+            aiplatform.init(project=self.project_id, location=self.location)
+            
+        except Exception as e:
+            logger.error(f"Error initializing Vertex AI: {str(e)}")
+            raise e
     
     def generate_trip_suggestions(self, destination: str, start_date: str, end_date: str, 
                                 budget: float, preferences: str) -> Dict:
         """
         Generate AI-powered trip suggestions using Vertex AI
         """
-        if not self.is_configured:
-            return self._generate_mock_suggestions(destination, start_date, end_date, budget, preferences)
+        if not self.is_configured or not self.model:
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
         
         try:
-            # TODO: Implement actual Vertex AI call here
-            # For now, return enhanced mock data
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            # Create a comprehensive prompt for the AI
+            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences)
+            
+            # Generate response using Vertex AI
+            response = self.model.generate_content(prompt)
+            
+            if response and response.text:
+                # Parse the AI response
+                return self._parse_ai_response(response.text, destination, start_date, end_date, budget)
+            else:
+                logger.warning("Empty response from Vertex AI, falling back to mock data")
+                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+                
         except Exception as e:
-            st.error(f"Error generating trip suggestions: {str(e)}")
-            return self._generate_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            logger.error(f"Error generating trip suggestions with Vertex AI: {str(e)}")
+            st.warning(f"⚠️ AI generation failed: {str(e)}. Using enhanced mock data.")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+    
+    def _create_trip_planning_prompt(self, destination: str, start_date: str, end_date: str, 
+                                   budget: float, preferences: str) -> str:
+        """Create a comprehensive prompt for trip planning"""
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        duration_days = (end_dt - start_dt).days + 1
+        
+        prompt = f"""
+You are an expert travel planner. Create a comprehensive trip plan for the following request:
+
+DESTINATION: {destination}
+DATES: {start_date} to {end_date} ({duration_days} days)
+BUDGET: ${budget:,.2f} USD
+PREFERENCES: {preferences}
+
+Please provide a detailed trip plan in the following JSON format:
+
+{{
+    "destination": "{destination}",
+    "duration": "{duration_days} days",
+    "budget": {budget},
+    "budget_breakdown": {{
+        "accommodation": "suggested amount",
+        "food": "suggested amount", 
+        "activities": "suggested amount",
+        "transportation": "suggested amount"
+    }},
+    "itinerary": [
+        {{
+            "day": 1,
+            "date": "{start_date}",
+            "day_name": "day of week",
+            "activities": ["activity 1", "activity 2", "activity 3"],
+            "meals": {{
+                "breakfast": "suggestion",
+                "lunch": "suggestion", 
+                "dinner": "suggestion"
+            }}
+        }}
+    ],
+    "accommodations": [
+        {{
+            "name": "Hotel/B&B name",
+            "type": "Hotel/B&B/Airbnb",
+            "price_range": "price per night",
+            "rating": 4.5,
+            "amenities": ["amenity1", "amenity2"],
+            "location": "area description",
+            "description": "brief description"
+        }}
+    ],
+    "activities": [
+        {{
+            "name": "Activity name",
+            "type": "Sightseeing/Cultural/Adventure",
+            "duration": "time needed",
+            "cost": "cost range",
+            "description": "what to expect",
+            "rating": 4.5,
+            "best_time": "when to do it"
+        }}
+    ],
+    "restaurants": [
+        {{
+            "name": "Restaurant name",
+            "cuisine": "cuisine type",
+            "price_range": "price per person",
+            "rating": 4.3,
+            "specialties": ["dish1", "dish2"],
+            "location": "area",
+            "reservation_required": true/false
+        }}
+    ],
+    "transportation": [
+        {{
+            "type": "Airport Transfer/Local/Intercity",
+            "option": "specific option",
+            "cost": "cost range",
+            "duration": "time needed",
+            "description": "what to expect",
+            "booking_required": true/false
+        }}
+    ],
+    "tips": [
+        "practical tip 1",
+        "practical tip 2",
+        "practical tip 3"
+    ],
+    "weather": {{
+        "temperature": "expected temperature range",
+        "conditions": "weather conditions",
+        "recommendation": "packing advice"
+    }},
+    "packing_list": [
+        "essential item 1",
+        "essential item 2",
+        "essential item 3"
+    ]
+}}
+
+IMPORTANT:
+- Make the plan realistic and practical
+- Consider the budget constraints carefully
+- Include specific, actionable recommendations
+- Base recommendations on the preferences provided
+- Ensure all JSON is properly formatted
+- Include 2-3 accommodation options
+- Include 5-8 activities
+- Include 3-5 restaurant suggestions
+- Make the itinerary detailed for each day
+- Include practical travel tips
+- Consider local customs and best practices
+
+Please respond with ONLY the JSON object, no additional text.
+"""
+        return prompt
+    
+    def _parse_ai_response(self, response_text: str, destination: str, start_date: str, 
+                          end_date: str, budget: float) -> Dict:
+        """Parse the AI response and return structured data"""
+        try:
+            # Clean the response text
+            cleaned_text = response_text.strip()
+            
+            # Try to extract JSON from the response
+            if cleaned_text.startswith('```json'):
+                cleaned_text = cleaned_text[7:]
+            if cleaned_text.endswith('```'):
+                cleaned_text = cleaned_text[:-3]
+            
+            # Parse JSON
+            trip_data = json.loads(cleaned_text)
+            
+            # Validate and enhance the response
+            return self._validate_and_enhance_response(trip_data, destination, start_date, end_date, budget)
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse AI response as JSON: {str(e)}")
+            logger.error(f"Response text: {response_text[:500]}...")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed")
+        except Exception as e:
+            logger.error(f"Error parsing AI response: {str(e)}")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed")
+    
+    def _validate_and_enhance_response(self, trip_data: Dict, destination: str, start_date: str, 
+                                     end_date: str, budget: float) -> Dict:
+        """Validate and enhance the AI response"""
+        # Ensure required fields exist
+        if 'destination' not in trip_data:
+            trip_data['destination'] = destination
+        
+        if 'budget' not in trip_data:
+            trip_data['budget'] = budget
+        
+        # Ensure itinerary is properly formatted
+        if 'itinerary' not in trip_data or not isinstance(trip_data['itinerary'], list):
+            trip_data['itinerary'] = self._generate_enhanced_itinerary(destination, start_date, end_date, "general")
+        
+        # Ensure other sections exist
+        if 'accommodations' not in trip_data:
+            trip_data['accommodations'] = []
+        
+        if 'activities' not in trip_data:
+            trip_data['activities'] = []
+        
+        if 'restaurants' not in trip_data:
+            trip_data['restaurants'] = []
+        
+        if 'transportation' not in trip_data:
+            trip_data['transportation'] = []
+        
+        if 'tips' not in trip_data:
+            trip_data['tips'] = []
+        
+        if 'weather' not in trip_data:
+            trip_data['weather'] = {}
+        
+        if 'packing_list' not in trip_data:
+            trip_data['packing_list'] = []
+        
+        return trip_data
     
     def _generate_enhanced_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
                                           budget: float, preferences: str) -> Dict:
@@ -318,61 +551,6 @@ class VertexAITripPlanner:
             essentials.extend(["Modest clothing", "Guidebook", "Notebook"])
         
         return essentials
-    
-    def _generate_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                 budget: float, preferences: str) -> Dict:
-        """Fallback mock suggestions for demo purposes"""
-        return {
-            "destination": destination,
-            "duration": f"{start_date} to {end_date}",
-            "budget": budget,
-            "itinerary": [
-                {
-                    "day": 1,
-                    "date": start_date,
-                    "activities": ["Arrive at destination", "Check into accommodation", "Explore local area"]
-                }
-            ],
-            "accommodations": [
-                {
-                    "name": f"Demo Hotel in {destination}",
-                    "type": "Hotel",
-                    "price_range": f"${budget * 0.3:.0f} - ${budget * 0.5:.0f} per night",
-                    "rating": 4.0,
-                    "amenities": ["WiFi", "Breakfast"]
-                }
-            ],
-            "activities": [
-                {
-                    "name": f"Explore {destination}",
-                    "type": "Sightseeing",
-                    "duration": "Half Day",
-                    "cost": "Free - $20",
-                    "description": "Walk through the city and visit landmarks"
-                }
-            ],
-            "restaurants": [
-                {
-                    "name": f"Local Restaurant in {destination}",
-                    "cuisine": "Local",
-                    "price_range": "$10-25 per person",
-                    "rating": 4.0,
-                    "specialties": ["Traditional dishes"]
-                }
-            ],
-            "transportation": [
-                {
-                    "type": "Local Transport",
-                    "option": "Public Transport",
-                    "cost": "$10-20 per day",
-                    "duration": "Unlimited daily use"
-                }
-            ],
-            "tips": [
-                f"Enjoy your trip to {destination}!",
-                "Check local customs and dress codes"
-            ]
-        }
 
 # Initialize the trip planner
 trip_planner = VertexAITripPlanner()
