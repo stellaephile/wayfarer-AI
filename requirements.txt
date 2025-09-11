@@ -14,3 +14,6 @@ google-auth-httplib2>=0.2.0
 google-api-python-client>=2.0.0
 langchain>=0.1.0
 langchain-google-vertexai>=1.0.0
+vertexai>=1.71.1
+google>= 3.0.0
+dotenv>=0.9.9

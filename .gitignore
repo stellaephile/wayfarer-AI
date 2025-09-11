@@ -27,6 +27,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.venv/
 
 # Database
 *.db
@@ -57,9 +58,9 @@ Thumbs.db
 logs/
 
 # Credentials
-credentials/
-*.json
-.env
+#credentials/
+#*.json
+#.env
 
 # Data
 data/

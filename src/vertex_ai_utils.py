@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st 
 import json
 import os
 from typing import Dict, List, Optional
@@ -8,28 +8,40 @@ from vertexai.generative_models import GenerativeModel, Part
 from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
+from dotenv import load_dotenv
+
+print("Current path:", os.getcwd())
+log_file = "logs/app.log"
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),           # Log to file
+        logging.StreamHandler()                  # Also print to terminal
+    ]
+)
+
+# Optional: Get named logger for your module
 logger = logging.getLogger(__name__)
 
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+def get_config_value(env_var, secret_key, default):
+    
+    try:
+        return os.getenv(env_var, st.secrets.get(secret_key, default))
+    except:
+        return os.getenv(env_var, default)
+    
 class VertexAITripPlanner:
     def __init__(self):
         # Load configuration from environment or secrets with fallback
-        try:
-            self.project_id = os.getenv("VERTEX_AI_PROJECT_ID", st.secrets.get("VERTEX_AI_PROJECT_ID", "your-project-id"))
-        except:
-            self.project_id = os.getenv("VERTEX_AI_PROJECT_ID", "your-project-id")
-        
-        try:
-            self.location = os.getenv("VERTEX_AI_LOCATION", st.secrets.get("VERTEX_AI_LOCATION", "us-central1"))
-        except:
-            self.location = os.getenv("VERTEX_AI_LOCATION", "us-central1")
-        
-        try:
-            self.model_name = os.getenv("VERTEX_AI_MODEL", st.secrets.get("VERTEX_AI_MODEL", "gemini-pro"))
-        except:
-            self.model_name = os.getenv("VERTEX_AI_MODEL", "gemini-pro")
+
+        self.project_id = get_config_value("VERTEX_AI_PROJECT_ID", "VERTEX_AI_PROJECT_ID", "your-project-id")
+        self.location = get_config_value("VERTEX_AI_LOCATION", "VERTEX_AI_LOCATION", "us-central1")
+        self.model_name = get_config_value("VERTEX_AI_MODEL", "VERTEX_AI_MODEL", "gemini-pro")
         
         # Check if we have valid configuration
         self.is_configured = self.project_id != "your-project-id"
@@ -41,7 +53,10 @@ class VertexAITripPlanner:
             try:
                 # Initialize Vertex AI
                 self._initialize_vertex_ai()
-                self.model = GenerativeModel(self.model_name)
+                self.model = GenerativeModel(self.model_name,generation_config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 1024
+                })
                 logger.info(f"Vertex AI initialized successfully with model: {self.model_name}")
             except Exception as e:
                 logger.error(f"Failed to initialize Vertex AI: {str(e)}")
@@ -54,10 +69,13 @@ class VertexAITripPlanner:
         try:
             # Try to get credentials from service account file
             credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            logger.info(f"Using credential path: {credentials_path if credentials_path else 'Default credentials'}")
             if credentials_path and os.path.exists(credentials_path):
+                logger.info("Path to credentials exists!")
                 credentials = service_account.Credentials.from_service_account_file(credentials_path)
                 vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
             else:
+                logger.error("Path to credentials NOT found!")
                 # Try to use default credentials
                 vertexai.init(project=self.project_id, location=self.location)
             
