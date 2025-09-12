@@ -100,12 +100,12 @@ class VertexAITripPlanner:
             prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences)
             
             generation_config = GenerationConfig(
-                max_output_tokens=2048,  # or higher if needed
+                max_output_tokens=20000,  # or higher if needed
                 temperature=0.7,
                 top_p=0.95,
             )
             # Generate response using Vertex AI
-            response = self.model.generate_content(prompt, generation_config=generation_config,response_mime_type="application/json")
+            response = self.model.generate_content(prompt, generation_config=generation_config)
 
             try:
                 with open("logs/prompts/output.txt", "w", encoding="utf-8") as f:
