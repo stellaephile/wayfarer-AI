@@ -1,0 +1,109 @@
+prompt = f"""
+You are an expert travel planner. Create a comprehensive trip plan for the following request:
+
+DESTINATION: {destination}
+DATES: {start_date} to {end_date} ({duration_days} days)
+BUDGET: ${budget:,.2f} USD
+PREFERENCES: {preferences}
+
+Please provide a detailed trip plan in the following JSON format. Respond ONLY in compact JSON. Do not include explanations, markdown, or code blocks.
+:
+
+{{
+    "destination": "{destination}",
+    "duration": "{duration_days} days",
+    "budget": {budget},
+    "budget_breakdown": {{
+        "accommodation": "suggested amount",
+        "food": "suggested amount", 
+        "activities": "suggested amount",
+        "transportation": "suggested amount"
+    }},
+    "itinerary": [
+        {{
+            "day": 1,
+            "date": "{start_date}",
+            "day_name": "day of week",
+            "activities": ["activity 1", "activity 2", "activity 3"],
+            "meals": {{
+                "breakfast": "suggestion",
+                "lunch": "suggestion", 
+                "dinner": "suggestion"
+            }}
+        }}
+    ],
+    "accommodations": [
+        {{
+            "name": "Hotel/B&B name",
+            "type": "Hotel/B&B/Airbnb",
+            "price_range": "price per night",
+            "rating": 4.5,
+            "amenities": ["amenity1", "amenity2"],
+            "location": "area description",
+            "description": "brief description"
+        }}
+    ],
+    "activities": [
+        {{
+            "name": "Activity name",
+            "type": "Sightseeing/Cultural/Adventure",
+            "duration": "time needed",
+            "cost": "cost range",
+            "description": "what to expect",
+            "rating": 4.5,
+            "best_time": "when to do it"
+        }}
+    ],
+    "restaurants": [
+        {{
+            "name": "Restaurant name",
+            "cuisine": "cuisine type",
+            "price_range": "price per person",
+            "rating": 4.3,
+            "specialties": ["dish1", "dish2"],
+            "location": "area",
+            "reservation_required": true/false
+        }}
+    ],
+    "transportation": [
+        {{
+            "type": "Airport Transfer/Local/Intercity",
+            "option": "specific option",
+            "cost": "cost range",
+            "duration": "time needed",
+            "description": "what to expect",
+            "booking_required": true/false
+        }}
+    ],
+    "tips": [
+        "practical tip 1",
+        "practical tip 2",
+        "practical tip 3"
+    ],
+    "weather": {{
+        "temperature": "expected temperature range",
+        "conditions": "weather conditions",
+        "recommendation": "packing advice"
+    }},
+    "packing_list": [
+        "essential item 1",
+        "essential item 2",
+        "essential item 3"
+    ]
+}}
+
+IMPORTANT:
+- Make the plan realistic and practical
+- Consider the budget constraints carefully
+- Include specific, actionable recommendations
+- Base recommendations on the preferences provided
+- Ensure all JSON is properly formatted
+- Include 2-3 accommodation options
+- Include 5-8 activities
+- Include 3-5 restaurant suggestions
+- Make the itinerary detailed for each day
+- Include practical travel tips
+- Consider local customs and best practices
+
+Please respond with ONLY the JSON object, no additional text.
+"""

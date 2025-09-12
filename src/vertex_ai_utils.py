@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part
+from vertexai.preview.generative_models import GenerationConfig
 from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
@@ -98,12 +99,30 @@ class VertexAITripPlanner:
             # Create a comprehensive prompt for the AI
             prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences)
             
+            generation_config = GenerationConfig(
+                max_output_tokens=2048,  # or higher if needed
+                temperature=0.7,
+                top_p=0.95,
+            )
             # Generate response using Vertex AI
-            response = self.model.generate_content(prompt)
-            
+            response = self.model.generate_content(prompt, generation_config=generation_config,response_mime_type="application/json")
+
+            try:
+                with open("logs/prompts/output.txt", "w", encoding="utf-8") as f:
+                    f.write(prompt)
+            except Exception as e:
+                logger.warning(f"Could not write prompt to prompts/output.txt: {e}")
+                    
+
             if response and response.text:
-                # Parse the AI response
+                try:
+                    with open("logs/responses/output.txt", "w", encoding="utf-8") as f:
+                        f.write(response.text)
+                except Exception as e:
+                    logger.warning(f"Could not write response to reponses/output.txt: {e}")
+                        # Parse the AI response
                 return self._parse_ai_response(response.text, destination, start_date, end_date, budget)
+            
             else:
                 logger.warning("Empty response from Vertex AI, falling back to mock data")
                 return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
@@ -121,113 +140,116 @@ class VertexAITripPlanner:
         duration_days = (end_dt - start_dt).days + 1
         
         prompt = f"""
-You are an expert travel planner. Create a comprehensive trip plan for the following request:
+You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 
-DESTINATION: {destination}
-DATES: {start_date} to {end_date} ({duration_days} days)
-BUDGET: ${budget:,.2f} USD
-PREFERENCES: {preferences}
+**TRIP DETAILS**
+- Destination: {destination}
+- Dates: {start_date} to {end_date} ({duration_days} days)
+- Budget: ${budget:,.2f} USD
+- Preferences: {preferences}
 
-Please provide a detailed trip plan in the following JSON format:
+**RESPONSE INSTRUCTIONS**
+Respond ONLY with a valid JSON object.
+- Do NOT include markdown, code blocks, or explanations.
+- JSON must be compact and properly formatted.
+- Follow the exact structure and field names below.
+- Ensure all fields are filled with realistic values.
+
+**REQUIRED JSON STRUCTURE**
 
 {{
-    "destination": "{destination}",
-    "duration": "{duration_days} days",
-    "budget": {budget},
-    "budget_breakdown": {{
-        "accommodation": "suggested amount",
-        "food": "suggested amount", 
-        "activities": "suggested amount",
-        "transportation": "suggested amount"
-    }},
-    "itinerary": [
-        {{
-            "day": 1,
-            "date": "{start_date}",
-            "day_name": "day of week",
-            "activities": ["activity 1", "activity 2", "activity 3"],
-            "meals": {{
-                "breakfast": "suggestion",
-                "lunch": "suggestion", 
-                "dinner": "suggestion"
-            }}
-        }}
-    ],
-    "accommodations": [
-        {{
-            "name": "Hotel/B&B name",
-            "type": "Hotel/B&B/Airbnb",
-            "price_range": "price per night",
-            "rating": 4.5,
-            "amenities": ["amenity1", "amenity2"],
-            "location": "area description",
-            "description": "brief description"
-        }}
-    ],
-    "activities": [
-        {{
-            "name": "Activity name",
-            "type": "Sightseeing/Cultural/Adventure",
-            "duration": "time needed",
-            "cost": "cost range",
-            "description": "what to expect",
-            "rating": 4.5,
-            "best_time": "when to do it"
-        }}
-    ],
-    "restaurants": [
-        {{
-            "name": "Restaurant name",
-            "cuisine": "cuisine type",
-            "price_range": "price per person",
-            "rating": 4.3,
-            "specialties": ["dish1", "dish2"],
-            "location": "area",
-            "reservation_required": true/false
-        }}
-    ],
-    "transportation": [
-        {{
-            "type": "Airport Transfer/Local/Intercity",
-            "option": "specific option",
-            "cost": "cost range",
-            "duration": "time needed",
-            "description": "what to expect",
-            "booking_required": true/false
-        }}
-    ],
-    "tips": [
-        "practical tip 1",
-        "practical tip 2",
-        "practical tip 3"
-    ],
-    "weather": {{
-        "temperature": "expected temperature range",
-        "conditions": "weather conditions",
-        "recommendation": "packing advice"
-    }},
-    "packing_list": [
-        "essential item 1",
-        "essential item 2",
-        "essential item 3"
-    ]
+  "destination": "{destination}",
+  "duration": "{duration_days} days",
+  "budget": {budget},
+  "budget_breakdown": {{
+    "accommodation": "amount",
+    "food": "amount",
+    "activities": "amount",
+    "transportation": "amount"
+  }},
+  "itinerary": [
+    {{
+      "day": 1,
+      "date": "{start_date}",
+      "day_name": "Day of week",
+      "activities": ["activity 1", "activity 2"],
+      "meals": {{
+        "breakfast": "meal suggestion",
+        "lunch": "meal suggestion",
+        "dinner": "meal suggestion"
+      }}
+    }}
+    // Add more days accordingly
+  ],
+  "accommodations": [
+    {{
+      "name": "Hotel/B&B name",
+      "type": "Hotel/B&B/Airbnb",
+      "price_range": "price per night",
+      "rating": 4.5,
+      "amenities": ["amenity1", "amenity2"],
+      "location": "area",
+      "description": "short description"
+    }}
+    // Include 2-3 options
+  ],
+  "activities": [
+    {{
+      "name": "Activity name",
+      "type": "Sightseeing/Cultural/Adventure",
+      "duration": "time required",
+      "cost": "cost range",
+      "description": "brief overview",
+      "rating": 4.5,
+      "best_time": "best time of day or season"
+    }}
+    // Include 5-8 activities
+  ],
+  "restaurants": [
+    {{
+      "name": "Restaurant name",
+      "cuisine": "type",
+      "price_range": "per person",
+      "rating": 4.3,
+      "specialties": ["dish1", "dish2"],
+      "location": "area",
+      "reservation_required": true
+    }}
+    // Include 3-5 options
+  ],
+  "transportation": [
+    {{
+      "type": "Airport Transfer/Local/Intercity",
+      "option": "e.g. taxi, train",
+      "cost": "range",
+      "duration": "time required",
+      "description": "brief info",
+      "booking_required": true
+    }}
+    // Include key transport modes
+  ],
+  "tips": [
+    "practical tip 1",
+    "practical tip 2",
+    "practical tip 3"
+  ],
+  "weather": {{
+    "temperature": "expected range",
+    "conditions": "weather type",
+    "recommendation": "packing advice"
+  }},
+  "packing_list": [
+    "essential item 1",
+    "essential item 2",
+    "essential item 3"
+  ]
 }}
 
-IMPORTANT:
-- Make the plan realistic and practical
-- Consider the budget constraints carefully
-- Include specific, actionable recommendations
-- Base recommendations on the preferences provided
-- Ensure all JSON is properly formatted
-- Include 2-3 accommodation options
-- Include 5-8 activities
-- Include 3-5 restaurant suggestions
-- Make the itinerary detailed for each day
-- Include practical travel tips
-- Consider local customs and best practices
-
-Please respond with ONLY the JSON object, no additional text.
+Only output the JSON. Nothing else.
 """
+        
+
+        
         return prompt
     
     def _parse_ai_response(self, response_text: str, destination: str, start_date: str, 

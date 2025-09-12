@@ -1,0 +1,9 @@
+```json
+{
+  "destination": "mumbai",
+  "duration": "8 days",
+  "budget": 1000.0,
+  "budget_breakdown": {
+    "accommodation": 280.0,
+    "food": 240.0,
+    "activities": 360.0
