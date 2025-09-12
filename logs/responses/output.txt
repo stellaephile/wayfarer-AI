@@ -1,13 +1,13 @@
 ```json
 {
-  "destination": "mumbai",
-  "duration": "2 days",
+  "destination": "Pune",
+  "duration": "8 days",
   "budget": 1000.0,
   "budget_breakdown": {
-    "accommodation": 300.0,
-    "food": 200.0,
-    "activities": 150.0,
-    "transportation": 100.0
+    "accommodation": 250.0,
+    "food": 250.0,
+    "activities": 300.0,
+    "transportation": 200.0
   },
   "itinerary": [
     {
@@ -15,16 +15,14 @@
       "date": "2025-09-12",
       "day_name": "Friday",
       "activities": [
-        "Arrive in Mumbai and check into your hotel in the Colaba/Fort area.",
-        "Visit the Gateway of India and take a morning ferry to the Elephanta Caves.",
-        "Explore the ancient rock-cut temples on Elephanta Island.",
-        "Return to Colaba for lunch and browse the stalls at Colaba Causeway.",
-        "In the evening, take a leisurely stroll along Marine Drive, also known as the Queen's Necklace."
+        "Arrive at Pune Airport (PNQ) and transfer to accommodation",
+        "Explore the historic grounds of Shaniwar Wada",
+        "Evening walk and shopping at Tulshibaug Market"
       ],
       "meals": {
-        "breakfast": "Kyani & Co. for a classic Irani cafe experience.",
-        "lunch": "Leopold Cafe or Cafe Mondegar for a lively atmosphere and multi-cuisine food.",
-        "dinner": "Trishna for exquisite seafood, specializing in butter garlic crab."
+        "breakfast": "Local cafe near your accommodation",
+        "lunch": "South Indian fare at Vaishali on FC Road",
+        "dinner": "Classic Irani cuisine at Goodluck Cafe"
       }
     },
     {
@@ -32,177 +30,302 @@
       "date": "2025-09-13",
       "day_name": "Saturday",
       "activities": [
-        "Visit the Chhatrapati Shivaji Maharaj Vastu Sangrahalaya (Prince of Wales Museum).",
-        "See the unique open-air laundry system at the Dhobi Ghat.",
-        "Take a guided cultural tour of Dharavi to understand its micro-economies and community spirit.",
-        "Explore the trendy neighborhood of Bandra, visiting Bandstand Promenade and seeing street art.",
-        "Enjoy a final evening exploring the vibrant nightlife or dining scene in Bandra."
+        "Visit the Aga Khan Palace, a monument of Indian history",
+        "Explore the ancient rock-cut Pataleshwar Cave Temple",
+        "Evening visit to the revered Dagdusheth Halwai Ganpati Temple"
       ],
       "meals": {
-        "breakfast": "Street food breakfast of Vada Pav or Kanda Bhaji from a reputable vendor.",
-        "lunch": "Candies in Bandra for a casual meal with a huge variety of snacks and dishes.",
-        "dinner": "The Bombay Canteen for innovative, modern Indian cuisine."
+        "breakfast": "At accommodation",
+        "lunch": "Authentic Maharashtrian Thali at Shabree",
+        "dinner": "Explore eateries in the vibrant Koregaon Park area"
+      }
+    },
+    {
+      "day": 3,
+      "date": "2025-09-14",
+      "day_name": "Sunday",
+      "activities": [
+        "Full-day trip and trek to the majestic Sinhagad Fort",
+        "Enjoy the panoramic views and the fresh air"
+      ],
+      "meals": {
+        "breakfast": "Early breakfast or packed meal",
+        "lunch": "Traditional Pithla Bhakri and Kanda Bhaji at the fort summit",
+        "dinner": "Relaxed dinner at a restaurant near your accommodation"
+      }
+    },
+    {
+      "day": 4,
+      "date": "2025-09-15",
+      "day_name": "Monday",
+      "activities": [
+        "Discover a vast collection of artifacts at Raja Dinkar Kelkar Museum",
+        "Stroll through the serene lanes of Koregaon Park",
+        "Experience the bohemian cafe culture of the area"
+      ],
+      "meals": {
+        "breakfast": "At accommodation",
+        "lunch": "Brunch at the iconic German Bakery",
+        "dinner": "Pan-Asian delicacies at Malaka Spice"
+      }
+    },
+    {
+      "day": 5,
+      "date": "2025-09-16",
+      "day_name": "Tuesday",
+      "activities": [
+        "Day trip to Kamshet for an adventurous tandem paragliding experience",
+        "Enjoy the stunning landscape of the Sahyadri mountains from the sky"
+      ],
+      "meals": {
+        "breakfast": "Early breakfast before departure",
+        "lunch": "Local meal at a dhaba in Kamshet",
+        "dinner": "Lebanese and Middle Eastern food at Marrakesh"
+      }
+    },
+    {
+      "day": 6,
+      "date": "2025-09-17",
+      "day_name": "Wednesday",
+      "activities": [
+        "Morning walk around the historic Savitribai Phule Pune University campus",
+        "Relaxing afternoon at Saras Baug garden and temple",
+        "Attend a traditional Lavani performance or a local play"
+      ],
+      "meals": {
+        "breakfast": "At accommodation",
+        "lunch": "Spicy and flavorful Misal Pav at Bedekar Misal",
+        "dinner": "Local cuisine in the Deccan Gymkhana area"
+      }
+    },
+    {
+      "day": 7,
+      "date": "2025-09-18",
+      "day_name": "Thursday",
+      "activities": [
+        "Day trip to Lohagad Fort for another scenic trek",
+        "Visit the nearby ancient Bhaja Caves"
+      ],
+      "meals": {
+        "breakfast": "Early breakfast",
+        "lunch": "Packed lunch or snacks near the fort base",
+        "dinner": "Farewell dinner at a specialty restaurant of your choice"
+      }
+    },
+    {
+      "day": 8,
+      "date": "2025-09-19",
+      "day_name": "Friday",
+      "activities": [
+        "Last-minute souvenir shopping on FC Road or Laxmi Road",
+        "Buy famous Shrewsbury biscuits from Kayani Bakery",
+        "Transfer to Pune Airport (PNQ) for departure"
+      ],
+      "meals": {
+        "breakfast": "Pastries and tea at Kayani Bakery",
+        "lunch": "A quick bite before heading to the airport"
       }
     }
   ],
   "accommodations": [
     {
-      "name": "Abode Bombay",
-      "type": "Hotel",
-      "price_range": "100-150 USD",
-      "rating": 4.7,
-      "amenities": ["Free Wi-Fi", "In-house cafe", "Unique decor", "Tour desk"],
-      "location": "Colaba",
-      "description": "A chic and stylish boutique hotel with a vintage-inspired aesthetic, located just minutes from the Gateway of India."
+      "name": "Zostel Pune",
+      "type": "Hostel",
+      "price_range": "$10 - $30 per night",
+      "rating": 4.6,
+      "amenities": [
+        "Free WiFi",
+        "Common Room",
+        "Rooftop Cafe",
+        "Lockers"
+      ],
+      "location": "Koregaon Park",
+      "description": "A vibrant and social hostel, perfect for budget-conscious solo travelers looking to meet people."
     },
     {
-      "name": "The Gordon House Hotel",
+      "name": "FabHotel Gargi Inn",
       "type": "Hotel",
-      "price_range": "90-130 USD",
+      "price_range": "$30 - $50 per night",
+      "rating": 4.2,
+      "amenities": [
+        "Free WiFi",
+        "Air Conditioning",
+        "Room Service"
+      ],
+      "location": "Viman Nagar",
+      "description": "A reliable budget hotel offering clean rooms and essential services, conveniently located near the airport."
+    },
+    {
+      "name": "Hotel Deccan Rendezvous",
+      "type": "Hotel",
+      "price_range": "$50 - $80 per night",
       "rating": 4.4,
-      "amenities": ["Rooftop pool", "Themed floors", "Restaurant", "Bar"],
-      "location": "Colaba",
-      "description": "A trendy boutique hotel with uniquely designed floors, offering a comfortable and stylish stay in a prime location."
-    },
-    {
-      "name": "Taj Lands End",
-      "type": "Hotel",
-      "price_range": "250-400 USD",
-      "rating": 4.8,
-      "amenities": ["Sea-view rooms", "Multiple restaurants", "Spa", "Outdoor pool"],
-      "location": "Bandra",
-      "description": "A luxury hotel offering breathtaking views of the Arabian Sea and the Bandra-Worli Sea Link, known for its impeccable service and amenities."
+      "amenities": [
+        "Swimming Pool",
+        "Restaurant",
+        "Fitness Center",
+        "Free WiFi"
+      ],
+      "location": "Deccan Gymkhana",
+      "description": "A comfortable mid-range hotel in a prime location, providing easy access to many of the city's attractions."
     }
   ],
   "activities": [
     {
-      "name": "Elephanta Caves",
-      "type": "Cultural",
-      "duration": "4-5 hours (including ferry)",
-      "cost": "20-30 USD (ferry + entry fee)",
-      "description": "A UNESCO World Heritage site featuring a network of sculpted caves with rock-cut stone sculptures dedicated to the Hindu god Shiva.",
-      "rating": 4.5,
-      "best_time": "Morning to avoid heat"
-    },
-    {
-      "name": "Gateway of India",
-      "type": "Sightseeing",
-      "duration": "1 hour",
-      "cost": "Free",
-      "description": "An iconic arch-monument built in the early 20th century, overlooking the Arabian Sea. It's the starting point for ferries to Elephanta Island.",
-      "rating": 4.6,
-      "best_time": "Early morning or evening"
-    },
-    {
-      "name": "Marine Drive",
-      "type": "Sightseeing",
-      "duration": "1-2 hours",
-      "cost": "Free",
-      "description": "A 3.6-kilometer-long boulevard in South Mumbai. It's famous for its C-shaped curve and the stunning view of the sunset, earning it the nickname 'Queen's Necklace'.",
+      "name": "Sinhagad Fort Trek",
+      "type": "Adventure",
+      "duration": "5-6 hours",
+      "cost": "$5 - $15 (transport and food)",
+      "description": "A popular and rewarding trek leading to a historic hilltop fortress with stunning views and local food stalls at the summit.",
       "rating": 4.7,
-      "best_time": "Evening"
+      "best_time": "Early morning"
     },
     {
-      "name": "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya",
+      "name": "Paragliding in Kamshet",
+      "type": "Adventure",
+      "duration": "6-8 hours (including travel)",
+      "cost": "$40 - $70 per flight",
+      "description": "Experience tandem paragliding over the beautiful Pawna Lake and Sahyadri hills. A major adventure hub near Pune.",
+      "rating": 4.8,
+      "best_time": "October to May"
+    },
+    {
+      "name": "Shaniwar Wada",
+      "type": "Cultural",
+      "duration": "1-2 hours",
+      "cost": "$1 - $4",
+      "description": "The historical seat of the Peshwas of the Maratha Empire. Explore the ruins, gates, and gardens of this once-magnificent palace.",
+      "rating": 4.2,
+      "best_time": "Afternoon"
+    },
+    {
+      "name": "Aga Khan Palace",
+      "type": "Cultural",
+      "duration": "1.5-2 hours",
+      "cost": "$1 - $4",
+      "description": "A beautiful palace with Italian arches and spacious lawns, deeply connected to India's freedom movement. It housed Mahatma Gandhi during the Quit India Movement.",
+      "rating": 4.4,
+      "best_time": "Morning"
+    },
+    {
+      "name": "Raja Dinkar Kelkar Museum",
       "type": "Cultural",
       "duration": "2-3 hours",
-      "cost": "8-12 USD (for foreign nationals)",
-      "description": "Mumbai's main museum, housing a vast collection of ancient Indian history as well as objects from foreign lands.",
-      "rating": 4.6,
-      "best_time": "Anytime during opening hours"
+      "cost": "$1 - $5",
+      "description": "A fascinating museum housing a one-man collection of over 20,000 Indian artifacts, including musical instruments, pottery, and the iconic Mastani Mahal.",
+      "rating": 4.5,
+      "best_time": "Anytime"
     },
     {
-      "name": "Dharavi Tour",
-      "type": "Cultural",
-      "duration": "2.5 hours",
-      "cost": "15-25 USD (for a guided tour)",
-      "description": "An insightful and ethical tour that focuses on the industrial and residential aspects of one of Asia's largest slums, highlighting its thriving small-scale industries.",
-      "rating": 4.8,
-      "best_time": "Morning or afternoon"
+      "name": "Lohagad Fort Trek",
+      "type": "Adventure",
+      "duration": "4-5 hours",
+      "cost": "$5 - $15 (transport)",
+      "description": "An 'Iron Fort' that is a UNESCO world heritage site. It's an easier trek compared to Sinhagad, with beautiful plateaus and a unique 'scorpion's tail' extension.",
+      "rating": 4.6,
+      "best_time": "Monsoon and Post-monsoon"
     }
   ],
   "restaurants": [
     {
-      "name": "Trishna",
-      "cuisine": "Seafood",
-      "price_range": "40-70 USD",
+      "name": "Vaishali",
+      "cuisine": "South Indian",
+      "price_range": "$5 - $10 per person",
       "rating": 4.5,
-      "specialties": ["Butter Pepper Garlic Crab", "Prawns Koliwada"],
-      "location": "Kala Ghoda, Fort",
-      "reservation_required": true
-    },
-    {
-      "name": "Britannia & Co. Restaurant",
-      "cuisine": "Parsi/Irani",
-      "price_range": "15-25 USD",
-      "rating": 4.3,
-      "specialties": ["Berry Pulao", "Sali Boti", "Caramel Custard"],
-      "location": "Ballard Estate, Fort",
+      "specialties": [
+        "Sambar",
+        "Mysore Masala Dosa",
+        "SPDP (Sev Puri Dahi Puri)"
+      ],
+      "location": "FC Road",
       "reservation_required": false
     },
     {
-      "name": "The Bombay Canteen",
-      "cuisine": "Modern Indian",
-      "price_range": "30-50 USD",
-      "rating": 4.6,
-      "specialties": ["Arbi Tuk", "Chettinad Prawns", "Gulab Nut"],
-      "location": "Lower Parel",
+      "name": "Shabree",
+      "cuisine": "Maharashtrian",
+      "price_range": "$10 - $15 per person",
+      "rating": 4.3,
+      "specialties": [
+        "Maharashtrian Thali",
+        "Puran Poli",
+        "Masale Bhat"
+      ],
+      "location": "FC Road",
       "reservation_required": true
     },
     {
-      "name": "Leopold Cafe",
-      "cuisine": "Multi-cuisine",
-      "price_range": "20-35 USD",
-      "rating": 4.1,
-      "specialties": ["Beer Tower", "Tandoori Chicken", "Chilli Beef"],
-      "location": "Colaba",
+      "name": "Goodluck Cafe",
+      "cuisine": "Irani Cafe",
+      "price_range": "$3 - $8 per person",
+      "rating": 4.3,
+      "specialties": [
+        "Bun Maska Chai",
+        "Keema Pav",
+        "Caramel Custard"
+      ],
+      "location": "Deccan Gymkhana",
+      "reservation_required": false
+    },
+    {
+      "name": "Bedekar Misal",
+      "cuisine": "Local Maharashtrian",
+      "price_range": "$2 - $4 per person",
+      "rating": 4.4,
+      "specialties": [
+        "Misal Pav",
+        "Batata Vada"
+      ],
+      "location": "Narayan Peth",
       "reservation_required": false
     }
   ],
   "transportation": [
     {
-      "type": "Airport Transfer",
-      "option": "Ride-sharing (Uber/Ola)",
-      "cost": "10-20 USD",
-      "duration": "60-90 minutes",
-      "description": "The most convenient way to get from Chhatrapati Shivaji Maharaj International Airport (BOM) to South Mumbai. Book via the app upon arrival.",
-      "booking_required": false
-    },
-    {
       "type": "Local",
       "option": "Auto-rickshaw",
-      "cost": "1-5 USD per trip",
+      "cost": "$1 - $5 per trip",
       "duration": "Varies",
-      "description": "Common three-wheelers for short distances. They are not allowed in the main South Mumbai area but are prevalent in the suburbs like Bandra.",
+      "description": "The most common way to get around for short distances. Use Uber/Ola apps to book for fair pricing or negotiate before starting.",
       "booking_required": false
     },
     {
       "type": "Local",
-      "option": "Taxi (Kaali Peeli)",
-      "cost": "3-15 USD per trip",
+      "option": "Ride-sharing Apps (Uber/Ola)",
+      "cost": "$2 - $10 per trip",
       "duration": "Varies",
-      "description": "The iconic black-and-yellow taxis of Mumbai. They run by meter and are available throughout the city.",
-      "booking_required": false
+      "description": "Convenient for booking cars and auto-rickshaws. Offers transparent pricing and digital payments.",
+      "booking_required": true
+    },
+    {
+      "type": "Intercity",
+      "option": "Private Car/Taxi",
+      "cost": "$30 - $60 for a day trip",
+      "duration": "Full Day",
+      "description": "Best option for day trips to forts like Sinhagad, Lohagad, or Kamshet. Can be booked via local operators or apps.",
+      "booking_required": true
     }
   ],
   "tips": [
-    "Use ride-sharing apps like Uber or Ola for convenient and fixed-price travel, especially for longer distances.",
-    "September is the end of monsoon season; expect humidity and sudden rain showers. Carry an umbrella at all times.",
-    "While street food is a must-try, stick to vendors that are popular with locals and appear hygienic to avoid stomach issues.",
-    "Bargaining is common in street markets like Colaba Causeway. Start by offering about half the quoted price."
+    "Use ride-sharing apps like Uber and Ola to book auto-rickshaws for metered, fair pricing.",
+    "September is post-monsoon, so the scenery is lush and green, but expect occasional showers. Carry a small umbrella or rain jacket.",
+    "Pune is a city of two-wheelers. Be cautious while crossing roads. The traffic can be chaotic.",
+    "Bargain respectfully at street markets like Tulshibaug and Laxmi Road for a good deal.",
+    "Do not miss trying the local street food, but choose vendors that look clean and are busy."
   ],
   "weather": {
-    "temperature": "25-30°C (77-86°F)",
-    "conditions": "Humid with intermittent rain showers",
-    "recommendation": "Pack light, quick-drying clothes, a waterproof jacket or umbrella, and water-resistant footwear."
+    "temperature": "22°C - 28°C (72°F - 82°F)",
+    "conditions": "Pleasant and lush post-monsoon weather with chances of light, sporadic rainfall.",
+    "recommendation": "Pack light clothing, a rain jacket or umbrella, and comfortable, water-resistant footwear for walking and trekking."
   },
   "packing_list": [
-    "Lightweight waterproof jacket and/or a compact umbrella",
-    "Comfortable, water-resistant walking shoes",
-    "Mosquito repellent",
-    "Portable power bank",
-    "Hand sanitizer and wet wipes",
-    "Breathable cotton or linen clothing"
+    "Comfortable trekking shoes",
+    "Light rain jacket or umbrella",
+    "Sunscreen, sunglasses, and a hat",
+    "Reusable water bottle to stay hydrated",
+    "Portable power bank for your devices",
+    "Light cotton clothes and one light jacket for evenings",
+    "Basic first-aid kit with insect repellent",
+    "Valid ID and travel documents"
   ]
 }
 ```
