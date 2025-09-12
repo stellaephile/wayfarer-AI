@@ -1,9 +1,208 @@
 ```json
 {
   "destination": "mumbai",
-  "duration": "8 days",
+  "duration": "2 days",
   "budget": 1000.0,
   "budget_breakdown": {
-    "accommodation": 280.0,
-    "food": 240.0,
-    "activities": 360.0
+    "accommodation": 300.0,
+    "food": 200.0,
+    "activities": 150.0,
+    "transportation": 100.0
+  },
+  "itinerary": [
+    {
+      "day": 1,
+      "date": "2025-09-12",
+      "day_name": "Friday",
+      "activities": [
+        "Arrive in Mumbai and check into your hotel in the Colaba/Fort area.",
+        "Visit the Gateway of India and take a morning ferry to the Elephanta Caves.",
+        "Explore the ancient rock-cut temples on Elephanta Island.",
+        "Return to Colaba for lunch and browse the stalls at Colaba Causeway.",
+        "In the evening, take a leisurely stroll along Marine Drive, also known as the Queen's Necklace."
+      ],
+      "meals": {
+        "breakfast": "Kyani & Co. for a classic Irani cafe experience.",
+        "lunch": "Leopold Cafe or Cafe Mondegar for a lively atmosphere and multi-cuisine food.",
+        "dinner": "Trishna for exquisite seafood, specializing in butter garlic crab."
+      }
+    },
+    {
+      "day": 2,
+      "date": "2025-09-13",
+      "day_name": "Saturday",
+      "activities": [
+        "Visit the Chhatrapati Shivaji Maharaj Vastu Sangrahalaya (Prince of Wales Museum).",
+        "See the unique open-air laundry system at the Dhobi Ghat.",
+        "Take a guided cultural tour of Dharavi to understand its micro-economies and community spirit.",
+        "Explore the trendy neighborhood of Bandra, visiting Bandstand Promenade and seeing street art.",
+        "Enjoy a final evening exploring the vibrant nightlife or dining scene in Bandra."
+      ],
+      "meals": {
+        "breakfast": "Street food breakfast of Vada Pav or Kanda Bhaji from a reputable vendor.",
+        "lunch": "Candies in Bandra for a casual meal with a huge variety of snacks and dishes.",
+        "dinner": "The Bombay Canteen for innovative, modern Indian cuisine."
+      }
+    }
+  ],
+  "accommodations": [
+    {
+      "name": "Abode Bombay",
+      "type": "Hotel",
+      "price_range": "100-150 USD",
+      "rating": 4.7,
+      "amenities": ["Free Wi-Fi", "In-house cafe", "Unique decor", "Tour desk"],
+      "location": "Colaba",
+      "description": "A chic and stylish boutique hotel with a vintage-inspired aesthetic, located just minutes from the Gateway of India."
+    },
+    {
+      "name": "The Gordon House Hotel",
+      "type": "Hotel",
+      "price_range": "90-130 USD",
+      "rating": 4.4,
+      "amenities": ["Rooftop pool", "Themed floors", "Restaurant", "Bar"],
+      "location": "Colaba",
+      "description": "A trendy boutique hotel with uniquely designed floors, offering a comfortable and stylish stay in a prime location."
+    },
+    {
+      "name": "Taj Lands End",
+      "type": "Hotel",
+      "price_range": "250-400 USD",
+      "rating": 4.8,
+      "amenities": ["Sea-view rooms", "Multiple restaurants", "Spa", "Outdoor pool"],
+      "location": "Bandra",
+      "description": "A luxury hotel offering breathtaking views of the Arabian Sea and the Bandra-Worli Sea Link, known for its impeccable service and amenities."
+    }
+  ],
+  "activities": [
+    {
+      "name": "Elephanta Caves",
+      "type": "Cultural",
+      "duration": "4-5 hours (including ferry)",
+      "cost": "20-30 USD (ferry + entry fee)",
+      "description": "A UNESCO World Heritage site featuring a network of sculpted caves with rock-cut stone sculptures dedicated to the Hindu god Shiva.",
+      "rating": 4.5,
+      "best_time": "Morning to avoid heat"
+    },
+    {
+      "name": "Gateway of India",
+      "type": "Sightseeing",
+      "duration": "1 hour",
+      "cost": "Free",
+      "description": "An iconic arch-monument built in the early 20th century, overlooking the Arabian Sea. It's the starting point for ferries to Elephanta Island.",
+      "rating": 4.6,
+      "best_time": "Early morning or evening"
+    },
+    {
+      "name": "Marine Drive",
+      "type": "Sightseeing",
+      "duration": "1-2 hours",
+      "cost": "Free",
+      "description": "A 3.6-kilometer-long boulevard in South Mumbai. It's famous for its C-shaped curve and the stunning view of the sunset, earning it the nickname 'Queen's Necklace'.",
+      "rating": 4.7,
+      "best_time": "Evening"
+    },
+    {
+      "name": "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya",
+      "type": "Cultural",
+      "duration": "2-3 hours",
+      "cost": "8-12 USD (for foreign nationals)",
+      "description": "Mumbai's main museum, housing a vast collection of ancient Indian history as well as objects from foreign lands.",
+      "rating": 4.6,
+      "best_time": "Anytime during opening hours"
+    },
+    {
+      "name": "Dharavi Tour",
+      "type": "Cultural",
+      "duration": "2.5 hours",
+      "cost": "15-25 USD (for a guided tour)",
+      "description": "An insightful and ethical tour that focuses on the industrial and residential aspects of one of Asia's largest slums, highlighting its thriving small-scale industries.",
+      "rating": 4.8,
+      "best_time": "Morning or afternoon"
+    }
+  ],
+  "restaurants": [
+    {
+      "name": "Trishna",
+      "cuisine": "Seafood",
+      "price_range": "40-70 USD",
+      "rating": 4.5,
+      "specialties": ["Butter Pepper Garlic Crab", "Prawns Koliwada"],
+      "location": "Kala Ghoda, Fort",
+      "reservation_required": true
+    },
+    {
+      "name": "Britannia & Co. Restaurant",
+      "cuisine": "Parsi/Irani",
+      "price_range": "15-25 USD",
+      "rating": 4.3,
+      "specialties": ["Berry Pulao", "Sali Boti", "Caramel Custard"],
+      "location": "Ballard Estate, Fort",
+      "reservation_required": false
+    },
+    {
+      "name": "The Bombay Canteen",
+      "cuisine": "Modern Indian",
+      "price_range": "30-50 USD",
+      "rating": 4.6,
+      "specialties": ["Arbi Tuk", "Chettinad Prawns", "Gulab Nut"],
+      "location": "Lower Parel",
+      "reservation_required": true
+    },
+    {
+      "name": "Leopold Cafe",
+      "cuisine": "Multi-cuisine",
+      "price_range": "20-35 USD",
+      "rating": 4.1,
+      "specialties": ["Beer Tower", "Tandoori Chicken", "Chilli Beef"],
+      "location": "Colaba",
+      "reservation_required": false
+    }
+  ],
+  "transportation": [
+    {
+      "type": "Airport Transfer",
+      "option": "Ride-sharing (Uber/Ola)",
+      "cost": "10-20 USD",
+      "duration": "60-90 minutes",
+      "description": "The most convenient way to get from Chhatrapati Shivaji Maharaj International Airport (BOM) to South Mumbai. Book via the app upon arrival.",
+      "booking_required": false
+    },
+    {
+      "type": "Local",
+      "option": "Auto-rickshaw",
+      "cost": "1-5 USD per trip",
+      "duration": "Varies",
+      "description": "Common three-wheelers for short distances. They are not allowed in the main South Mumbai area but are prevalent in the suburbs like Bandra.",
+      "booking_required": false
+    },
+    {
+      "type": "Local",
+      "option": "Taxi (Kaali Peeli)",
+      "cost": "3-15 USD per trip",
+      "duration": "Varies",
+      "description": "The iconic black-and-yellow taxis of Mumbai. They run by meter and are available throughout the city.",
+      "booking_required": false
+    }
+  ],
+  "tips": [
+    "Use ride-sharing apps like Uber or Ola for convenient and fixed-price travel, especially for longer distances.",
+    "September is the end of monsoon season; expect humidity and sudden rain showers. Carry an umbrella at all times.",
+    "While street food is a must-try, stick to vendors that are popular with locals and appear hygienic to avoid stomach issues.",
+    "Bargaining is common in street markets like Colaba Causeway. Start by offering about half the quoted price."
+  ],
+  "weather": {
+    "temperature": "25-30°C (77-86°F)",
+    "conditions": "Humid with intermittent rain showers",
+    "recommendation": "Pack light, quick-drying clothes, a waterproof jacket or umbrella, and water-resistant footwear."
+  },
+  "packing_list": [
+    "Lightweight waterproof jacket and/or a compact umbrella",
+    "Comfortable, water-resistant walking shoes",
+    "Mosquito repellent",
+    "Portable power bank",
+    "Hand sanitizer and wet wipes",
+    "Breathable cotton or linen clothing"
+  ]
+}
+```

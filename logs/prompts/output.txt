@@ -3,9 +3,9 @@ You are a professional travel planner. Create a detailed, realistic, and budget-
 
 **TRIP DETAILS**
 - Destination: mumbai
-- Dates: 2025-09-12 to 2025-09-19 (8 days)
+- Dates: 2025-09-12 to 2025-09-13 (2 days)
 - Budget: $1,000.00 USD
-- Preferences: Nightlife | Additional: best clubs
+- Preferences: Culture | Additional: best places to stay
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -18,7 +18,7 @@ Respond ONLY with a valid JSON object.
 
 {
   "destination": "mumbai",
-  "duration": "8 days",
+  "duration": "2 days",
   "budget": 1000.0,
   "budget_breakdown": {
     "accommodation": "amount",
