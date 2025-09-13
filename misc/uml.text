@@ -1,0 +1,214 @@
+@startuml
+class VertexAITripPlanner {
+    - project_id: str
+    - location: str
+    - model_name: str
+    - is_configured: bool
+    - model
+    + __init__()
+    - _initialize_vertex_ai()
+    + generate_trip_suggestions(destination: str, start_date: str, end_date: str, budget: float, preferences: str) : Dict
+    - _create_trip_planning_prompt(destination: str, start_date: str, end_date: str, budget: float, preferences: str) : str
+    - _parse_ai_response(response_text: str, destination: str, start_date: str, end_date: str, budget: float) : Dict
+    - _validate_and_enhance_response(trip_data: Dict, destination: str, start_date: str, end_date: str, budget: float) : Dict
+    - _generate_enhanced_mock_suggestions(destination: str, start_date: str, end_date: str, budget: float, preferences: str) : Dict
+    - _generate_enhanced_itinerary(destination: str, start_date: str, end_date: str, preferences: str) : List[Dict]
+    - _get_activities_for_day(destination: str, day: int, preferences: str) : List[str]
+    - _get_meals_for_day(destination: str, day: int) : Dict
+    - _generate_enhanced_accommodations(destination: str, budget: float, duration_days: int) : List[Dict]
+    - _generate_enhanced_activities(destination: str, preferences: str, budget: float) : List[Dict]
+    - _generate_enhanced_restaurants(destination: str, budget: float, duration_days: int) : List[Dict]
+    - _generate_enhanced_transportation(destination: str, budget: float) : List[Dict]
+    - _generate_enhanced_tips(destination: str, preferences: str) : List[str]
+    - _generate_weather_info(destination: str, start_date: str) : Dict
+    - _generate_packing_list(destination: str, preferences: str, duration_days: int) : List[str]
+}
+
+class vertexai {
+}
+class GenerativeModel {
+}
+class GenerationConfig {
+}
+class aiplatform {
+}
+class service_account {
+}
+
+VertexAITripPlanner --> vertexai : uses
+VertexAITripPlanner --> GenerativeModel : uses
+VertexAITripPlanner --> GenerationConfig : uses
+VertexAITripPlanner --> aiplatform : uses
+VertexAITripPlanner --> service_account : uses
+
+@enduml
+
+-----
+@startuml
+
+class DatabaseManager {
+    - db_path: str
+    + __init__(db_path="trip_planner.db")
+    + init_database()
+    + create_user(username, email, password, name=None)
+    + create_google_user(username, email, name, google_id, picture="", verified_email=False)
+    + authenticate_user(username_or_email, password)
+    + get_user_by_id(user_id)
+    + get_user_by_email(email)
+    + update_user_profile(user_id, **kwargs)
+    + update_last_login(user_id)
+    + create_trip(user_id, destination, start_date, end_date, budget, preferences, ai_suggestions)
+    + get_user_trips(user_id)
+    + get_trip_by_id(trip_id, user_id)
+    + update_trip(trip_id, user_id, **kwargs)
+    + delete_trip(trip_id, user_id)
+    + get_user_stats(user_id)
+}
+
+class Auth {
+    + validate_email(email)
+    + validate_password(password)
+    + validate_username(username)
+    + login_page()
+    + signup_page()
+    + logout()
+    + show_auth_pages()
+    + check_auth()
+}
+
+class TripPlannerUI {
+    + show_trip_planner()
+    + show_dashboard()
+    + plan_new_trip()
+    + show_my_trips()
+    + show_trip_details(trip_data)
+    + show_analytics()
+    + show_profile()
+    + logout()
+    + check_auth()
+}
+
+DatabaseManager "1" o-- "1" Auth : uses
+DatabaseManager "1" o-- "1" TripPlannerUI : uses
+
+@enduml
+
+--------
+@startuml
+
+class Auth {
+    + validate_email(email: str) : bool
+    + validate_password(password: str) : bool
+    + validate_username(username: str) : bool
+    + login_page() : None
+    + signup_page() : None
+    + logout() : None
+    + show_auth_pages() : None
+    + check_auth() : bool
+}
+
+class GoogleAuth {
+    + show_google_signin_button() : None
+    + handle_google_callback() : bool
+}
+
+class DatabaseManager {
+    + create_user(...)
+    + create_google_user(...)
+    + authenticate_user(...)
+    + get_user_by_id(...)
+    + get_user_by_email(...)
+    + update_user_profile(...)
+    + update_last_login(...)
+}
+
+Auth ..> GoogleAuth : uses
+Auth ..> DatabaseManager : uses
+
+@enduml
+
+----------
+@startuml
+
+class TripPlannerUI {
+    + show_trip_planner() : None
+    + show_dashboard() : None
+    + plan_new_trip() : None
+    + show_my_trips() : None
+    + show_trip_details(trip_data: Dict) : None
+    + show_analytics() : None
+    + show_profile() : None
+    + logout() : None
+    + check_auth() : bool
+}
+
+class DatabaseManager {
+    + get_user_trips(user_id)
+    + create_trip(...)
+    + get_trip_by_id(trip_id, user_id)
+    + update_trip(trip_id, user_id, **kwargs)
+    + delete_trip(trip_id, user_id)
+    + get_user_stats(user_id)
+}
+
+class VertexAITripPlanner {
+    + generate_trip_suggestions(destination, start_date, end_date, budget, preferences) : Dict
+}
+
+TripPlannerUI ..> DatabaseManager : uses
+TripPlannerUI ..> VertexAITripPlanner : uses
+
+@enduml
+
+-------
+@startuml
+
+class App {
+    + main() : None
+}
+
+class Auth {
+    + show_auth_pages() : None
+    + check_auth() : bool
+}
+
+class TripPlannerUI {
+    + show_trip_planner() : None
+}
+
+App ..> Auth : uses
+App ..> TripPlannerUI : uses
+
+@enduml
+
+--------
+
+@startuml
+actor User
+participant "Streamlit UI" as UI
+participant "Auth Module" as Auth
+participant "DatabaseManager" as DB
+participant "VertexAITripPlanner" as AI
+participant "Google Maps API" as Maps
+
+User -> UI : Open app
+UI -> Auth : check_auth()
+Auth -> DB : authenticate_user()
+DB --> Auth : user info / auth result
+Auth --> UI : auth status
+
+alt Authenticated
+    User -> UI : Click "Plan New Trip"
+    UI -> AI : generate_trip_suggestions(destination, dates, budget, prefs)
+    AI --> UI : trip plan (itinerary, hotels, etc.)
+    UI -> DB : create_trip(user_id, trip details)
+    DB --> UI : trip_id
+    UI -> Maps : show map for destination
+    Maps --> UI : map iframe
+    UI -> User : Show trip details + map
+else Not Authenticated
+    UI -> User : Show login/signup page
+end
+
+@enduml
+

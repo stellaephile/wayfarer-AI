@@ -9,6 +9,10 @@ import base64
 import hashlib
 import secrets
 from database import db
+from dotenv import load_dotenv
+
+## Load environment variables from .env file
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Google OAuth configuration with proper error handling
 try:
