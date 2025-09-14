@@ -1,4 +1,6 @@
+# app.py
 import streamlit as st
+import os
 
 # Configure page FIRST - before any other Streamlit commands
 st.set_page_config(
@@ -42,11 +44,20 @@ def main():
         background-color: #0d5a8a;
         color: white;
     }
-    .metric-card {
-        background-color: #f0f2f6;
+    .sustainable-option {
+        border-left: 4px solid #28a745;
+        padding-left: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+        margin: 0.5rem 0;
+    }
+    .booking-card {
+        background-color: #ffffff;
         padding: 1rem;
         border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
+        border: 1px solid #e0e0e0;
+        margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -55,7 +66,7 @@ def main():
     if not check_auth():
         # Show authentication pages
         st.markdown('<h1 class="main-header">🗺️ AI Trip Planner</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="welcome-message">Plan your perfect trip with AI-powered suggestions</p>', unsafe_allow_html=True)
+        st.markdown('<p class="welcome-message">Plan your perfect trip with AI-powered suggestions and sustainable travel options</p>', unsafe_allow_html=True)
         show_auth_pages()
     else:
         # Show main application

@@ -1,471 +1,278 @@
-import sqlite3
-import bcrypt
-import streamlit as st
-from datetime import datetime
-import os
+# database.py - Local Files + Git Storage
 import json
+import os
+import bcrypt
+from datetime import datetime
+import streamlit as st
 
 class DatabaseManager:
-    def __init__(self, db_path="trip_planner.db"):
-        self.db_path = db_path
-        self.init_database()
-    
-    def init_database(self):
-        """Initialize the database with users and trips tables"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+    def __init__(self):
+        # Create data directories
+        self.base_dir = "data"
+        self.users_dir = f"{self.base_dir}/users"
+        self.chats_dir = f"{self.base_dir}/chats"
+        self.trips_dir = f"{self.base_dir}/trips"
+        self.logs_dir = f"{self.base_dir}/logs"
         
-        # Users table with enhanced security, Google OAuth support, and user profile fields
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT,
-                name TEXT,
-                google_id TEXT UNIQUE,
-                picture TEXT,
-                verified_email BOOLEAN DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP,
-                is_active BOOLEAN DEFAULT 1,
-                login_method TEXT DEFAULT 'email',
-                personal_number TEXT,
-                address TEXT,
-                pincode TEXT,
-                state TEXT,
-                alternate_number TEXT
-            )
-        ''')
+        # Create all directories
+        for dir_path in [self.base_dir, self.users_dir, self.chats_dir, self.trips_dir, self.logs_dir]:
+            os.makedirs(dir_path, exist_ok=True)
         
-        # Trips table with JSON support for better data storage
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS trips (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                destination TEXT NOT NULL,
-                start_date DATE,
-                end_date DATE,
-                budget REAL,
-                preferences TEXT,
-                ai_suggestions TEXT,
-                status TEXT DEFAULT 'planned',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        ''')
+        # Initialize master index files
+        self.users_index = f"{self.base_dir}/users_index.json"
+        self.init_index_file(self.users_index)
+
+    def init_index_file(self, file_path):
+        """Initialize index file if it doesn't exist"""
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                json.dump({}, f)
+
+    def load_index(self, file_path):
+        """Load index file"""
+        try:
+            with open(file_path, 'r') as f:
+                return json.load(f)
+        except:
+            return {}
+
+    def save_index(self, file_path, data):
+        """Save index file"""
+        with open(file_path, 'w') as f:
+            json.dump(data, f, indent=2, default=str)
+
+    def log_activity(self, activity_type, data):
+        """Log all activities for debugging/analytics"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        log_file = f"{self.logs_dir}/{activity_type}_{timestamp}.json"
         
-        conn.commit()
-        conn.close()
-    
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "activity": activity_type,
+            "data": data
+        }
+        
+        with open(log_file, 'w') as f:
+            json.dump(log_entry, f, indent=2, default=str)
+        
+        print(f"📝 Logged: {activity_type} -> {log_file}")
+
     def create_user(self, username, email, password, name=None):
-        """Create a new user with hashed password"""
+        """Create a new user"""
         try:
-            # Hash the password
-            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            # Load existing users index
+            users_index = self.load_index(self.users_index)
             
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            # Check if user exists
+            for user_id, user_info in users_index.items():
+                if user_info['email'] == email:
+                    return False, "Email already exists"
+                if user_info['username'] == username:
+                    return False, "Username already exists"
             
-            cursor.execute('''
-                INSERT INTO users (username, email, password_hash, name, login_method)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (username, email, password_hash, name, 'email'))
+            # Create new user
+            user_id = f"user_{len(users_index) + 1}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             
-            conn.commit()
-            user_id = cursor.lastrowid
-            conn.close()
+            user_data = {
+                "id": user_id,
+                "username": username,
+                "email": email,
+                "name": name,
+                "password_hash": pw_hash,
+                "login_method": "email",
+                "is_active": True,
+                "created_at": datetime.now().isoformat()
+            }
             
-            return True, f"User created successfully with ID: {user_id}"
+            # Save user data to individual file
+            user_file = f"{self.users_dir}/{user_id}.json"
+            with open(user_file, 'w') as f:
+                json.dump(user_data, f, indent=2, default=str)
             
-        except sqlite3.IntegrityError as e:
-            if "username" in str(e):
-                return False, "Username already exists"
-            elif "email" in str(e):
-                return False, "Email already exists"
-            else:
-                return False, f"Database error: {str(e)}"
+            # Update index
+            users_index[user_id] = {
+                "username": username,
+                "email": email,
+                "file_path": user_file,
+                "created_at": user_data["created_at"]
+            }
+            self.save_index(self.users_index, users_index)
+            
+            # Log activity
+            self.log_activity("user_created", {
+                "user_id": user_id,
+                "username": username,
+                "email": email
+            })
+            
+            return True, f"User created: {user_id}"
+            
         except Exception as e:
+            self.log_activity("user_creation_error", {"error": str(e)})
             return False, f"Error creating user: {str(e)}"
-    
-    def create_google_user(self, username, email, name, google_id, picture="", verified_email=False):
-        """Create a new user from Google OAuth"""
+
+    def authenticate_user(self, identifier, password):
+        """Authenticate user by email or username"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            users_index = self.load_index(self.users_index)
             
-            cursor.execute('''
-                INSERT INTO users (username, email, name, google_id, picture, verified_email, login_method)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (username, email, name, google_id, picture, verified_email, 'google'))
+            # Find user by email or username
+            target_user_id = None
+            for user_id, user_info in users_index.items():
+                if user_info['email'] == identifier or user_info['username'] == identifier:
+                    target_user_id = user_id
+                    break
             
-            conn.commit()
-            user_id = cursor.lastrowid
-            conn.close()
+            if not target_user_id:
+                self.log_activity("login_failed", {"identifier": identifier, "reason": "user_not_found"})
+                return None
             
-            return True, f"Google user created successfully with ID: {user_id}"
+            # Load user data
+            user_file = f"{self.users_dir}/{target_user_id}.json"
+            with open(user_file, 'r') as f:
+                user_data = json.load(f)
             
-        except sqlite3.IntegrityError as e:
-            if "username" in str(e):
-                return False, "Username already exists"
-            elif "email" in str(e):
-                return False, "Email already exists"
-            elif "google_id" in str(e):
-                return False, "Google ID already exists"
+            # Verify password
+            if bcrypt.checkpw(password.encode(), user_data["password_hash"].encode()):
+                self.log_activity("login_success", {
+                    "user_id": target_user_id,
+                    "username": user_data["username"]
+                })
+                return user_data
             else:
-                return False, f"Database error: {str(e)}"
-        except Exception as e:
-            return False, f"Error creating Google user: {str(e)}"
-    
-    def authenticate_user(self, username_or_email, password):
-        """Authenticate user with username/email and password"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Check if input is email or username
-            if '@' in username_or_email:
-                cursor.execute('''
-                    SELECT id, username, email, password_hash, name, is_active, login_method
-                    FROM users WHERE email = ? AND is_active = 1
-                ''', (username_or_email,))
-            else:
-                cursor.execute('''
-                    SELECT id, username, email, password_hash, name, is_active, login_method
-                    FROM users WHERE username = ? AND is_active = 1
-                ''', (username_or_email,))
-            
-            user = cursor.fetchone()
-            conn.close()
-            
-            if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-                # Update last login
-                self.update_last_login(user[0])
-                return {
-                    'id': user[0],
-                    'username': user[1],
-                    'email': user[2],
-                    'name': user[4],
-                    'is_active': user[5],
-                    'login_method': user[6]
-                }
-            else:
+                self.log_activity("login_failed", {"identifier": identifier, "reason": "wrong_password"})
                 return None
                 
         except Exception as e:
-            st.error(f"Authentication error: {str(e)}")
+            self.log_activity("authentication_error", {"error": str(e)})
             return None
-    
-    def get_user_by_id(self, user_id):
-        """Get user by ID"""
+
+    def save_chat(self, user_id, message, response):
+        """Save chat conversation"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            timestamp = datetime.now()
+            chat_id = f"chat_{user_id}_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}"
             
-            cursor.execute('''
-                SELECT id, username, email, name, google_id, picture, verified_email, 
-                       created_at, last_login, is_active, login_method, personal_number,
-                       address, pincode, state, alternate_number
-                FROM users WHERE id = ? AND is_active = 1
-            ''', (user_id,))
+            chat_data = {
+                "chat_id": chat_id,
+                "user_id": user_id,
+                "message": message,
+                "response": response,
+                "timestamp": timestamp.isoformat()
+            }
             
-            user = cursor.fetchone()
-            conn.close()
+            # Save to individual chat file
+            chat_file = f"{self.chats_dir}/{chat_id}.json"
+            with open(chat_file, 'w') as f:
+                json.dump(chat_data, f, indent=2, default=str)
             
-            if user:
-                return {
-                    'id': user[0],
-                    'username': user[1],
-                    'email': user[2],
-                    'name': user[3],
-                    'google_id': user[4],
-                    'picture': user[5],
-                    'verified_email': user[6],
-                    'created_at': user[7],
-                    'last_login': user[8],
-                    'is_active': user[9],
-                    'login_method': user[10],
-                    'personal_number': user[11],
-                    'address': user[12],
-                    'pincode': user[13],
-                    'state': user[14],
-                    'alternate_number': user[15]
-                }
-            return None
+            # Log activity
+            self.log_activity("chat_saved", {
+                "user_id": user_id,
+                "chat_id": chat_id,
+                "message_length": len(message),
+                "response_length": len(response)
+            })
             
         except Exception as e:
-            st.error(f"Error getting user: {str(e)}")
-            return None
-    
-    def get_user_by_email(self, email):
-        """Get user by email"""
+            self.log_activity("chat_save_error", {"error": str(e)})
+
+    def get_user_chats(self, user_id, limit=50):
+        """Get user's chat history"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            user_chats = []
             
-            cursor.execute('''
-                SELECT id, username, email, name, google_id, picture, verified_email, 
-                       created_at, last_login, is_active, login_method, personal_number,
-                       address, pincode, state, alternate_number
-                FROM users WHERE email = ? AND is_active = 1
-            ''', (email,))
+            # Scan all chat files for this user
+            for filename in os.listdir(self.chats_dir):
+                if filename.startswith(f"chat_{user_id}_") and filename.endswith('.json'):
+                    chat_file = f"{self.chats_dir}/{filename}"
+                    with open(chat_file, 'r') as f:
+                        chat_data = json.load(f)
+                        chat_data['timestamp'] = datetime.fromisoformat(chat_data['timestamp'])
+                        user_chats.append(chat_data)
             
-            user = cursor.fetchone()
-            conn.close()
-            
-            if user:
-                return {
-                    'id': user[0],
-                    'username': user[1],
-                    'email': user[2],
-                    'name': user[3],
-                    'google_id': user[4],
-                    'picture': user[5],
-                    'verified_email': user[6],
-                    'created_at': user[7],
-                    'last_login': user[8],
-                    'is_active': user[9],
-                    'login_method': user[10],
-                    'personal_number': user[11],
-                    'address': user[12],
-                    'pincode': user[13],
-                    'state': user[14],
-                    'alternate_number': user[15]
-                }
-            return None
+            # Sort by timestamp (most recent first) and limit
+            user_chats.sort(key=lambda x: x['timestamp'], reverse=True)
+            return user_chats[:limit]
             
         except Exception as e:
-            st.error(f"Error getting user: {str(e)}")
-            return None
-    
-    def update_user_profile(self, user_id, **kwargs):
-        """Update user profile information"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Build dynamic update query
-            allowed_fields = ['name', 'personal_number', 'address', 'pincode', 'state', 'alternate_number']
-            update_fields = []
-            values = []
-            
-            for field, value in kwargs.items():
-                if field in allowed_fields:
-                    update_fields.append(f"{field} = ?")
-                    values.append(value)
-            
-            if not update_fields:
-                return False, "No valid fields to update"
-            
-            values.append(user_id)
-            query = f"UPDATE users SET {', '.join(update_fields)} WHERE id = ?"
-            
-            cursor.execute(query, values)
-            conn.commit()
-            conn.close()
-            
-            return True, "Profile updated successfully"
-            
-        except Exception as e:
-            return False, f"Error updating profile: {str(e)}"
-    
-    def update_last_login(self, user_id):
-        """Update last login timestamp"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?
-            ''', (user_id,))
-            
-            conn.commit()
-            conn.close()
-            
-        except Exception as e:
-            st.error(f"Error updating last login: {str(e)}")
-    
+            self.log_activity("get_chats_error", {"error": str(e)})
+            return []
+
     def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions):
         """Create a new trip"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            timestamp = datetime.now()
+            trip_id = f"trip_{user_id}_{timestamp.strftime('%Y%m%d_%H%M%S')}"
             
-            cursor.execute('''
-                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions))
+            trip_data = {
+                "id": trip_id,
+                "user_id": user_id,
+                "destination": destination,
+                "start_date": start_date,
+                "end_date": end_date,
+                "budget": budget,
+                "preferences": preferences,
+                "ai_suggestions": ai_suggestions,
+                "status": "planned",
+                "created_at": timestamp.isoformat()
+            }
             
-            conn.commit()
-            trip_id = cursor.lastrowid
-            conn.close()
+            # Save to individual trip file
+            trip_file = f"{self.trips_dir}/{trip_id}.json"
+            with open(trip_file, 'w') as f:
+                json.dump(trip_data, f, indent=2, default=str)
             
-            return True, f"Trip created successfully with ID: {trip_id}"
+            # Log activity
+            self.log_activity("trip_created", {
+                "user_id": user_id,
+                "trip_id": trip_id,
+                "destination": destination
+            })
+            
+            return True, f"Trip created: {trip_id}"
             
         except Exception as e:
+            self.log_activity("trip_creation_error", {"error": str(e)})
             return False, f"Error creating trip: {str(e)}"
-    
-    def get_user_trips(self, user_id):
-        """Get all trips for a user"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at
-                FROM trips WHERE user_id = ? ORDER BY created_at DESC
-            ''', (user_id,))
-            
-            trips = cursor.fetchall()
-            conn.close()
-            
-            return [
-                {
-                    'id': trip[0],
-                    'destination': trip[1],
-                    'start_date': trip[2],
-                    'end_date': trip[3],
-                    'budget': trip[4],
-                    'preferences': trip[5],
-                    'ai_suggestions': trip[6],
-                    'status': trip[7],
-                    'created_at': trip[8],
-                    'updated_at': trip[9]
-                }
-                for trip in trips
-            ]
-            
-        except Exception as e:
-            st.error(f"Error getting trips: {str(e)}")
-            return []
-    
-    def get_trip_by_id(self, trip_id, user_id):
-        """Get a specific trip by ID"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at
-                FROM trips WHERE id = ? AND user_id = ?
-            ''', (trip_id, user_id))
-            
-            trip = cursor.fetchone()
-            conn.close()
-            
-            if trip:
-                return {
-                    'id': trip[0],
-                    'destination': trip[1],
-                    'start_date': trip[2],
-                    'end_date': trip[3],
-                    'budget': trip[4],
-                    'preferences': trip[5],
-                    'ai_suggestions': trip[6],
-                    'status': trip[7],
-                    'created_at': trip[8],
-                    'updated_at': trip[9]
-                }
-            return None
-            
-        except Exception as e:
-            st.error(f"Error getting trip: {str(e)}")
-            return None
-    
-    def update_trip(self, trip_id, user_id, **kwargs):
-        """Update a trip"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Build dynamic update query
-            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'status']
-            update_fields = []
-            values = []
-            
-            for field, value in kwargs.items():
-                if field in allowed_fields:
-                    update_fields.append(f"{field} = ?")
-                    values.append(value)
-            
-            if not update_fields:
-                return False, "No valid fields to update"
-            
-            # Add updated_at timestamp
-            update_fields.append("updated_at = CURRENT_TIMESTAMP")
-            values.extend([trip_id, user_id])
-            
-            query = f"UPDATE trips SET {', '.join(update_fields)} WHERE id = ? AND user_id = ?"
-            
-            cursor.execute(query, values)
-            conn.commit()
-            conn.close()
-            
-            return True, "Trip updated successfully"
-            
-        except Exception as e:
-            return False, f"Error updating trip: {str(e)}"
-    
-    def delete_trip(self, trip_id, user_id):
-        """Delete a trip"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            cursor.execute('DELETE FROM trips WHERE id = ? AND user_id = ?', (trip_id, user_id))
-            
-            conn.commit()
-            conn.close()
-            
-            return True, "Trip deleted successfully"
-            
-        except Exception as e:
-            return False, f"Error deleting trip: {str(e)}"
-    
-    def get_user_stats(self, user_id):
-        """Get user statistics"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Get trip count
-            cursor.execute('SELECT COUNT(*) FROM trips WHERE user_id = ?', (user_id,))
-            trip_count = cursor.fetchone()[0]
-            
-            # Get total budget
-            cursor.execute('SELECT SUM(budget) FROM trips WHERE user_id = ?', (user_id,))
-            total_budget = cursor.fetchone()[0] or 0
-            
-            # Get most popular destination
-            cursor.execute('''
-                SELECT destination, COUNT(*) as count 
-                FROM trips WHERE user_id = ? 
-                GROUP BY destination 
-                ORDER BY count DESC 
-                LIMIT 1
-            ''', (user_id,))
-            
-            popular_destination = cursor.fetchone()
-            popular_dest = popular_destination[0] if popular_destination else "None"
-            
-            conn.close()
-            
-            return {
-                'trip_count': trip_count,
-                'total_budget': total_budget,
-                'popular_destination': popular_dest
-            }
-            
-        except Exception as e:
-            st.error(f"Error getting user stats: {str(e)}")
-            return {
-                'trip_count': 0,
-                'total_budget': 0,
-                'popular_destination': "None"
-            }
 
-# Create global database instance
+    def get_user_trips(self, user_id):
+        """Get user's trips"""
+        try:
+            user_trips = []
+            
+            # Scan all trip files for this user
+            for filename in os.listdir(self.trips_dir):
+                if filename.startswith(f"trip_{user_id}_") and filename.endswith('.json'):
+                    trip_file = f"{self.trips_dir}/{filename}"
+                    with open(trip_file, 'r') as f:
+                        trip_data = json.load(f)
+                        user_trips.append(trip_data)
+            
+            # Sort by creation date (most recent first)
+            user_trips.sort(key=lambda x: x['created_at'], reverse=True)
+            return user_trips
+            
+        except Exception as e:
+            self.log_activity("get_trips_error", {"error": str(e)})
+            return []
+
+    def get_stats(self):
+        """Get application statistics"""
+        try:
+            users_count = len([f for f in os.listdir(self.users_dir) if f.endswith('.json')])
+            chats_count = len([f for f in os.listdir(self.chats_dir) if f.endswith('.json')])
+            trips_count = len([f for f in os.listdir(self.trips_dir) if f.endswith('.json')])
+            
+            return {
+                "total_users": users_count,
+                "total_chats": chats_count,
+                "total_trips": trips_count,
+                "data_directory": self.base_dir
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+# Global instance
 db = DatabaseManager()

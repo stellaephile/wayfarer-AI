@@ -1,21 +1,32 @@
+# docker-compose.yml
 version: '3.8'
 
 services:
-  trip-planner:
-    build: .
-    container_name: ai-trip-planner
+  ai-trip-planner:
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
+      - ./vertexAI.json:/app/vertexAI.json:ro
     environment:
-      - VERTEX_AI_PROJECT_ID=${VERTEX_AI_PROJECT_ID:-your-project-id}
-      - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION:-us-central1}
-      - VERTEX_AI_MODEL=${VERTEX_AI_MODEL:-gemini-pro}
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account-key.json
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - VERTEX_AI_PROJECT_ID=${VERTEX_AI_PROJECT_ID}
+      - VERTEX_AI_LOCATION=${VERTEX_AI_LOCATION}
+      - VERTEX_AI_MODEL=${VERTEX_AI_MODEL}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/vertexAI.json
+      - FIRESTORE_COLLECTION_USERS=${FIRESTORE_COLLECTION_USERS}
+      - FIRESTORE_COLLECTION_CHATS=${FIRESTORE_COLLECTION_CHATS}
+      - FIRESTORE_COLLECTION_TRIPS=${FIRESTORE_COLLECTION_TRIPS}
     env_file:
-      - .env
+      - .env.production
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
@@ -24,19 +35,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Optional: Add a PostgreSQL database for production
-  # postgres:
-  #   image: postgres:13
-  #   container_name: trip-planner-db
-  #   environment:
-  #     POSTGRES_DB: trip_planner
-  #     POSTGRES_USER: trip_user
-  #     POSTGRES_PASSWORD: trip_password
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-  #   restart: unless-stopped
-
-# volumes:
-#   postgres_data:
+networks:
+  default:
+    name: ai-trip-planner-network

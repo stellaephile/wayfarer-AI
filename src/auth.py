@@ -1,7 +1,7 @@
+# auth.py
 import streamlit as st
 import re
 from database import db
-from google_auth import show_google_signin_button, handle_google_callback
 
 def validate_email(email):
     """Validate email format"""
@@ -31,12 +31,9 @@ def login_page():
     st.markdown("### 🔐 Welcome Back!")
     st.markdown("Sign in to access your personalized trip planner")
     
-    # Handle Google OAuth callback
-    if handle_google_callback():
-        return
     
     with st.form("login_form"):
-        username = st.text_input("Username", placeholder="Enter your username")
+        username = st.text_input("Username or Email", placeholder="Enter your username or email")
         password = st.text_input("Password", type="password", placeholder="Enter your password")
         submit_button = st.form_submit_button("Login", use_container_width=True)
         
@@ -56,19 +53,13 @@ def login_page():
                 else:
                     st.error("Invalid username or password")
     
-    # Google Sign-in section
-    st.markdown("---")
-    st.markdown("### Or sign in with")
-    show_google_signin_button()
 
 def signup_page():
     """Display signup page with enhanced validation and Google OAuth"""
     st.markdown("### 📝 Create Your Account")
     st.markdown("Join thousands of travelers planning amazing trips with AI")
     
-    # Handle Google OAuth callback
-    if handle_google_callback():
-        return
+
     
     with st.form("signup_form"):
         col1, col2 = st.columns(2)
@@ -81,15 +72,17 @@ def signup_page():
             password = st.text_input("Password", type="password", placeholder="Create a password")
             confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm your password")
         
+        # Optional name field
+        name = st.text_input("Full Name (Optional)", placeholder="Enter your full name")
+        
         # Terms and conditions
         agree_terms = st.checkbox("I agree to the Terms of Service and Privacy Policy")
-        
         submit_button = st.form_submit_button("Create Account", use_container_width=True)
         
         if submit_button:
             # Validation
             if not all([username, email, password, confirm_password]):
-                st.error("Please fill in all fields")
+                st.error("Please fill in all required fields")
                 return
             
             if not agree_terms:
@@ -119,7 +112,7 @@ def signup_page():
             
             # Create user
             with st.spinner("Creating your account..."):
-                success, message = db.create_user(username, email, password)
+                success, message = db.create_user(username, email, password, name)
                 if success:
                     st.success("Account created successfully! Please login.")
                     st.session_state.show_login = True
@@ -127,11 +120,6 @@ def signup_page():
                 else:
                     st.error(message)
     
-    # Google Sign-up section
-    st.markdown("---")
-    st.markdown("### Or sign up with")
-    show_google_signin_button()
-
 def logout():
     """Logout user and clear session"""
     for key in ['user', 'logged_in', 'current_trip', 'trip_id', 'login_method', 'oauth_state']:
@@ -151,14 +139,16 @@ def show_auth_pages():
         
         # Feature highlights
         st.markdown("**✨ Features:**")
-        st.markdown("• AI-powered trip planning")
-        st.markdown("• Personalized recommendations")
-        st.markdown("• Budget optimization")
-        st.markdown("• Save and manage trips")
-        st.markdown("• Google sign-in support")
+        st.markdown("• 🤖 AI-powered trip planning")
+        st.markdown("• 🌱 Sustainable travel prioritized")
+        st.markdown("• 🔗 EaseMyTrip booking integration")
+        st.markdown("• 💰 Cost & time optimization")
+        st.markdown("• 📄 PDF & calendar export")
+        st.markdown("• 🔐 Google sign-in support")
         
         st.markdown("---")
         
+        # Switch between login and signup
         if st.session_state.show_login:
             if st.button("Don't have an account? Sign Up", use_container_width=True):
                 st.session_state.show_login = False
@@ -167,6 +157,15 @@ def show_auth_pages():
             if st.button("Already have an account? Login", use_container_width=True):
                 st.session_state.show_login = True
                 st.rerun()
+        
+        st.markdown("---")
+        
+        # App info
+        st.markdown("**🌱 Sustainable Travel First**")
+        st.markdown("Our AI prioritizes trains and buses over flights to reduce your carbon footprint while saving money.")
+        
+        st.markdown("**🔗 One-Click Booking**")
+        st.markdown("Book flights, trains, hotels directly through EaseMyTrip with generated links.")
     
     # Main content
     if st.session_state.show_login:
@@ -176,6 +175,4 @@ def show_auth_pages():
 
 def check_auth():
     """Check if user is authenticated"""
-    if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-        return False
-    return True
+    return 'logged_in' in st.session_state and st.session_state.logged_in
