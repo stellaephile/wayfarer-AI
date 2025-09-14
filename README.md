@@ -64,8 +64,7 @@ A modern, AI-powered trip planning application built with Streamlit and Google V
    ```
 
 5. **Run the application**
-   ```bash
-   streamlit run src/app.py
+   ```bash 
    ```
 
 6. **Open your browser**

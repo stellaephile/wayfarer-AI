@@ -35,7 +35,7 @@ venv.bak/
 *.sqlite3
 
 # Streamlit
-.streamlit/secrets.toml
+#.streamlit/secrets.toml
 
 # IDE
 .vscode/
