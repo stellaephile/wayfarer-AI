@@ -389,6 +389,11 @@ def plan_new_trip():
                 st.error("❌ Please enter a valid budget")
                 return
             
+            #Add max trip duration limit (e.g., 365 days).
+            if (end_date - start_date).days > 365:  
+                st.error("❌ Trip duration cannot exceed 1 year")
+                return
+            
             st.success("✅ Form validation passed!")
             
             # Prepare preferences string
