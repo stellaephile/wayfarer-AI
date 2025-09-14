@@ -29,6 +29,11 @@ logger = logging.getLogger(__name__)
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
+currency_symbols= {
+    "INR": "₹", "USD": "$", "EUR": "€", "GBP": "£",
+    "JPY": "¥", "AUD": "A$"
+}
+
 def get_config_value(env_var, secret_key, default):
     
     try:
@@ -88,16 +93,16 @@ class VertexAITripPlanner:
             raise e
     
     def generate_trip_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                budget: float, preferences: str) -> Dict:
+                                budget: float, currency:str, preferences: str) -> Dict:
         """
         Generate AI-powered trip suggestions using Vertex AI
         """
         if not self.is_configured or not self.model:
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, currency, preferences)
         
         try:
             # Create a comprehensive prompt for the AI
-            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences)
+            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, currency, preferences)
             
             generation_config = GenerationConfig(
                 max_output_tokens=20000,  # or higher if needed
@@ -125,27 +130,31 @@ class VertexAITripPlanner:
             
             else:
                 logger.warning("Empty response from Vertex AI, falling back to mock data")
-                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget,currency, preferences)
                 
         except Exception as e:
             logger.error(f"Error generating trip suggestions with Vertex AI: {str(e)}")
             st.warning(f"⚠️ AI generation failed: {str(e)}. Using enhanced mock data.")
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget,currency, preferences)
     
     def _create_trip_planning_prompt(self, destination: str, start_date: str, end_date: str, 
-                                   budget: float, preferences: str) -> str:
+                                   budget: float, currency: str, preferences: str) -> str:
         """Create a comprehensive prompt for trip planning"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
         duration_days = (end_dt - start_dt).days + 1
-        
+        currency_symbols= {
+            "INR": "₹", "USD": "$", "EUR": "€", "GBP": "£",
+            "JPY": "¥", "AUD": "A$"
+        }
+        symbol = currency_symbols.get(currency, currency)
         prompt = f"""
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 
 **TRIP DETAILS**
 - Destination: {destination}
 - Dates: {start_date} to {end_date} ({duration_days} days)
-- Budget: ${budget:,.2f} USD
+- Budget: ${budget:,.2f} {currency}
 - Preferences: {preferences}
 
 **RESPONSE INSTRUCTIONS**
@@ -161,6 +170,8 @@ Respond ONLY with a valid JSON object.
   "destination": "{destination}",
   "duration": "{duration_days} days",
   "budget": {budget},
+  "currency": {currency},
+  "currency_symbol": "{symbol}",
   "budget_breakdown": {{
     "accommodation": "amount",
     "food": "amount",
@@ -318,7 +329,7 @@ Only output the JSON. Nothing else.
         return trip_data
     
     def _generate_enhanced_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                          budget: float, preferences: str) -> Dict:
+                                          budget: float, currency:str, preferences: str) -> Dict:
         """Generate enhanced mock suggestions with more realistic data"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")

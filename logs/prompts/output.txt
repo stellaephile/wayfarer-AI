@@ -2,10 +2,10 @@
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 
 **TRIP DETAILS**
-- Destination: Pune
-- Dates: 2025-09-12 to 2025-09-19 (8 days)
-- Budget: $1,000.00 USD
-- Preferences: Adventure, Culture
+- Destination: paris
+- Dates: 2025-09-16 to 2025-09-17 (2 days)
+- Budget: $550.00 EUR
+- Preferences: Nightlife | Additional: places to party with friends
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -17,9 +17,11 @@ Respond ONLY with a valid JSON object.
 **REQUIRED JSON STRUCTURE**
 
 {
-  "destination": "Pune",
-  "duration": "8 days",
-  "budget": 1000.0,
+  "destination": "paris",
+  "duration": "2 days",
+  "budget": 550.0,
+  "currency": EUR,
+  "currency_symbol": "€",
   "budget_breakdown": {
     "accommodation": "amount",
     "food": "amount",
@@ -29,7 +31,7 @@ Respond ONLY with a valid JSON object.
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-12",
+      "date": "2025-09-16",
       "day_name": "Day of week",
       "activities": ["activity 1", "activity 2"],
       "meals": {

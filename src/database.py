@@ -51,6 +51,7 @@ class DatabaseManager:
                 start_date DATE,
                 end_date DATE,
                 budget REAL,
+                currency TEXT,
                 preferences TEXT,
                 ai_suggestions TEXT,
                 status TEXT DEFAULT 'planned',
@@ -290,16 +291,16 @@ class DatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
     
-    def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions):
+    def create_trip(self, user_id, destination, start_date, end_date, budget, currency, preferences, ai_suggestions):
         """Create a new trip"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''
-                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions))
+                INSERT INTO trips (user_id, destination, start_date, end_date, budget,currency, preferences, ai_suggestions)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, destination, start_date, end_date, budget, currency, preferences, ai_suggestions))
             
             conn.commit()
             trip_id = cursor.lastrowid
@@ -317,7 +318,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             cursor.execute('''
-                SELECT id, destination, start_date, end_date, budget, preferences, 
+                SELECT id, destination, start_date, end_date, budget, currency, preferences, 
                        ai_suggestions, status, created_at, updated_at
                 FROM trips WHERE user_id = ? ORDER BY created_at DESC
             ''', (user_id,))
@@ -332,11 +333,13 @@ class DatabaseManager:
                     'start_date': trip[2],
                     'end_date': trip[3],
                     'budget': trip[4],
-                    'preferences': trip[5],
-                    'ai_suggestions': trip[6],
-                    'status': trip[7],
-                    'created_at': trip[8],
-                    'updated_at': trip[9]
+                    'currency': trip[5],
+                    'preferences': trip[6],
+                    'ai_suggestions': trip[7],
+                    'status': trip[8],
+                    'created_at': trip[9],
+                    'updated_at': trip[10]
+                    
                 }
                 for trip in trips
             ]
@@ -352,7 +355,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             cursor.execute('''
-                SELECT id, destination, start_date, end_date, budget, preferences, 
+                SELECT id, destination, start_date, end_date, budget,currency, preferences, 
                        ai_suggestions, status, created_at, updated_at
                 FROM trips WHERE id = ? AND user_id = ?
             ''', (trip_id, user_id))
@@ -367,11 +370,12 @@ class DatabaseManager:
                     'start_date': trip[2],
                     'end_date': trip[3],
                     'budget': trip[4],
-                    'preferences': trip[5],
-                    'ai_suggestions': trip[6],
-                    'status': trip[7],
-                    'created_at': trip[8],
-                    'updated_at': trip[9]
+                    'currency': trip[5],
+                    'preferences': trip[6],
+                    'ai_suggestions': trip[7],
+                    'status': trip[8],
+                    'created_at': trip[9],
+                    'updated_at': trip[10]
                 }
             return None
             
@@ -386,7 +390,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             # Build dynamic update query
-            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'status']
+            allowed_fields = ['destination', 'start_date', 'end_date', 'budget','currency', 'preferences', 'ai_suggestions', 'status']
             update_fields = []
             values = []
             

@@ -1,331 +1,207 @@
 ```json
 {
-  "destination": "Pune",
-  "duration": "8 days",
-  "budget": 1000.0,
+  "destination": "paris",
+  "duration": "2 days",
+  "budget": 550.0,
+  "currency": "EUR",
+  "currency_symbol": "€",
   "budget_breakdown": {
-    "accommodation": 250.0,
-    "food": 250.0,
+    "accommodation": 120.0,
+    "food": 100.0,
     "activities": 300.0,
-    "transportation": 200.0
+    "transportation": 30.0
   },
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-12",
-      "day_name": "Friday",
+      "date": "2025-09-16",
+      "day_name": "Tuesday",
       "activities": [
-        "Arrive at Pune Airport (PNQ) and transfer to accommodation",
-        "Explore the historic grounds of Shaniwar Wada",
-        "Evening walk and shopping at Tulshibaug Market"
+        "Arrive and check into your accommodation in a lively district like Belleville or near Bastille.",
+        "Afternoon exploration of Le Marais: wander through its historic streets, browse unique shops, and soak in the trendy atmosphere.",
+        "Evening drinks and bar hopping along Rue de Lappe near Bastille, known for its numerous bars and vibrant nightlife.",
+        "Late night party at a club like Wanderlust or Le Rouge Pigalle for music and dancing."
       ],
       "meals": {
-        "breakfast": "Local cafe near your accommodation",
-        "lunch": "South Indian fare at Vaishali on FC Road",
-        "dinner": "Classic Irani cuisine at Goodluck Cafe"
+        "breakfast": "Grab a fresh croissant and coffee from a local boulangerie.",
+        "lunch": "Affordable and delicious falafel sandwich from L'As du Fallafel in Le Marais.",
+        "dinner": "Pre-party dinner of savory crepes at Le P'tit Grec in the Latin Quarter."
       }
     },
     {
       "day": 2,
-      "date": "2025-09-13",
-      "day_name": "Saturday",
-      "activities": [
-        "Visit the Aga Khan Palace, a monument of Indian history",
-        "Explore the ancient rock-cut Pataleshwar Cave Temple",
-        "Evening visit to the revered Dagdusheth Halwai Ganpati Temple"
-      ],
-      "meals": {
-        "breakfast": "At accommodation",
-        "lunch": "Authentic Maharashtrian Thali at Shabree",
-        "dinner": "Explore eateries in the vibrant Koregaon Park area"
-      }
-    },
-    {
-      "day": 3,
-      "date": "2025-09-14",
-      "day_name": "Sunday",
-      "activities": [
-        "Full-day trip and trek to the majestic Sinhagad Fort",
-        "Enjoy the panoramic views and the fresh air"
-      ],
-      "meals": {
-        "breakfast": "Early breakfast or packed meal",
-        "lunch": "Traditional Pithla Bhakri and Kanda Bhaji at the fort summit",
-        "dinner": "Relaxed dinner at a restaurant near your accommodation"
-      }
-    },
-    {
-      "day": 4,
-      "date": "2025-09-15",
-      "day_name": "Monday",
-      "activities": [
-        "Discover a vast collection of artifacts at Raja Dinkar Kelkar Museum",
-        "Stroll through the serene lanes of Koregaon Park",
-        "Experience the bohemian cafe culture of the area"
-      ],
-      "meals": {
-        "breakfast": "At accommodation",
-        "lunch": "Brunch at the iconic German Bakery",
-        "dinner": "Pan-Asian delicacies at Malaka Spice"
-      }
-    },
-    {
-      "day": 5,
-      "date": "2025-09-16",
-      "day_name": "Tuesday",
-      "activities": [
-        "Day trip to Kamshet for an adventurous tandem paragliding experience",
-        "Enjoy the stunning landscape of the Sahyadri mountains from the sky"
-      ],
-      "meals": {
-        "breakfast": "Early breakfast before departure",
-        "lunch": "Local meal at a dhaba in Kamshet",
-        "dinner": "Lebanese and Middle Eastern food at Marrakesh"
-      }
-    },
-    {
-      "day": 6,
       "date": "2025-09-17",
       "day_name": "Wednesday",
       "activities": [
-        "Morning walk around the historic Savitribai Phule Pune University campus",
-        "Relaxing afternoon at Saras Baug garden and temple",
-        "Attend a traditional Lavani performance or a local play"
+        "Morning walk along Canal Saint-Martin, a favorite spot for young Parisians.",
+        "Afternoon visit to Montmartre. Climb the steps to the Sacré-Cœur for a free panoramic view of Paris, then explore the artistic Place du Tertre.",
+        "Sunset drinks in South Pigalle (SoPi), a trendy area with many cocktail bars.",
+        "Experience a classic, budget-friendly French dinner at a 'bouillon' restaurant before a final night out or heading for departure."
       ],
       "meals": {
-        "breakfast": "At accommodation",
-        "lunch": "Spicy and flavorful Misal Pav at Bedekar Misal",
-        "dinner": "Local cuisine in the Deccan Gymkhana area"
-      }
-    },
-    {
-      "day": 7,
-      "date": "2025-09-18",
-      "day_name": "Thursday",
-      "activities": [
-        "Day trip to Lohagad Fort for another scenic trek",
-        "Visit the nearby ancient Bhaja Caves"
-      ],
-      "meals": {
-        "breakfast": "Early breakfast",
-        "lunch": "Packed lunch or snacks near the fort base",
-        "dinner": "Farewell dinner at a specialty restaurant of your choice"
-      }
-    },
-    {
-      "day": 8,
-      "date": "2025-09-19",
-      "day_name": "Friday",
-      "activities": [
-        "Last-minute souvenir shopping on FC Road or Laxmi Road",
-        "Buy famous Shrewsbury biscuits from Kayani Bakery",
-        "Transfer to Pune Airport (PNQ) for departure"
-      ],
-      "meals": {
-        "breakfast": "Pastries and tea at Kayani Bakery",
-        "lunch": "A quick bite before heading to the airport"
+        "breakfast": "Pain au chocolat and orange juice from a patisserie.",
+        "lunch": "Pick up a 'jambon-beurre' (ham and butter baguette) and have a picnic at the Square Louise Michel below the Sacré-Cœur.",
+        "dinner": "Experience traditional French dining on a budget at Bouillon Chartier."
       }
     }
   ],
   "accommodations": [
     {
-      "name": "Zostel Pune",
+      "name": "The People - Paris Belleville",
       "type": "Hostel",
-      "price_range": "$10 - $30 per night",
+      "price_range": "€45 - €70 per night (dorm bed)",
       "rating": 4.6,
-      "amenities": [
-        "Free WiFi",
-        "Common Room",
-        "Rooftop Cafe",
-        "Lockers"
-      ],
-      "location": "Koregaon Park",
-      "description": "A vibrant and social hostel, perfect for budget-conscious solo travelers looking to meet people."
+      "amenities": ["Bar", "Rooftop", "Social events", "Free Wi-Fi"],
+      "location": "Belleville",
+      "description": "A trendy hostel with a great rooftop bar and social atmosphere, perfect for meeting other travelers."
     },
     {
-      "name": "FabHotel Gargi Inn",
-      "type": "Hotel",
-      "price_range": "$30 - $50 per night",
+      "name": "Generator Paris",
+      "type": "Hostel",
+      "price_range": "€50 - €80 per night (dorm bed)",
       "rating": 4.2,
-      "amenities": [
-        "Free WiFi",
-        "Air Conditioning",
-        "Room Service"
-      ],
-      "location": "Viman Nagar",
-      "description": "A reliable budget hotel offering clean rooms and essential services, conveniently located near the airport."
+      "amenities": ["On-site club", "Rooftop bar", "24-hour reception", "Café"],
+      "location": "10th arrondissement",
+      "description": "A large, stylish hostel known for its vibrant social scene and its own nightclub in the basement."
     },
     {
-      "name": "Hotel Deccan Rendezvous",
-      "type": "Hotel",
-      "price_range": "$50 - $80 per night",
-      "rating": 4.4,
-      "amenities": [
-        "Swimming Pool",
-        "Restaurant",
-        "Fitness Center",
-        "Free WiFi"
-      ],
-      "location": "Deccan Gymkhana",
-      "description": "A comfortable mid-range hotel in a prime location, providing easy access to many of the city's attractions."
+      "name": "JO&JOE Paris - Gentilly",
+      "type": "Hostel",
+      "price_range": "€40 - €65 per night (dorm bed)",
+      "rating": 4.1,
+      "amenities": ["Bar", "Restaurant", "Garden", "Events"],
+      "location": "Gentilly (short RER ride to city center)",
+      "description": "An 'Open House' concept with a lively bar, regular events, and a fun, social design, offering great value."
     }
   ],
   "activities": [
     {
-      "name": "Sinhagad Fort Trek",
-      "type": "Adventure",
-      "duration": "5-6 hours",
-      "cost": "$5 - $15 (transport and food)",
-      "description": "A popular and rewarding trek leading to a historic hilltop fortress with stunning views and local food stalls at the summit.",
+      "name": "Bar Hopping in Bastille/Oberkampf",
+      "type": "Nightlife",
+      "duration": "3-5 hours",
+      "cost": "€30 - €70",
+      "description": "Explore the streets of Rue de Lappe, Rue de la Roquette, and Rue Oberkampf, which are packed with diverse bars, from dive bars to chic cocktail spots.",
       "rating": 4.7,
-      "best_time": "Early morning"
+      "best_time": "Evening/Night"
     },
     {
-      "name": "Paragliding in Kamshet",
-      "type": "Adventure",
-      "duration": "6-8 hours (including travel)",
-      "cost": "$40 - $70 per flight",
-      "description": "Experience tandem paragliding over the beautiful Pawna Lake and Sahyadri hills. A major adventure hub near Pune.",
-      "rating": 4.8,
-      "best_time": "October to May"
-    },
-    {
-      "name": "Shaniwar Wada",
-      "type": "Cultural",
-      "duration": "1-2 hours",
-      "cost": "$1 - $4",
-      "description": "The historical seat of the Peshwas of the Maratha Empire. Explore the ruins, gates, and gardens of this once-magnificent palace.",
-      "rating": 4.2,
-      "best_time": "Afternoon"
-    },
-    {
-      "name": "Aga Khan Palace",
-      "type": "Cultural",
-      "duration": "1.5-2 hours",
-      "cost": "$1 - $4",
-      "description": "A beautiful palace with Italian arches and spacious lawns, deeply connected to India's freedom movement. It housed Mahatma Gandhi during the Quit India Movement.",
+      "name": "Clubbing at Rex Club",
+      "type": "Nightlife",
+      "duration": "4-6 hours",
+      "cost": "€15 - €25 (entry) + drinks",
+      "description": "A legendary Parisian institution for techno and electronic music, featuring world-renowned DJs.",
       "rating": 4.4,
-      "best_time": "Morning"
+      "best_time": "After midnight, Thursday-Saturday"
     },
     {
-      "name": "Raja Dinkar Kelkar Museum",
-      "type": "Cultural",
+      "name": "Explore Le Marais",
+      "type": "Sightseeing/Cultural",
       "duration": "2-3 hours",
-      "cost": "$1 - $5",
-      "description": "A fascinating museum housing a one-man collection of over 20,000 Indian artifacts, including musical instruments, pottery, and the iconic Mastani Mahal.",
-      "rating": 4.5,
-      "best_time": "Anytime"
+      "cost": "Free (shopping/food extra)",
+      "description": "A historic and trendy neighborhood with beautiful architecture, hidden courtyards, art galleries, and lively gay-friendly bars.",
+      "rating": 4.8,
+      "best_time": "Afternoon/Evening"
     },
     {
-      "name": "Lohagad Fort Trek",
-      "type": "Adventure",
-      "duration": "4-5 hours",
-      "cost": "$5 - $15 (transport)",
-      "description": "An 'Iron Fort' that is a UNESCO world heritage site. It's an easier trek compared to Sinhagad, with beautiful plateaus and a unique 'scorpion's tail' extension.",
+      "name": "Wander through Montmartre and Pigalle",
+      "type": "Sightseeing/Nightlife",
+      "duration": "3-4 hours",
+      "cost": "Free (drinks/shows extra)",
+      "description": "Discover the artistic charm of Montmartre and the Sacré-Cœur, then head down the hill to the edgy Pigalle district for cocktail bars and music venues.",
       "rating": 4.6,
-      "best_time": "Monsoon and Post-monsoon"
+      "best_time": "Late Afternoon/Evening"
+    },
+    {
+      "name": "Evening by Canal Saint-Martin",
+      "type": "Leisure",
+      "duration": "1-2 hours",
+      "cost": "€5 - €15",
+      "description": "Join young Parisians for an evening 'apéro'. Grab a bottle of wine or some beers from a local shop and sit along the canal's edge.",
+      "rating": 4.5,
+      "best_time": "Early Evening"
     }
   ],
   "restaurants": [
     {
-      "name": "Vaishali",
-      "cuisine": "South Indian",
-      "price_range": "$5 - $10 per person",
-      "rating": 4.5,
-      "specialties": [
-        "Sambar",
-        "Mysore Masala Dosa",
-        "SPDP (Sev Puri Dahi Puri)"
-      ],
-      "location": "FC Road",
+      "name": "Bouillon Chartier",
+      "cuisine": "Traditional French",
+      "price_range": "€15 - €25 per person",
+      "rating": 4.0,
+      "specialties": ["Escargots", "Steak frites", "Confit de canard"],
+      "location": "Grands Boulevards / Montparnasse",
       "reservation_required": false
     },
     {
-      "name": "Shabree",
-      "cuisine": "Maharashtrian",
-      "price_range": "$10 - $15 per person",
-      "rating": 4.3,
-      "specialties": [
-        "Maharashtrian Thali",
-        "Puran Poli",
-        "Masale Bhat"
-      ],
-      "location": "FC Road",
-      "reservation_required": true
-    },
-    {
-      "name": "Goodluck Cafe",
-      "cuisine": "Irani Cafe",
-      "price_range": "$3 - $8 per person",
-      "rating": 4.3,
-      "specialties": [
-        "Bun Maska Chai",
-        "Keema Pav",
-        "Caramel Custard"
-      ],
-      "location": "Deccan Gymkhana",
-      "reservation_required": false
-    },
-    {
-      "name": "Bedekar Misal",
-      "cuisine": "Local Maharashtrian",
-      "price_range": "$2 - $4 per person",
+      "name": "L'As du Fallafel",
+      "cuisine": "Middle Eastern",
+      "price_range": "€8 - €12 per person",
       "rating": 4.4,
-      "specialties": [
-        "Misal Pav",
-        "Batata Vada"
-      ],
-      "location": "Narayan Peth",
+      "specialties": ["Falafel special sandwich", "Shawarma plate"],
+      "location": "Le Marais",
       "reservation_required": false
+    },
+    {
+      "name": "Le P'tit Grec",
+      "cuisine": "Crêperie",
+      "price_range": "€7 - €12 per person",
+      "rating": 4.6,
+      "specialties": ["Savory crepes (Galettes)", "Sweet crepes"],
+      "location": "Latin Quarter",
+      "reservation_required": false
+    },
+    {
+      "name": "Pink Mamma",
+      "cuisine": "Italian",
+      "price_range": "€25 - €45 per person",
+      "rating": 4.5,
+      "specialties": ["Truffle Pasta", "Neapolitan Pizza", "T-Bone Steak"],
+      "location": "Pigalle",
+      "reservation_required": true
     }
   ],
   "transportation": [
     {
       "type": "Local",
-      "option": "Auto-rickshaw",
-      "cost": "$1 - $5 per trip",
-      "duration": "Varies",
-      "description": "The most common way to get around for short distances. Use Uber/Ola apps to book for fair pricing or negotiate before starting.",
+      "option": "Paris Métro/Bus",
+      "cost": "€2.10 per ticket or €16.90 for a carnet of 10",
+      "duration": "5-30 mins between stops",
+      "description": "The most efficient way to get around Paris. A carnet of 10 t+ tickets is a cost-effective option for a short trip.",
       "booking_required": false
     },
     {
-      "type": "Local",
-      "option": "Ride-sharing Apps (Uber/Ola)",
-      "cost": "$2 - $10 per trip",
-      "duration": "Varies",
-      "description": "Convenient for booking cars and auto-rickshaws. Offers transparent pricing and digital payments.",
-      "booking_required": true
+      "type": "Airport Transfer",
+      "option": "RER B Train",
+      "cost": "€11.45 from CDG",
+      "duration": "35-50 minutes",
+      "description": "Direct train line connecting Charles de Gaulle (CDG) and Orly (via Orlyval) airports to central Paris stations like Gare du Nord and Châtelet-Les Halles.",
+      "booking_required": false
     },
     {
-      "type": "Intercity",
-      "option": "Private Car/Taxi",
-      "cost": "$30 - $60 for a day trip",
-      "duration": "Full Day",
-      "description": "Best option for day trips to forts like Sinhagad, Lohagad, or Kamshet. Can be booked via local operators or apps.",
-      "booking_required": true
+      "type": "Nightlife",
+      "option": "Noctilien (Night Bus)",
+      "cost": "€2.10 per ticket",
+      "duration": "Varies",
+      "description": "A network of buses that run from approximately 00:30 to 05:30, essential for getting back after the metro closes.",
+      "booking_required": false
     }
   ],
   "tips": [
-    "Use ride-sharing apps like Uber and Ola to book auto-rickshaws for metered, fair pricing.",
-    "September is post-monsoon, so the scenery is lush and green, but expect occasional showers. Carry a small umbrella or rain jacket.",
-    "Pune is a city of two-wheelers. Be cautious while crossing roads. The traffic can be chaotic.",
-    "Bargain respectfully at street markets like Tulshibaug and Laxmi Road for a good deal.",
-    "Do not miss trying the local street food, but choose vendors that look clean and are busy."
+    "Most clubs have a dress code; avoid sneakers, shorts, and sportswear. A smart-casual look is a safe bet.",
+    "Pre-drinking ('apéro') is common. Save money by having drinks with friends at your hostel or by the Seine/Canal Saint-Martin before heading to expensive clubs.",
+    "The metro closes around 00:45 on weekdays. Plan your night around this or be prepared to use the Noctilien night bus or a ride-sharing app.",
+    "Keep a close watch on your belongings in crowded bars, clubs, and on public transport to avoid pickpockets."
   ],
   "weather": {
-    "temperature": "22°C - 28°C (72°F - 82°F)",
-    "conditions": "Pleasant and lush post-monsoon weather with chances of light, sporadic rainfall.",
-    "recommendation": "Pack light clothing, a rain jacket or umbrella, and comfortable, water-resistant footwear for walking and trekking."
+    "temperature": "12°C to 20°C (54°F to 68°F)",
+    "conditions": "Mild and pleasant, with a mix of sunshine and potential for light rain showers. Evenings will be cool.",
+    "recommendation": "Pack in layers. A light jacket or stylish sweater is essential for the evenings. Include a compact umbrella."
   },
   "packing_list": [
-    "Comfortable trekking shoes",
-    "Light rain jacket or umbrella",
-    "Sunscreen, sunglasses, and a hat",
-    "Reusable water bottle to stay hydrated",
-    "Portable power bank for your devices",
-    "Light cotton clothes and one light jacket for evenings",
-    "Basic first-aid kit with insect repellent",
-    "Valid ID and travel documents"
+    "Comfortable yet stylish walking shoes",
+    "A smart outfit for going out (e.g., dark jeans/chinos, a nice shirt or top)",
+    "Portable power bank for long days and nights",
+    "A valid photo ID (passport or driver's license) for entry into bars and clubs",
+    "A reusable water bottle to stay hydrated and save money"
   ]
 }
 ```

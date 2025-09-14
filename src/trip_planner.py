@@ -16,6 +16,20 @@ from vertex_ai_utils import VertexAITripPlanner
 from auth import show_auth_pages, check_auth
 # from trip_planner import show_trip_planner
 
+currency_symbols= {
+    "INR": "₹", "USD": "$", "EUR": "€", "GBP": "£",
+    "JPY": "¥", "AUD": "A$"
+}
+# Example conversion rates relative to INR (for demo; ideally fetch from API)
+conversion_rates = {
+    "INR": 1,
+    "USD": 0.012,   # 1 INR = 0.012 USD
+    "EUR": 0.011,
+    "GBP": 0.0095,
+    "JPY": 1.75,
+    "AUD": 0.018
+}
+
 def logout():
     """Logout user and clear session state"""
     # Clear all session state variables
@@ -333,14 +347,44 @@ def plan_new_trip():
                 value=datetime.now().date() + timedelta(days=7),
                 help="When does your trip end?"
             )
-            budget = st.number_input(
-                "Budget (USD) *", 
-                min_value=0, 
-                value=1000, 
-                step=100,
-                help="Your total trip budget"
-            )
-        
+            # --- Budget label with inline tooltip (no newline) ---
+            label_col, help_col = st.columns([12, 1])
+            with label_col:
+                st.markdown("Budget *")
+            with help_col:
+                st.markdown("", help="Enter your total trip budget and select currency")
+
+            # Currency + Budget input row
+            col1_1, col1_2 = st.columns([1, 3])
+
+            with col1_1:
+                currency = st.selectbox(
+                    "",
+                    list(currency_symbols.keys()),
+                    index=0  # default INR
+                )
+
+            # --- Always store internally in INR ---
+            if "budget_in_inr" not in st.session_state:
+                st.session_state.budget_in_inr = 50000  # default base budget
+
+            # Convert INR to selected currency for display
+            symbol = currency_symbols[currency]
+            converted_budget = st.session_state.budget_in_inr * conversion_rates[currency]
+
+            with col1_2:
+                budget = st.number_input(
+                    f"{symbol} {currency}",
+                    min_value=0.0,  # float
+                    value=float(round(converted_budget, 2)),  # force float
+                    step=100.0 if currency == "INR" else 10.0,  # float
+                    key=f"budget_input_{currency}"  # re-render on currency change
+                )
+
+            # Update stored INR value whenever user edits
+            st.session_state.budget_in_inr = budget / conversion_rates[currency]
+
+
         with col2:
             travel_type = st.selectbox(
                 "Travel Type",
@@ -407,6 +451,7 @@ def plan_new_trip():
                 'start_date': start_date.strftime("%Y-%m-%d"),
                 'end_date': end_date.strftime("%Y-%m-%d"),
                 'budget': float(budget),
+                "currency": currency,
                 'preferences': preferences_str,
                 'travel_type': travel_type,
                 'accommodation_type': accommodation_type
@@ -420,6 +465,7 @@ def plan_new_trip():
                         start_date=start_date.strftime("%Y-%m-%d"),
                         end_date=end_date.strftime("%Y-%m-%d"),
                         budget=float(budget),
+                        currency=currency,
                         preferences=preferences_str
                     )
                 
@@ -441,6 +487,7 @@ def plan_new_trip():
                     start_date.strftime("%Y-%m-%d"),
                     end_date.strftime("%Y-%m-%d"),
                     float(budget),
+                    currency,
                     preferences_str,
                     json.dumps(suggestions)
                 )
@@ -482,7 +529,21 @@ def show_my_trips():
             with col1:
                 st.subheader(f"🗺️ {trip['destination']}")
                 st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
-                st.write(f"💰 Budget: ${trip['budget']:,.2f}")
+
+                currency_symbols = {
+                    "INR": "₹", "USD": "$", "EUR": "€", "GBP": "£",
+                    "JPY": "¥", "AUD": "A$"
+                }
+
+                budget = trip.get("budget", "N/A")
+                currency = trip.get("currency", "INR")
+                symbol = currency_symbols.get(currency, currency)
+
+                if isinstance(budget, (int, float)):
+                    st.write(f"💰**Budget:** {symbol}{budget:,} {currency}")
+                else:
+                    st.write(f"💰**Budget:** {budget} {currency}")
+
                 st.write(f"📊 Status: {trip['status'].title()}")
             
             with col2:
@@ -525,7 +586,14 @@ def show_trip_details(trip_data):
     with col1:
         st.metric("Duration", f"{trip_data['start_date']} to {trip_data['end_date']}")
     with col2:
-        st.metric("Budget", f"${trip_data['budget']:,.2f}")
+        currency = trip_data.get("currency", "INR")
+        symbol = currency_symbols.get(currency, currency)
+        budget = trip_data.get("budget", "N/A")
+        if isinstance(budget, (int, float)):
+            st.metric("Budget", f"{symbol}{budget:,.2f} {currency}")
+        else:
+            st.metric("Budget", f"{budget} {currency}")
+
     with col3:
         st.metric("Status", trip_data['status'].title())
     
@@ -632,13 +700,15 @@ def show_analytics():
     
     user_id = st.session_state.user['id']
     stats = db.get_user_stats(user_id)
-    
+    selected_currency = st.session_state.get("currency", "INR")
+    symbol = currency_symbols.get(selected_currency, "₹")
+
     # Key metrics
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Trips", stats['trip_count'])
     with col2:
-        st.metric("Total Budget", f"${stats['total_budget']:,.2f}")
+        st.metric("Total Budget", f"{symbol}{stats['total_budget']:,.2f}")
     with col3:
         st.metric("Favorite Destination", stats['popular_destination'])
 
