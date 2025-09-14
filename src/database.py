@@ -10,6 +10,10 @@ class DatabaseManager:
         self.db_path = db_path
         self.init_database()
     
+    def get_connection(self):
+        """Get database connection"""
+        return sqlite3.connect(self.db_path)
+    
     def init_database(self):
         """Initialize the database with users and trips tables"""
         conn = sqlite3.connect(self.db_path)
