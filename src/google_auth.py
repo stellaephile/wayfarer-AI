@@ -220,17 +220,14 @@ def show_google_signin_button():
         return False
     
     # Create Google sign-in button using st.link_button (more reliable)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.link_button(
-            "🔐 Sign in with Google", 
-            auth_url, 
-            use_container_width=True,
-            type="primary"
-        )
-    
-    st.info("Click the button above to sign in with Google. You'll be redirected to Google's authentication page.")
-    
+    st.link_button(
+        "🔐 Sign in with Google", 
+        auth_url, 
+        use_container_width=True,
+        type="primary",
+        help="Click the button above to sign in with Google. You'll be redirected to Google's authentication page."
+    )
+
     return True
 
 def handle_google_callback():
