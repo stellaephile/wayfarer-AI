@@ -11,6 +11,7 @@ st.set_page_config(
 # Now import other modules
 from auth import show_auth_pages, check_auth
 from trip_planner import show_trip_planner
+from credit_widget import credit_widget
 
 def main():
     """Main application entry point"""
@@ -58,6 +59,10 @@ def main():
         st.markdown('<p class="welcome-message">Plan your perfect trip with AI-powered suggestions</p>', unsafe_allow_html=True)
         show_auth_pages()
     else:
+        # Show credit widget in sidebar
+        if 'user' in st.session_state:
+            credit_widget.show_credit_sidebar(st.session_state.user['id'])
+        
         # Show main application
         show_trip_planner()
 

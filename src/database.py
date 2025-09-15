@@ -52,12 +52,29 @@ class DatabaseManager:
                 end_date DATE,
                 budget REAL,
                 currency TEXT,
+                currency_symbol TEXT DEFAULT '$',
                 preferences TEXT,
                 ai_suggestions TEXT,
                 status TEXT DEFAULT 'planned',
+                credits_used INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Credit transactions table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS credit_transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                trip_id INTEGER,
+                transaction_type TEXT NOT NULL,
+                credits_amount INTEGER NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (trip_id) REFERENCES trips (id)
             )
         ''')
         
@@ -475,6 +492,122 @@ class DatabaseManager:
                 'total_budget': 0,
                 'popular_destination': "None"
             }
+    
+    def get_user_credits(self, user_id):
+        """Get user's credit information"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Get user's total credits and credits used
+            cursor.execute('''
+                SELECT 
+                    COALESCE(SUM(credits_used), 0) as total_used,
+                    COUNT(*) as total_trips
+                FROM trips 
+                WHERE user_id = ?
+            ''', (user_id,))
+            
+            result = cursor.fetchone()
+            total_used = result[0] if result else 0
+            total_trips = result[1] if result else 0
+            
+            # Default credits (can be made configurable)
+            total_credits = 1000
+            
+            conn.close()
+            
+            return {
+                'total_credits': total_credits,
+                'credits_used': total_used,
+                'credits_remaining': total_credits - total_used,
+                'total_trips': total_trips
+            }
+            
+        except Exception as e:
+            st.error(f"Error getting user credits: {str(e)}")
+            return {
+                'total_credits': 1000,
+                'credits_used': 0,
+                'credits_remaining': 1000,
+                'total_trips': 0
+            }
+    
+    def add_credit_transaction(self, user_id, trip_id, transaction_type, credits_amount, description):
+        """Add a credit transaction"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO credit_transactions 
+                (user_id, trip_id, transaction_type, credits_amount, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user_id, trip_id, transaction_type, credits_amount, description))
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            st.error(f"Error adding credit transaction: {str(e)}")
+            return False
+    
+    def get_credit_transactions(self, user_id, limit=10):
+        """Get user's credit transaction history"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT ct.*, t.destination
+                FROM credit_transactions ct
+                LEFT JOIN trips t ON ct.trip_id = t.id
+                WHERE ct.user_id = ?
+                ORDER BY ct.created_at DESC
+                LIMIT ?
+            ''', (user_id, limit))
+            
+            transactions = cursor.fetchall()
+            conn.close()
+            
+            return [
+                {
+                    'id': t[0],
+                    'user_id': t[1],
+                    'trip_id': t[2],
+                    'transaction_type': t[3],
+                    'credits_amount': t[4],
+                    'description': t[5],
+                    'created_at': t[6],
+                    'destination': t[7]
+                }
+                for t in transactions
+            ]
+            
+        except Exception as e:
+            st.error(f"Error getting credit transactions: {str(e)}")
+            return []
+    
+    def update_trip_credits(self, trip_id, credits_used):
+        """Update credits used for a specific trip"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE trips 
+                SET credits_used = ?
+                WHERE id = ?
+            ''', (credits_used, trip_id))
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            st.error(f"Error updating trip credits: {str(e)}")
+            return False
 
 # Create global database instance
 db = DatabaseManager()

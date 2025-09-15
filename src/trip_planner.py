@@ -22,6 +22,46 @@ def validate_trip_dates(start_date, end_date):
     
     return True
 
+def calculate_credits_used(suggestions):
+    """Calculate credits used based on AI suggestions complexity"""
+    try:
+        base_credits = 5  # Base credits for trip generation
+        
+        # Additional credits based on content complexity
+        additional_credits = 0
+        
+        # Check itinerary complexity
+        if 'itinerary' in suggestions and suggestions['itinerary']:
+            if isinstance(suggestions['itinerary'], list):
+                additional_credits += len(suggestions['itinerary']) * 0.5
+            else:
+                additional_credits += 2
+        
+        # Check accommodations
+        if 'accommodations' in suggestions and suggestions['accommodations']:
+            additional_credits += len(suggestions['accommodations']) * 0.3
+        
+        # Check activities
+        if 'activities' in suggestions and suggestions['activities']:
+            additional_credits += len(suggestions['activities']) * 0.4
+        
+        # Check restaurants
+        if 'restaurants' in suggestions and suggestions['restaurants']:
+            additional_credits += len(suggestions['restaurants']) * 0.3
+        
+        # Check transportation
+        if 'transportation' in suggestions and suggestions['transportation']:
+            additional_credits += len(suggestions['transportation']) * 0.2
+        
+        total_credits = base_credits + additional_credits
+        
+        # Cap at maximum 20 credits per trip
+        return min(int(total_credits), 20)
+        
+    except Exception as e:
+        # Default to 5 credits if calculation fails
+        return 5
+
 def get_currency_options():
     """Get list of popular currencies with their symbols and codes"""
     return {
@@ -490,6 +530,7 @@ def show_trip_planner():
                 "🏠 Dashboard", 
                 "🗺️ Plan Trip", 
                 "📚 My Trips", 
+                "💳 Credits",
                 "📊 Analytics", 
                 "👤 Profile"
             ],
@@ -511,6 +552,8 @@ def show_trip_planner():
         plan_new_trip()
     elif page == "📚 My Trips":
         show_my_trips()
+    elif page == "💳 Credits":
+        show_credits_page()
     elif page == "📊 Analytics":
         show_analytics()
     elif page == "👤 Profile":
@@ -815,9 +858,21 @@ def plan_new_trip():
                 if success:
                     # Extract trip_id from message
                     trip_id = int(message.split("ID: ")[1])
+                    
+                    # Calculate and track credits used
+                    credits_used = calculate_credits_used(suggestions)
+                    db.update_trip_credits(trip_id, credits_used)
+                    db.add_credit_transaction(
+                        st.session_state.user['id'],
+                        trip_id,
+                        'usage',
+                        credits_used,
+                        f"AI trip generation for {destination}"
+                    )
+                    
                     st.session_state.current_trip = suggestions
                     st.session_state.trip_id = trip_id
-                    st.success("🎉 Trip plan generated and saved successfully!")
+                    st.success(f"🎉 Trip plan generated and saved successfully! (Used {credits_used} credits)")
                     st.rerun()
                 else:
                     st.error(f"❌ Failed to save trip: {message}")
@@ -1224,6 +1279,65 @@ def show_profile():
             st.info("🔐 This account is secured with Google OAuth. Your password is managed by Google.")
         else:
             st.info("🔐 This account uses email/password authentication. Keep your password secure.")
+
+def show_credits_page():
+    """Show credits management page"""
+    if 'user' not in st.session_state:
+        st.error("Please log in first!")
+        return
+    
+    st.title("💳 AI Credits")
+    
+    # Import credit widget
+    from credit_widget import credit_widget
+    
+    # Show credit card
+    credit_widget.show_credit_card(st.session_state.user['id'])
+    
+    # Show upgrade prompt if credits are low
+    credit_widget.show_upgrade_prompt(st.session_state.user['id'])
+    
+    # Tabs for different credit views
+    tab1, tab2, tab3 = st.tabs(["📊 Usage Breakdown", "📋 Transaction History", "ℹ️ About Credits"])
+    
+    with tab1:
+        credit_widget.show_credit_usage_breakdown(st.session_state.user['id'])
+    
+    with tab2:
+        credit_widget.show_credit_history(st.session_state.user['id'])
+    
+    with tab3:
+        st.subheader("ℹ️ About AI Credits")
+        
+        st.markdown("""
+        ### How Credits Work
+        
+        **AI Credits** are used to generate personalized trip recommendations using our advanced AI system.
+        
+        #### Credit Usage:
+        - **Base Trip Generation**: 5 credits
+        - **Additional Credits**: Based on content complexity
+          - Itinerary items: +0.5 credits each
+          - Accommodations: +0.3 credits each  
+          - Activities: +0.4 credits each
+          - Restaurants: +0.3 credits each
+          - Transportation: +0.2 credits each
+        
+        #### Credit Limits:
+        - **Maximum per trip**: 20 credits
+        - **Starting credits**: 1000 credits
+        - **Refill options**: Coming soon!
+        
+        #### Tips to Save Credits:
+        - Be specific in your preferences
+        - Choose shorter trip durations
+        - Focus on fewer destinations
+        - Use the budget calculator wisely
+        
+        ### Need More Credits?
+        
+        Contact our support team to discuss credit packages and upgrade options!
+        """)
 
 # Initialize the trip planner
 if __name__ == "__main__":
