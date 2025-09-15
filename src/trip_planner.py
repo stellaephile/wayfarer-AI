@@ -489,6 +489,11 @@ def show_trip_planner():
         del st.session_state.navigation_target
         st.session_state.trip_planner_page = target
     
+    # Check if we're in modification mode
+    if 'modification_mode' in st.session_state and st.session_state.modification_mode:
+        show_trip_modification_interface()
+        return
+    
     # Optimized sidebar
     with st.sidebar:
         # Compact header with app name and icon
@@ -630,7 +635,7 @@ def plan_new_trip():
             st.write(suggestions['additional_info'])
         
         # Action buttons
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             if st.button("🔄 Generate New Trip", type="secondary"):
                 # Clear current trip and show form again
@@ -641,11 +646,17 @@ def plan_new_trip():
                 st.rerun()
         
         with col2:
-            if st.button("👁️ View in My Trips", type="primary"):
-                st.session_state.page = "my_trips"
+            if st.button("💬 Modify Trip", type="primary"):
+                st.session_state.modification_mode = True
+                st.session_state.modification_trip_id = trip_id
                 st.rerun()
         
         with col3:
+            if st.button("👁️ View in My Trips", type="secondary"):
+                st.session_state.page = "my_trips"
+                st.rerun()
+        
+        with col4:
             if st.button("💾 Save & Continue", type="secondary"):
                 st.success("✅ Trip saved! You can view it in 'My Trips' anytime.")
         
@@ -909,9 +920,16 @@ def show_my_trips():
                 st.write(f"📊 Status: {trip['status'].title()}")
             
             with col2:
-                if st.button("View Details", key=f"view_{trip['id']}"):
-                    st.session_state.selected_trip = trip
-                    st.rerun()
+                col_view, col_modify = st.columns(2)
+                with col_view:
+                    if st.button("View", key=f"view_{trip['id']}"):
+                        st.session_state.selected_trip = trip
+                        st.rerun()
+                with col_modify:
+                    if st.button("Modify", key=f"modify_{trip['id']}"):
+                        st.session_state.modification_mode = True
+                        st.session_state.modification_trip_id = trip['id']
+                        st.rerun()
             
             with col3:
                 if st.button("Delete", key=f"delete_{trip['id']}"):
@@ -1279,6 +1297,60 @@ def show_profile():
             st.info("🔐 This account is secured with Google OAuth. Your password is managed by Google.")
         else:
             st.info("🔐 This account uses email/password authentication. Keep your password secure.")
+
+def show_trip_modification_interface():
+    """Show the trip modification interface with chat"""
+    from trip_modification_chat import TripModificationChat
+    
+    st.title("🗺️ Trip Modification Center")
+    
+    if 'user' not in st.session_state:
+        st.error("❌ Please log in to modify trips!")
+        return
+    
+    if 'modification_trip_id' not in st.session_state:
+        st.error("❌ No trip selected for modification!")
+        return
+    
+    trip_id = st.session_state.modification_trip_id
+    user_id = st.session_state.user['id']
+    
+    # Get trip data
+    trip_data = db.get_trip_by_id(trip_id, user_id)
+    if not trip_data:
+        st.error("❌ Trip not found!")
+        return
+    
+    # Parse AI suggestions
+    try:
+        current_trip_data = json.loads(trip_data['ai_suggestions']) if isinstance(trip_data['ai_suggestions'], str) else trip_data['ai_suggestions']
+    except Exception as e:
+        st.error(f"❌ Error loading trip data: {str(e)}")
+        return
+    
+    # Add trip metadata to current_trip_data
+    current_trip_data.update({
+        'trip_id': trip_id,
+        'user_id': user_id,
+        'destination': trip_data['destination'],
+        'start_date': trip_data['start_date'],
+        'end_date': trip_data['end_date'],
+        'budget': trip_data['budget'],
+        'currency': trip_data['currency'],
+        'currency_symbol': trip_data['currency_symbol'],
+        'preferences': trip_data['preferences']
+    })
+    
+    # Initialize and show modification interface
+    modification_chat = TripModificationChat()
+    modification_chat.show_modification_interface(trip_id, user_id, current_trip_data)
+    
+    # Back button
+    if st.button("← Back to Trip Planner", type="secondary"):
+        del st.session_state.modification_mode
+        if 'modification_trip_id' in st.session_state:
+            del st.session_state.modification_trip_id
+        st.rerun()
 
 def show_credits_page():
     """Show credits management page"""

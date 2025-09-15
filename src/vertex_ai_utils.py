@@ -599,6 +599,140 @@ Only output the JSON. Nothing else.
             essentials.extend(["Modest clothing", "Guidebook", "Notebook"])
         
         return essentials
+    
+    def generate_chat_response(self, user_message: str, trip_context: Dict, user_id: int = None, trip_id: int = None) -> str:
+        """Generate AI response for trip refinement chat"""
+        if not self.is_configured or not self.model:
+            return self._generate_fallback_chat_response(user_message, trip_context)
+        
+        try:
+            # Create a context-aware prompt for chat
+            prompt = self._create_chat_prompt(user_message, trip_context)
+            
+            generation_config = GenerationConfig(
+                max_output_tokens=2048,  # Increased from 1024
+                temperature=0.7,
+                top_p=0.95,
+            )
+            
+            # Generate response using Vertex AI
+            response = self.model.generate_content(prompt, generation_config=generation_config)
+            
+            if response and response.text:
+                return response.text.strip()
+            else:
+                return self._generate_fallback_chat_response(user_message, trip_context)
+                
+        except Exception as e:
+            logger.error(f"Error generating chat response: {str(e)}")
+            return self._generate_fallback_chat_response(user_message, trip_context)
+    
+    def _create_chat_prompt(self, user_message: str, trip_context: Dict) -> str:
+        """Create a context-aware prompt for chat interactions"""
+        destination = trip_context.get('destination', 'Unknown')
+        budget = trip_context.get('budget', 0)
+        currency_symbol = trip_context.get('currency_symbol', '$')
+        duration = trip_context.get('duration', 'Unknown')
+        preferences = trip_context.get('preferences', 'General travel')
+        
+        # Get current itinerary summary
+        itinerary_summary = ""
+        if 'itinerary' in trip_context and trip_context['itinerary']:
+            itinerary_summary = "Current itinerary includes: "
+            for day in trip_context['itinerary'][:3]:  # Show first 3 days
+                if isinstance(day, dict) and 'activities' in day:
+                    itinerary_summary += f"Day {day.get('day', 'N/A')}: {', '.join(day['activities'][:2])}; "
+        
+        # Get current activities summary
+        activities_summary = ""
+        if 'activities' in trip_context and trip_context['activities']:
+            activities_summary = "Current activities: "
+            for activity in trip_context['activities'][:3]:  # Show first 3 activities
+                if isinstance(activity, dict):
+                    activities_summary += f"{activity.get('name', 'Activity')}, "
+        
+        prompt = f"""
+You are an expert travel planner helping to refine a trip plan. Be conversational, helpful, and specific.
+
+CURRENT TRIP CONTEXT:
+- Destination: {destination}
+- Budget: {currency_symbol}{budget:,.2f}
+- Duration: {duration}
+- Preferences: {preferences}
+- {itinerary_summary}
+- {activities_summary}
+
+USER REQUEST: "{user_message}"
+
+INSTRUCTIONS:
+1. Respond in a conversational, helpful tone
+2. Be specific about what changes you can make
+3. If the request is about budget, provide specific cost adjustments and alternatives
+4. If about activities, suggest specific alternatives with details
+5. If about accommodations, recommend specific types or areas with reasons
+6. If about food, suggest specific restaurants or experiences
+7. Provide detailed, actionable suggestions (3-4 sentences minimum)
+8. Always end with a question to encourage further refinement
+9. If the user wants to finalize changes, explain what will be updated
+10. Be encouraging and show enthusiasm for their travel plans
+
+RESPONSE FORMAT:
+Provide a helpful, detailed response that addresses the user's request and offers specific suggestions for improvement. Make sure to give complete information and be thorough in your recommendations.
+"""
+        
+        return prompt
+    
+    def _generate_fallback_chat_response(self, user_message: str, trip_context: Dict) -> str:
+        """Generate fallback response when AI is not available"""
+        message_lower = user_message.lower()
+        
+        if any(word in message_lower for word in ['budget', 'cheaper', 'expensive', 'cost', 'money']):
+            return "I can help you adjust the budget! I can suggest more budget-friendly accommodations, free activities, or local dining options. What specific budget changes would you like to make?"
+        
+        elif any(word in message_lower for word in ['adventure', 'adventurous', 'exciting', 'thrilling']):
+            return "Great! I can add more adventurous activities like hiking, water sports, or extreme experiences. What type of adventure activities interest you most?"
+        
+        elif any(word in message_lower for word in ['culture', 'cultural', 'museum', 'historical']):
+            return "I'd love to add more cultural experiences! I can include museum visits, historical sites, local festivals, or cultural workshops. What cultural aspects interest you?"
+        
+        elif any(word in message_lower for word in ['relax', 'relaxing', 'spa', 'peaceful']):
+            return "I can make your trip more relaxing by adding spa visits, beach time, or quiet retreats. Would you like me to focus on wellness activities?"
+        
+        elif any(word in message_lower for word in ['food', 'restaurant', 'dining', 'cuisine']):
+            return "I can enhance your food experience with local restaurants, food tours, cooking classes, or street food adventures. What type of culinary experience interests you?"
+        
+        elif any(word in message_lower for word in ['finalize', 'final', 'done', 'complete', 'update']):
+            return "Perfect! I can help you finalize these changes. What specific modifications would you like me to apply to your trip plan?"
+        
+        else:
+            return "I understand you'd like to refine your trip! I can help adjust the budget, activities, accommodations, or dining options. What specific changes would you like to make?"
+    
+    def calculate_chat_credits(self, user_message: str, response_length: int = 0) -> int:
+        """Calculate credits used for chat interaction"""
+        # Base credits for chat interaction
+        base_credits = 1
+        
+        # Additional credits based on message complexity
+        additional_credits = 0
+        
+        # Check for complex requests
+        if any(word in user_message.lower() for word in ['budget', 'cost', 'money', 'expensive', 'cheaper']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['itinerary', 'schedule', 'activities', 'plan']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['accommodation', 'hotel', 'stay', 'lodging']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['restaurant', 'food', 'dining', 'cuisine']):
+            additional_credits += 1
+        
+        # Credits based on response length
+        if response_length > 200:
+            additional_credits += 1
+        
+        return base_credits + additional_credits
 
 # Initialize the trip planner
 trip_planner = VertexAITripPlanner()

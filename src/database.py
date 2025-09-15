@@ -78,6 +78,39 @@ class DatabaseManager:
             )
         ''')
         
+        # Chat history table for trip modifications
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS chat_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trip_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                message_type TEXT NOT NULL,
+                message_content TEXT NOT NULL,
+                ai_response TEXT,
+                credits_used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (trip_id) REFERENCES trips (id),
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Trip modifications table to track changes
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS trip_modifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trip_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                modification_type TEXT NOT NULL,
+                original_data TEXT,
+                modified_data TEXT,
+                modification_reason TEXT,
+                credits_used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (trip_id) REFERENCES trips (id),
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
         conn.commit()
         conn.close()
     
@@ -608,6 +641,109 @@ class DatabaseManager:
         except Exception as e:
             st.error(f"Error updating trip credits: {str(e)}")
             return False
+    
+    def save_chat_interaction(self, trip_id, user_id, message_type, message_content, ai_response=None, credits_used=0):
+        """Save a chat interaction to the database"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO chat_history 
+                (trip_id, user_id, message_type, message_content, ai_response, credits_used)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (trip_id, user_id, message_type, message_content, ai_response, credits_used))
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            st.error(f"Error saving chat interaction: {str(e)}")
+            return False
+    
+    def get_chat_history(self, trip_id, user_id):
+        """Get chat history for a specific trip"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT message_type, message_content, ai_response, created_at, credits_used
+                FROM chat_history 
+                WHERE trip_id = ? AND user_id = ?
+                ORDER BY created_at ASC
+            ''', (trip_id, user_id))
+            
+            history = cursor.fetchall()
+            conn.close()
+            
+            return [
+                {
+                    'message_type': msg[0],
+                    'message_content': msg[1],
+                    'ai_response': msg[2],
+                    'created_at': msg[3],
+                    'credits_used': msg[4]
+                }
+                for msg in history
+            ]
+            
+        except Exception as e:
+            st.error(f"Error getting chat history: {str(e)}")
+            return []
+    
+    def save_trip_modification(self, trip_id, user_id, modification_type, original_data, modified_data, modification_reason, credits_used=0):
+        """Save a trip modification to the database"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO trip_modifications 
+                (trip_id, user_id, modification_type, original_data, modified_data, modification_reason, credits_used)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (trip_id, user_id, modification_type, json.dumps(original_data), json.dumps(modified_data), modification_reason, credits_used))
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            st.error(f"Error saving trip modification: {str(e)}")
+            return False
+    
+    def get_trip_modifications(self, trip_id, user_id):
+        """Get modification history for a specific trip"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT modification_type, original_data, modified_data, modification_reason, created_at, credits_used
+                FROM trip_modifications 
+                WHERE trip_id = ? AND user_id = ?
+                ORDER BY created_at ASC
+            ''', (trip_id, user_id))
+            
+            modifications = cursor.fetchall()
+            conn.close()
+            
+            return [
+                {
+                    'modification_type': mod[0],
+                    'original_data': json.loads(mod[1]) if mod[1] else None,
+                    'modified_data': json.loads(mod[2]) if mod[2] else None,
+                    'modification_reason': mod[3],
+                    'created_at': mod[4],
+                    'credits_used': mod[5]
+                }
+                for mod in modifications
+            ]
+            
+        except Exception as e:
+            st.error(f"Error getting trip modifications: {str(e)}")
+            return []
 
 # Create global database instance
 db = DatabaseManager()
