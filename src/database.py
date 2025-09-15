@@ -51,6 +51,7 @@ class DatabaseManager:
                 start_date DATE,
                 end_date DATE,
                 budget REAL,
+                currency TEXT,
                 preferences TEXT,
                 ai_suggestions TEXT,
                 status TEXT DEFAULT 'planned',
