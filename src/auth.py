@@ -187,7 +187,6 @@ def show_auth_pages():
                     <p class="login-subtitle">Your AI-powered travel companion</p>
                 </div>
         """, unsafe_allow_html=True)
-        st.markdown("</div></div>", unsafe_allow_html=True)
 
         with st.container():
             if st.session_state.show_login:
@@ -206,7 +205,7 @@ def show_auth_pages():
             show_google_signin_button()
 
         # Close the container div
-        
+        st.markdown("</div></div>", unsafe_allow_html=True)
 
 
 
