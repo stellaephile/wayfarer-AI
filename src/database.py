@@ -290,16 +290,16 @@ class DatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
     
-    def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions):
+    def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency='USD', currency_symbol='$'):
         """Create a new trip"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             cursor.execute('''
-                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions))
+                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency, currency_symbol)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency, currency_symbol))
             
             conn.commit()
             trip_id = cursor.lastrowid
@@ -318,7 +318,7 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at
+                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol
                 FROM trips WHERE user_id = ? ORDER BY created_at DESC
             ''', (user_id,))
             
@@ -336,7 +336,9 @@ class DatabaseManager:
                     'ai_suggestions': trip[6],
                     'status': trip[7],
                     'created_at': trip[8],
-                    'updated_at': trip[9]
+                    'updated_at': trip[9],
+                    'currency': trip[10],
+                    'currency_symbol': trip[11]
                 }
                 for trip in trips
             ]
@@ -353,7 +355,7 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at
+                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol
                 FROM trips WHERE id = ? AND user_id = ?
             ''', (trip_id, user_id))
             
@@ -371,7 +373,9 @@ class DatabaseManager:
                     'ai_suggestions': trip[6],
                     'status': trip[7],
                     'created_at': trip[8],
-                    'updated_at': trip[9]
+                    'updated_at': trip[9],
+                    'currency': trip[10],
+                    'currency_symbol': trip[11]
                 }
             return None
             

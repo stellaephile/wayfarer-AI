@@ -4,6 +4,275 @@ from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
 
+def validate_trip_dates(start_date, end_date):
+    """Validate trip dates to ensure they are not in the past and end date is after start date"""
+    today = datetime.now().date()
+    
+    if start_date < today:
+        st.error("❌ Start date cannot be in the past!")
+        return False
+    
+    if end_date < today:
+        st.error("❌ End date cannot be in the past!")
+        return False
+        
+    if start_date >= end_date:
+        st.error("❌ End date must be after start date!")
+        return False
+    
+    return True
+
+def get_currency_options():
+    """Get list of popular currencies with their symbols and codes"""
+    return {
+        "USD": {"symbol": "$", "name": "US Dollar"},
+        "EUR": {"symbol": "€", "name": "Euro"},
+        "GBP": {"symbol": "£", "name": "British Pound"},
+        "JPY": {"symbol": "¥", "name": "Japanese Yen"},
+        "CAD": {"symbol": "C$", "name": "Canadian Dollar"},
+        "AUD": {"symbol": "A$", "name": "Australian Dollar"},
+        "CHF": {"symbol": "CHF", "name": "Swiss Franc"},
+        "CNY": {"symbol": "¥", "name": "Chinese Yuan"},
+        "INR": {"symbol": "₹", "name": "Indian Rupee"},
+        "BRL": {"symbol": "R$", "name": "Brazilian Real"},
+        "MXN": {"symbol": "$", "name": "Mexican Peso"},
+        "SGD": {"symbol": "S$", "name": "Singapore Dollar"},
+        "HKD": {"symbol": "HK$", "name": "Hong Kong Dollar"},
+        "NZD": {"symbol": "NZ$", "name": "New Zealand Dollar"},
+        "SEK": {"symbol": "kr", "name": "Swedish Krona"},
+        "NOK": {"symbol": "kr", "name": "Norwegian Krone"},
+        "DKK": {"symbol": "kr", "name": "Danish Krone"},
+        "PLN": {"symbol": "zł", "name": "Polish Zloty"},
+        "CZK": {"symbol": "Kč", "name": "Czech Koruna"},
+        "HUF": {"symbol": "Ft", "name": "Hungarian Forint"},
+        "RUB": {"symbol": "₽", "name": "Russian Ruble"},
+        "ZAR": {"symbol": "R", "name": "South African Rand"},
+        "KRW": {"symbol": "₩", "name": "South Korean Won"},
+        "THB": {"symbol": "฿", "name": "Thai Baht"},
+        "MYR": {"symbol": "RM", "name": "Malaysian Ringgit"},
+        "IDR": {"symbol": "Rp", "name": "Indonesian Rupiah"},
+        "PHP": {"symbol": "₱", "name": "Philippine Peso"},
+        "VND": {"symbol": "₫", "name": "Vietnamese Dong"},
+        "TRY": {"symbol": "₺", "name": "Turkish Lira"},
+        "AED": {"symbol": "د.إ", "name": "UAE Dirham"},
+        "SAR": {"symbol": "﷼", "name": "Saudi Riyal"},
+        "EGP": {"symbol": "£", "name": "Egyptian Pound"},
+        "ILS": {"symbol": "₪", "name": "Israeli Shekel"},
+        "QAR": {"symbol": "﷼", "name": "Qatari Riyal"},
+        "KWD": {"symbol": "د.ك", "name": "Kuwaiti Dinar"},
+        "BHD": {"symbol": "د.ب", "name": "Bahraini Dinar"},
+        "OMR": {"symbol": "﷼", "name": "Omani Rial"},
+        "JOD": {"symbol": "د.ا", "name": "Jordanian Dinar"},
+        "LBP": {"symbol": "ل.ل", "name": "Lebanese Pound"},
+        "PKR": {"symbol": "₨", "name": "Pakistani Rupee"},
+        "BDT": {"symbol": "৳", "name": "Bangladeshi Taka"},
+        "LKR": {"symbol": "₨", "name": "Sri Lankan Rupee"},
+        "NPR": {"symbol": "₨", "name": "Nepalese Rupee"},
+        "AFN": {"symbol": "؋", "name": "Afghan Afghani"},
+        "AMD": {"symbol": "֏", "name": "Armenian Dram"},
+        "AZN": {"symbol": "₼", "name": "Azerbaijani Manat"},
+        "GEL": {"symbol": "₾", "name": "Georgian Lari"},
+        "KZT": {"symbol": "₸", "name": "Kazakhstani Tenge"},
+        "KGS": {"symbol": "лв", "name": "Kyrgyzstani Som"},
+        "TJS": {"symbol": "ЅМ", "name": "Tajikistani Somoni"},
+        "TMT": {"symbol": "T", "name": "Turkmenistani Manat"},
+        "UZS": {"symbol": "лв", "name": "Uzbekistani Som"},
+        "MNT": {"symbol": "₮", "name": "Mongolian Tugrik"},
+        "LAK": {"symbol": "₭", "name": "Lao Kip"},
+        "KHR": {"symbol": "៛", "name": "Cambodian Riel"},
+        "MMK": {"symbol": "K", "name": "Myanmar Kyat"},
+        "BND": {"symbol": "B$", "name": "Brunei Dollar"},
+        "FJD": {"symbol": "FJ$", "name": "Fijian Dollar"},
+        "PGK": {"symbol": "K", "name": "Papua New Guinea Kina"},
+        "SBD": {"symbol": "SI$", "name": "Solomon Islands Dollar"},
+        "VUV": {"symbol": "Vt", "name": "Vanuatu Vatu"},
+        "WST": {"symbol": "WS$", "name": "Samoan Tala"},
+        "TOP": {"symbol": "T$", "name": "Tongan Pa'anga"},
+        "XPF": {"symbol": "₣", "name": "CFP Franc"},
+        "NPR": {"symbol": "₨", "name": "Nepalese Rupee"},
+        "BTN": {"symbol": "Nu.", "name": "Bhutanese Ngultrum"},
+        "MVR": {"symbol": "Rf", "name": "Maldivian Rufiyaa"},
+        "SCR": {"symbol": "₨", "name": "Seychellois Rupee"},
+        "MUR": {"symbol": "₨", "name": "Mauritian Rupee"},
+        "KMF": {"symbol": "CF", "name": "Comorian Franc"},
+        "DJF": {"symbol": "Fdj", "name": "Djiboutian Franc"},
+        "ETB": {"symbol": "Br", "name": "Ethiopian Birr"},
+        "KES": {"symbol": "KSh", "name": "Kenyan Shilling"},
+        "TZS": {"symbol": "TSh", "name": "Tanzanian Shilling"},
+        "UGX": {"symbol": "USh", "name": "Ugandan Shilling"},
+        "RWF": {"symbol": "RF", "name": "Rwandan Franc"},
+        "BIF": {"symbol": "FBu", "name": "Burundian Franc"},
+        "MWK": {"symbol": "MK", "name": "Malawian Kwacha"},
+        "ZMW": {"symbol": "ZK", "name": "Zambian Kwacha"},
+        "BWP": {"symbol": "P", "name": "Botswana Pula"},
+        "SZL": {"symbol": "L", "name": "Swazi Lilangeni"},
+        "LSL": {"symbol": "L", "name": "Lesotho Loti"},
+        "NAD": {"symbol": "N$", "name": "Namibian Dollar"},
+        "MZN": {"symbol": "MT", "name": "Mozambican Metical"},
+        "AOA": {"symbol": "Kz", "name": "Angolan Kwanza"},
+        "XOF": {"symbol": "CFA", "name": "West African CFA Franc"},
+        "XAF": {"symbol": "FCFA", "name": "Central African CFA Franc"},
+        "CDF": {"symbol": "FC", "name": "Congolese Franc"},
+        "GMD": {"symbol": "D", "name": "Gambian Dalasi"},
+        "GHS": {"symbol": "₵", "name": "Ghanaian Cedi"},
+        "GNF": {"symbol": "FG", "name": "Guinean Franc"},
+        "LRD": {"symbol": "L$", "name": "Liberian Dollar"},
+        "SLL": {"symbol": "Le", "name": "Sierra Leonean Leone"},
+        "NGN": {"symbol": "₦", "name": "Nigerian Naira"},
+        "XOF": {"symbol": "CFA", "name": "West African CFA Franc"},
+        "XAF": {"symbol": "FCFA", "name": "Central African CFA Franc"},
+        "TND": {"symbol": "د.ت", "name": "Tunisian Dinar"},
+        "DZD": {"symbol": "د.ج", "name": "Algerian Dinar"},
+        "MAD": {"symbol": "د.م.", "name": "Moroccan Dirham"},
+        "LYD": {"symbol": "ل.د", "name": "Libyan Dinar"},
+        "SDG": {"symbol": "ج.س.", "name": "Sudanese Pound"},
+        "SSP": {"symbol": "£", "name": "South Sudanese Pound"},
+        "ETB": {"symbol": "Br", "name": "Ethiopian Birr"},
+        "SOS": {"symbol": "S", "name": "Somali Shilling"},
+        "DJF": {"symbol": "Fdj", "name": "Djiboutian Franc"},
+        "ERN": {"symbol": "Nfk", "name": "Eritrean Nakfa"},
+        "SYP": {"symbol": "£", "name": "Syrian Pound"},
+        "LBP": {"symbol": "ل.ل", "name": "Lebanese Pound"},
+        "JOD": {"symbol": "د.ا", "name": "Jordanian Dinar"},
+        "IQD": {"symbol": "ع.د", "name": "Iraqi Dinar"},
+        "IRR": {"symbol": "﷼", "name": "Iranian Rial"},
+        "YER": {"symbol": "﷼", "name": "Yemeni Rial"},
+        "OMR": {"symbol": "﷼", "name": "Omani Rial"},
+        "QAR": {"symbol": "﷼", "name": "Qatari Riyal"},
+        "BHD": {"symbol": "د.ب", "name": "Bahraini Dinar"},
+        "KWD": {"symbol": "د.ك", "name": "Kuwaiti Dinar"},
+        "AED": {"symbol": "د.إ", "name": "UAE Dirham"},
+        "SAR": {"symbol": "﷼", "name": "Saudi Riyal"},
+        "ILS": {"symbol": "₪", "name": "Israeli Shekel"},
+        "PAB": {"symbol": "B/.", "name": "Panamanian Balboa"},
+        "CRC": {"symbol": "₡", "name": "Costa Rican Colón"},
+        "GTQ": {"symbol": "Q", "name": "Guatemalan Quetzal"},
+        "HNL": {"symbol": "L", "name": "Honduran Lempira"},
+        "NIO": {"symbol": "C$", "name": "Nicaraguan Córdoba"},
+        "PAB": {"symbol": "B/.", "name": "Panamanian Balboa"},
+        "SVC": {"symbol": "₡", "name": "Salvadoran Colón"},
+        "BZD": {"symbol": "BZ$", "name": "Belize Dollar"},
+        "JMD": {"symbol": "J$", "name": "Jamaican Dollar"},
+        "TTD": {"symbol": "TT$", "name": "Trinidad and Tobago Dollar"},
+        "BBD": {"symbol": "Bds$", "name": "Barbadian Dollar"},
+        "XCD": {"symbol": "EC$", "name": "East Caribbean Dollar"},
+        "AWG": {"symbol": "ƒ", "name": "Aruban Florin"},
+        "ANG": {"symbol": "ƒ", "name": "Netherlands Antillean Guilder"},
+        "SRD": {"symbol": "$", "name": "Surinamese Dollar"},
+        "GYD": {"symbol": "G$", "name": "Guyanese Dollar"},
+        "VES": {"symbol": "Bs.S", "name": "Venezuelan Bolívar"},
+        "COP": {"symbol": "$", "name": "Colombian Peso"},
+        "PEN": {"symbol": "S/", "name": "Peruvian Sol"},
+        "BOB": {"symbol": "Bs", "name": "Bolivian Boliviano"},
+        "CLP": {"symbol": "$", "name": "Chilean Peso"},
+        "ARS": {"symbol": "$", "name": "Argentine Peso"},
+        "UYU": {"symbol": "$U", "name": "Uruguayan Peso"},
+        "PYG": {"symbol": "₲", "name": "Paraguayan Guarani"},
+        "BRL": {"symbol": "R$", "name": "Brazilian Real"},
+        "FKP": {"symbol": "£", "name": "Falkland Islands Pound"},
+        "GBP": {"symbol": "£", "name": "British Pound"},
+        "EUR": {"symbol": "€", "name": "Euro"},
+        "CHF": {"symbol": "CHF", "name": "Swiss Franc"},
+        "SEK": {"symbol": "kr", "name": "Swedish Krona"},
+        "NOK": {"symbol": "kr", "name": "Norwegian Krone"},
+        "DKK": {"symbol": "kr", "name": "Danish Krone"},
+        "ISK": {"symbol": "kr", "name": "Icelandic Krona"},
+        "PLN": {"symbol": "zł", "name": "Polish Zloty"},
+        "CZK": {"symbol": "Kč", "name": "Czech Koruna"},
+        "HUF": {"symbol": "Ft", "name": "Hungarian Forint"},
+        "RON": {"symbol": "lei", "name": "Romanian Leu"},
+        "BGN": {"symbol": "лв", "name": "Bulgarian Lev"},
+        "HRK": {"symbol": "kn", "name": "Croatian Kuna"},
+        "RSD": {"symbol": "дин", "name": "Serbian Dinar"},
+        "MKD": {"symbol": "ден", "name": "Macedonian Denar"},
+        "ALL": {"symbol": "L", "name": "Albanian Lek"},
+        "BAM": {"symbol": "КМ", "name": "Bosnia and Herzegovina Convertible Mark"},
+        "MNT": {"symbol": "₮", "name": "Mongolian Tugrik"},
+        "KZT": {"symbol": "₸", "name": "Kazakhstani Tenge"},
+        "KGS": {"symbol": "лв", "name": "Kyrgyzstani Som"},
+        "TJS": {"symbol": "ЅМ", "name": "Tajikistani Somoni"},
+        "TMT": {"symbol": "T", "name": "Turkmenistani Manat"},
+        "UZS": {"symbol": "лв", "name": "Uzbekistani Som"},
+        "AFN": {"symbol": "؋", "name": "Afghan Afghani"},
+        "PKR": {"symbol": "₨", "name": "Pakistani Rupee"},
+        "BDT": {"symbol": "৳", "name": "Bangladeshi Taka"},
+        "LKR": {"symbol": "₨", "name": "Sri Lankan Rupee"},
+        "NPR": {"symbol": "₨", "name": "Nepalese Rupee"},
+        "BTN": {"symbol": "Nu.", "name": "Bhutanese Ngultrum"},
+        "MVR": {"symbol": "Rf", "name": "Maldivian Rufiyaa"},
+        "SCR": {"symbol": "₨", "name": "Seychellois Rupee"},
+        "MUR": {"symbol": "₨", "name": "Mauritian Rupee"},
+        "KMF": {"symbol": "CF", "name": "Comorian Franc"},
+        "DJF": {"symbol": "Fdj", "name": "Djiboutian Franc"},
+        "ETB": {"symbol": "Br", "name": "Ethiopian Birr"},
+        "KES": {"symbol": "KSh", "name": "Kenyan Shilling"},
+        "TZS": {"symbol": "TSh", "name": "Tanzanian Shilling"},
+        "UGX": {"symbol": "USh", "name": "Ugandan Shilling"},
+        "RWF": {"symbol": "RF", "name": "Rwandan Franc"},
+        "BIF": {"symbol": "FBu", "name": "Burundian Franc"},
+        "MWK": {"symbol": "MK", "name": "Malawian Kwacha"},
+        "ZMW": {"symbol": "ZK", "name": "Zambian Kwacha"},
+        "BWP": {"symbol": "P", "name": "Botswana Pula"},
+        "SZL": {"symbol": "L", "name": "Swazi Lilangeni"},
+        "LSL": {"symbol": "L", "name": "Lesotho Loti"},
+        "NAD": {"symbol": "N$", "name": "Namibian Dollar"},
+        "MZN": {"symbol": "MT", "name": "Mozambican Metical"},
+        "AOA": {"symbol": "Kz", "name": "Angolan Kwanza"},
+        "XOF": {"symbol": "CFA", "name": "West African CFA Franc"},
+        "XAF": {"symbol": "FCFA", "name": "Central African CFA Franc"},
+        "CDF": {"symbol": "FC", "name": "Congolese Franc"},
+        "GMD": {"symbol": "D", "name": "Gambian Dalasi"},
+        "GHS": {"symbol": "₵", "name": "Ghanaian Cedi"},
+        "GNF": {"symbol": "FG", "name": "Guinean Franc"},
+        "LRD": {"symbol": "L$", "name": "Liberian Dollar"},
+        "SLL": {"symbol": "Le", "name": "Sierra Leonean Leone"},
+        "NGN": {"symbol": "₦", "name": "Nigerian Naira"},
+        "TND": {"symbol": "د.ت", "name": "Tunisian Dinar"},
+        "DZD": {"symbol": "د.ج", "name": "Algerian Dinar"},
+        "MAD": {"symbol": "د.م.", "name": "Moroccan Dirham"},
+        "LYD": {"symbol": "ل.د", "name": "Libyan Dinar"},
+        "SDG": {"symbol": "ج.س.", "name": "Sudanese Pound"},
+        "SSP": {"symbol": "£", "name": "South Sudanese Pound"},
+        "SOS": {"symbol": "S", "name": "Somali Shilling"},
+        "ERN": {"symbol": "Nfk", "name": "Eritrean Nakfa"},
+        "SYP": {"symbol": "£", "name": "Syrian Pound"},
+        "IQD": {"symbol": "ع.د", "name": "Iraqi Dinar"},
+        "IRR": {"symbol": "﷼", "name": "Iranian Rial"},
+        "YER": {"symbol": "﷼", "name": "Yemeni Rial"},
+        "PAB": {"symbol": "B/.", "name": "Panamanian Balboa"},
+        "CRC": {"symbol": "₡", "name": "Costa Rican Colón"},
+        "GTQ": {"symbol": "Q", "name": "Guatemalan Quetzal"},
+        "HNL": {"symbol": "L", "name": "Honduran Lempira"},
+        "NIO": {"symbol": "C$", "name": "Nicaraguan Córdoba"},
+        "SVC": {"symbol": "₡", "name": "Salvadoran Colón"},
+        "BZD": {"symbol": "BZ$", "name": "Belize Dollar"},
+        "JMD": {"symbol": "J$", "name": "Jamaican Dollar"},
+        "TTD": {"symbol": "TT$", "name": "Trinidad and Tobago Dollar"},
+        "BBD": {"symbol": "Bds$", "name": "Barbadian Dollar"},
+        "XCD": {"symbol": "EC$", "name": "East Caribbean Dollar"},
+        "AWG": {"symbol": "ƒ", "name": "Aruban Florin"},
+        "ANG": {"symbol": "ƒ", "name": "Netherlands Antillean Guilder"},
+        "SRD": {"symbol": "$", "name": "Surinamese Dollar"},
+        "GYD": {"symbol": "G$", "name": "Guyanese Dollar"},
+        "VES": {"symbol": "Bs.S", "name": "Venezuelan Bolívar"},
+        "COP": {"symbol": "$", "name": "Colombian Peso"},
+        "PEN": {"symbol": "S/", "name": "Peruvian Sol"},
+        "BOB": {"symbol": "Bs", "name": "Bolivian Boliviano"},
+        "CLP": {"symbol": "$", "name": "Chilean Peso"},
+        "ARS": {"symbol": "$", "name": "Argentine Peso"},
+        "UYU": {"symbol": "$U", "name": "Uruguayan Peso"},
+        "PYG": {"symbol": "₲", "name": "Paraguayan Guarani"},
+        "FKP": {"symbol": "£", "name": "Falkland Islands Pound"},
+        "ISK": {"symbol": "kr", "name": "Icelandic Krona"},
+        "RON": {"symbol": "lei", "name": "Romanian Leu"},
+        "BGN": {"symbol": "лв", "name": "Bulgarian Lev"},
+        "HRK": {"symbol": "kn", "name": "Croatian Kuna"},
+        "RSD": {"symbol": "дин", "name": "Serbian Dinar"},
+        "MKD": {"symbol": "ден", "name": "Macedonian Denar"},
+        "ALL": {"symbol": "L", "name": "Albanian Lek"},
+        "BAM": {"symbol": "КМ", "name": "Bosnia and Herzegovina Convertible Mark"}
+    }
+
 # # Configure page FIRST - before any other Streamlit commands
 # st.set_page_config(
 #     page_title="AI Trip Planner",
@@ -81,11 +350,32 @@ def show_dashboard():
         )
     
     with col4:
-        st.metric(
-            label="💰 Total Budget",
-            value=f"${sum(trip['budget'] for trip in db.get_user_trips(user['id'])):,.0f}",
-            delta=None
-        )
+        # Calculate total budget with mixed currencies
+        user_trips = db.get_user_trips(user['id'])
+        total_budget = sum(trip['budget'] for trip in user_trips)
+        # For mixed currencies, show total with note
+        if user_trips:
+            currencies = set(trip.get('currency', 'USD') for trip in user_trips)
+            if len(currencies) == 1:
+                currency_symbol = user_trips[0].get('currency_symbol', '$')
+                st.metric(
+                    label="💰 Total Budget",
+                    value=f"{currency_symbol}{total_budget:,.0f}",
+                    delta=None
+                )
+            else:
+                st.metric(
+                    label="💰 Total Budget",
+                    value=f"${total_budget:,.0f}",
+                    delta=None
+                )
+                st.caption("Mixed currencies - showing USD equivalent")
+        else:
+            st.metric(
+                label="💰 Total Budget",
+                value="$0",
+                delta=None
+            )
     
     # Quick actions
     st.subheader("🚀 Quick Actions")
@@ -121,7 +411,8 @@ def show_dashboard():
                 with col1:
                     st.write(f"**{trip['destination']}**")
                     st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
-                    st.write(f"💰 ${trip['budget']:,.2f}")
+                    currency_symbol = trip.get('currency_symbol', '$')
+                    st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
                 
                 with col2:
                     st.write(f"Status: {trip['status'].title()}")
@@ -252,7 +543,8 @@ def plan_new_trip():
             st.write(f"**Destination:** {suggestions.get('destination', 'N/A')}")
             st.write(f"**Duration:** {suggestions.get('duration', 'N/A')} days")
         with col2:
-            st.write(f"**Budget:** ${suggestions.get('budget', 'N/A')}")
+            currency_symbol = suggestions.get('currency_symbol', '$')
+            st.write(f"**Budget:** {currency_symbol}{suggestions.get('budget', 'N/A')}")
             st.write(f"**Trip ID:** {trip_id}")
         
         # Show itinerary
@@ -278,8 +570,13 @@ def plan_new_trip():
         # Show accommodations
         if 'accommodations' in suggestions and suggestions['accommodations']:
             st.subheader("🏨 Recommended Accommodations")
+            currency_symbol = suggestions.get('currency_symbol', '$')
             for hotel in suggestions['accommodations']:
                 price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
+                if isinstance(price_info, str) and price_info != 'Price not available':
+                    # If price contains dollar sign, replace with correct currency
+                    if '$' in price_info:
+                        price_info = price_info.replace('$', currency_symbol)
                 st.write(f"**{hotel['name']}** - {price_info}")
                 if 'description' in hotel:
                     st.write(f"*{hotel['description']}*")
@@ -323,23 +620,90 @@ def plan_new_trip():
                 placeholder="e.g., Paris, France",
                 help="Enter your travel destination"
             )
+            today = datetime.now().date()
             start_date = st.date_input(
                 "Start Date *", 
-                value=datetime.now().date(),
-                help="When does your trip start?"
+                value=today,
+                min_value=today,
+                help=f"When does your trip start? (Earliest: {today.strftime('%B %d, %Y')})"
             )
             end_date = st.date_input(
                 "End Date *", 
-                value=datetime.now().date() + timedelta(days=7),
-                help="When does your trip end?"
+                value=today + timedelta(days=7),
+                min_value=today,
+                help=f"When does your trip end? (Earliest: {today.strftime('%B %d, %Y')})"
             )
-            budget = st.number_input(
-                "Budget (USD) *", 
-                min_value=0, 
-                value=1000, 
-                step=100,
-                help="Your total trip budget"
-            )
+            # Currency and Budget selection - Original layout with flags
+            col_budget, col_currency = st.columns([2, 1])
+            
+            with col_currency:
+                currency_options = get_currency_options()
+                
+                # Popular currencies with flags for better UX
+                popular_currencies_display = [
+                    ("USD", "🇺🇸 US Dollar ($)"),
+                    ("EUR", "🇪🇺 Euro (€)"),
+                    ("GBP", "🇬🇧 British Pound (£)"),
+                    ("JPY", "🇯🇵 Japanese Yen (¥)"),
+                    ("CAD", "🇨🇦 Canadian Dollar (C$)"),
+                    ("AUD", "🇦🇺 Australian Dollar (A$)"),
+                    ("CHF", "🇨🇭 Swiss Franc (CHF)"),
+                    ("INR", "🇮🇳 Indian Rupee (₹)"),
+                    ("BRL", "🇧🇷 Brazilian Real (R$)"),
+                    ("MXN", "🇲🇽 Mexican Peso ($)"),
+                    ("SGD", "🇸🇬 Singapore Dollar (S$)"),
+                    ("HKD", "🇭🇰 Hong Kong Dollar (HK$)"),
+                    ("NZD", "🇳🇿 New Zealand Dollar (NZ$)"),
+                    ("CNY", "🇨🇳 Chinese Yuan (¥)"),
+                    ("KRW", "🇰🇷 South Korean Won (₩)"),
+                    ("THB", "🇹🇭 Thai Baht (฿)"),
+                    ("MYR", "🇲🇾 Malaysian Ringgit (RM)"),
+                    ("IDR", "🇮🇩 Indonesian Rupiah (Rp)"),
+                    ("PHP", "🇵🇭 Philippine Peso (₱)"),
+                    ("VND", "🇻🇳 Vietnamese Dong (₫)"),
+                    ("TRY", "🇹🇷 Turkish Lira (₺)"),
+                    ("AED", "🇦🇪 UAE Dirham (د.إ)"),
+                    ("SAR", "🇸🇦 Saudi Riyal (ر.س)"),
+                    ("ILS", "🇮🇱 Israeli Shekel (₪)"),
+                    ("QAR", "🇶🇦 Qatari Riyal (ر.ق)"),
+                    ("KWD", "🇰🇼 Kuwaiti Dinar (د.ك)"),
+                    ("BHD", "🇧🇭 Bahraini Dinar (د.ب)"),
+                    ("OMR", "🇴🇲 Omani Rial (ر.ع.)"),
+                    ("JOD", "🇯🇴 Jordanian Dinar (د.ا)"),
+                    ("LBP", "🇱🇧 Lebanese Pound (ل.ل)"),
+                    ("PKR", "🇵🇰 Pakistani Rupee (₨)"),
+                    ("BDT", "🇧🇩 Bangladeshi Taka (৳)"),
+                    ("LKR", "🇱🇰 Sri Lankan Rupee (₨)"),
+                    ("NPR", "🇳🇵 Nepalese Rupee (₨)")
+                ]
+                
+                # Create currency options for selectbox
+                currency_choices = [display for code, display in popular_currencies_display]
+                currency_codes = [code for code, display in popular_currencies_display]
+                
+                selected_currency_display = st.selectbox(
+                    "Currency",
+                    currency_choices,
+                    index=0,  # Default to USD
+                    help="Select your preferred currency",
+                    key="currency_selectbox"
+                )
+                
+                # Extract currency code from selection
+                selected_index = currency_choices.index(selected_currency_display)
+                selected_currency = currency_codes[selected_index]
+                currency_symbol = currency_options[selected_currency]["symbol"]
+                
+                # Show selected currency with flag
+                st.caption(f"Selected: {selected_currency_display}")
+            
+            with col_budget:
+                budget = st.number_input(
+                    f"Budget ({selected_currency}) *", 
+                    min_value=0, 
+                    step=100, 
+                    help=f"Your total trip budget in {selected_currency}"
+                )
         
         with col2:
             travel_type = st.selectbox(
@@ -381,13 +745,14 @@ def plan_new_trip():
                 st.error("❌ Please enter a destination")
                 return
             
-            if start_date >= end_date:
-                st.error("❌ End date must be after start date")
+            # Validate dates
+            if not validate_trip_dates(start_date, end_date):
                 return
             
             if budget <= 0:
                 st.error("❌ Please enter a valid budget")
                 return
+            
             
             st.success("✅ Form validation passed!")
             
@@ -402,6 +767,8 @@ def plan_new_trip():
                 'start_date': start_date.strftime("%Y-%m-%d"),
                 'end_date': end_date.strftime("%Y-%m-%d"),
                 'budget': float(budget),
+                'currency': selected_currency,
+                'currency_symbol': currency_symbol,
                 'preferences': preferences_str,
                 'travel_type': travel_type,
                 'accommodation_type': accommodation_type
@@ -415,12 +782,15 @@ def plan_new_trip():
                         start_date=start_date.strftime("%Y-%m-%d"),
                         end_date=end_date.strftime("%Y-%m-%d"),
                         budget=float(budget),
-                        preferences=preferences_str
+                        preferences=preferences_str,
+                        currency=selected_currency,
+                        currency_symbol=currency_symbol
                     )
                 
                 if not suggestions:
                     st.error("❌ Failed to generate trip suggestions. Please try again.")
                     return
+                
                 
                 st.success("✅ Trip suggestions generated successfully!")
                 
@@ -437,7 +807,9 @@ def plan_new_trip():
                     end_date.strftime("%Y-%m-%d"),
                     float(budget),
                     preferences_str,
-                    json.dumps(suggestions)
+                    json.dumps(suggestions),
+                    selected_currency,
+                    currency_symbol
                 )
                 
                 if success:
@@ -477,7 +849,8 @@ def show_my_trips():
             with col1:
                 st.subheader(f"🗺️ {trip['destination']}")
                 st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
-                st.write(f"💰 Budget: ${trip['budget']:,.2f}")
+                currency_symbol = trip.get('currency_symbol', '$')
+                st.write(f"💰 Budget: {currency_symbol}{trip['budget']:,.2f}")
                 st.write(f"📊 Status: {trip['status'].title()}")
             
             with col2:
@@ -520,7 +893,8 @@ def show_trip_details(trip_data):
     with col1:
         st.metric("Duration", f"{trip_data['start_date']} to {trip_data['end_date']}")
     with col2:
-        st.metric("Budget", f"${trip_data['budget']:,.2f}")
+        currency_symbol = trip_data.get('currency_symbol', '$')
+        st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
     with col3:
         st.metric("Status", trip_data['status'].title())
     
@@ -553,12 +927,17 @@ def show_trip_details(trip_data):
         # Accommodations
         if 'accommodations' in suggestions and suggestions['accommodations']:
             st.subheader("🏨 Accommodations")
+            currency_symbol = suggestions.get('currency_symbol', '$')
             for hotel in suggestions['accommodations']:
                 with st.container():
                     st.write(f"**{hotel['name']}**")
                     st.write(f"📍 {hotel.get('location', 'Location not specified')}")
-                    # Use price_range instead of price
+                    # Use price_range instead of price and fix currency
                     price_info = hotel.get('price_range', hotel.get('price', 'Price not available'))
+                    if isinstance(price_info, str) and price_info != 'Price not available':
+                        # If price contains dollar sign, replace with correct currency
+                        if '$' in price_info:
+                            price_info = price_info.replace('$', currency_symbol)
                     st.write(f"💰 {price_info}")
                     if 'rating' in hotel:
                         st.write(f"⭐ {hotel['rating']}/5")
@@ -571,11 +950,18 @@ def show_trip_details(trip_data):
         # Activities
         if 'activities' in suggestions and suggestions['activities']:
             st.subheader("🎯 Activities")
+            currency_symbol = suggestions.get('currency_symbol', '$')
             for activity in suggestions['activities']:
                 with st.container():
                     st.write(f"**{activity['name']}**")
                     st.write(f"📍 {activity.get('location', 'Location not specified')}")
-                    st.write(f"💰 {activity.get('cost', 'Cost not specified')}")
+                    # Display cost with correct currency symbol
+                    cost = activity.get('cost', 'Cost not specified')
+                    if isinstance(cost, str) and cost != 'Cost not specified':
+                        # If cost contains dollar sign, replace with correct currency
+                        if '$' in cost:
+                            cost = cost.replace('$', currency_symbol)
+                    st.write(f"💰 {cost}")
                     st.write(f"⏰ {activity.get('duration', 'Duration not specified')}")
                     if 'description' in activity:
                         st.write(f"📝 {activity['description']}")
@@ -584,11 +970,18 @@ def show_trip_details(trip_data):
         # Restaurants
         if 'restaurants' in suggestions and suggestions['restaurants']:
             st.subheader("🍽️ Restaurants")
+            currency_symbol = suggestions.get('currency_symbol', '$')
             for restaurant in suggestions['restaurants']:
                 with st.container():
                     st.write(f"**{restaurant['name']}**")
                     st.write(f"📍 {restaurant.get('location', 'Location not specified')}")
-                    st.write(f"💰 {restaurant.get('price_range', 'Price not available')}")
+                    # Display price range with correct currency symbol
+                    price_range = restaurant.get('price_range', 'Price not available')
+                    if isinstance(price_range, str) and price_range != 'Price not available':
+                        # If price contains dollar sign, replace with correct currency
+                        if '$' in price_range:
+                            price_range = price_range.replace('$', currency_symbol)
+                    st.write(f"💰 {price_range}")
                     if 'cuisine' in restaurant:
                         st.write(f"🍴 {restaurant['cuisine']}")
                     st.write("---")
@@ -596,11 +989,18 @@ def show_trip_details(trip_data):
         # Transportation
         if 'transportation' in suggestions and suggestions['transportation']:
             st.subheader("🚗 Transportation")
+            currency_symbol = suggestions.get('currency_symbol', '$')
             for transport in suggestions['transportation']:
                 with st.container():
                     st.write(f"**{transport['type']}**")
                     st.write(f"📍 {transport.get('route', 'Route not specified')}")
-                    st.write(f"💰 ${transport.get('cost', 'Cost not specified')}")
+                    # Display cost with correct currency symbol
+                    cost = transport.get('cost', 'Cost not specified')
+                    if isinstance(cost, str) and cost != 'Cost not specified':
+                        # If cost contains dollar sign, replace with correct currency
+                        if '$' in cost:
+                            cost = cost.replace('$', currency_symbol)
+                    st.write(f"💰 {cost}")
                     st.write("---")
         
         # Tips
@@ -633,6 +1033,7 @@ def show_analytics():
     with col1:
         st.metric("Total Trips", stats['trip_count'])
     with col2:
+        # For stats, we'll show USD as default since it's a summary
         st.metric("Total Budget", f"${stats['total_budget']:,.2f}")
     with col3:
         st.metric("Favorite Destination", stats['popular_destination'])

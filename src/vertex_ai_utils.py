@@ -88,16 +88,16 @@ class VertexAITripPlanner:
             raise e
     
     def generate_trip_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                budget: float, preferences: str) -> Dict:
+                                budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> Dict:
         """
         Generate AI-powered trip suggestions using Vertex AI
         """
         if not self.is_configured or not self.model:
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
         
         try:
             # Create a comprehensive prompt for the AI
-            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences)
+            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
             
             generation_config = GenerationConfig(
                 max_output_tokens=20000,  # or higher if needed
@@ -121,19 +121,19 @@ class VertexAITripPlanner:
                 except Exception as e:
                     logger.warning(f"Could not write response to reponses/output.txt: {e}")
                         # Parse the AI response
-                return self._parse_ai_response(response.text, destination, start_date, end_date, budget)
+                return self._parse_ai_response(response.text, destination, start_date, end_date, budget, currency, currency_symbol)
             
             else:
                 logger.warning("Empty response from Vertex AI, falling back to mock data")
-                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
                 
         except Exception as e:
             logger.error(f"Error generating trip suggestions with Vertex AI: {str(e)}")
             st.warning(f"⚠️ AI generation failed: {str(e)}. Using enhanced mock data.")
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
     
     def _create_trip_planning_prompt(self, destination: str, start_date: str, end_date: str, 
-                                   budget: float, preferences: str) -> str:
+                                   budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> str:
         """Create a comprehensive prompt for trip planning"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -145,7 +145,7 @@ You are a professional travel planner. Create a detailed, realistic, and budget-
 **TRIP DETAILS**
 - Destination: {destination}
 - Dates: {start_date} to {end_date} ({duration_days} days)
-- Budget: ${budget:,.2f} USD
+- Budget: {currency_symbol}{budget:,.2f} {currency}
 - Preferences: {preferences}
 
 **RESPONSE INSTRUCTIONS**
@@ -253,7 +253,7 @@ Only output the JSON. Nothing else.
         return prompt
     
     def _parse_ai_response(self, response_text: str, destination: str, start_date: str, 
-                          end_date: str, budget: float) -> Dict:
+                          end_date: str, budget: float, currency: str = "USD", currency_symbol: str = "$") -> Dict:
         """Parse the AI response and return structured data"""
         try:
             # Clean the response text
@@ -269,18 +269,18 @@ Only output the JSON. Nothing else.
             trip_data = json.loads(cleaned_text)
             
             # Validate and enhance the response
-            return self._validate_and_enhance_response(trip_data, destination, start_date, end_date, budget)
+            return self._validate_and_enhance_response(trip_data, destination, start_date, end_date, budget, currency, currency_symbol)
             
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse AI response as JSON: {str(e)}")
             logger.error(f"Response text: {response_text[:500]}...")
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed", currency, currency_symbol)
         except Exception as e:
             logger.error(f"Error parsing AI response: {str(e)}")
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed", currency, currency_symbol)
     
     def _validate_and_enhance_response(self, trip_data: Dict, destination: str, start_date: str, 
-                                     end_date: str, budget: float) -> Dict:
+                                     end_date: str, budget: float, currency: str = "USD", currency_symbol: str = "$") -> Dict:
         """Validate and enhance the AI response"""
         # Ensure required fields exist
         if 'destination' not in trip_data:
@@ -288,6 +288,12 @@ Only output the JSON. Nothing else.
         
         if 'budget' not in trip_data:
             trip_data['budget'] = budget
+        
+        # Ensure currency information exists
+        if 'currency' not in trip_data:
+            trip_data['currency'] = currency
+        if 'currency_symbol' not in trip_data:
+            trip_data['currency_symbol'] = currency_symbol
         
         # Ensure itinerary is properly formatted
         if 'itinerary' not in trip_data or not isinstance(trip_data['itinerary'], list):
@@ -318,7 +324,7 @@ Only output the JSON. Nothing else.
         return trip_data
     
     def _generate_enhanced_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                          budget: float, preferences: str) -> Dict:
+                                          budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> Dict:
         """Generate enhanced mock suggestions with more realistic data"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -334,17 +340,19 @@ Only output the JSON. Nothing else.
             "destination": destination,
             "duration": f"{duration_days} days",
             "budget": budget,
+            "currency": currency,
+            "currency_symbol": currency_symbol,
             "budget_breakdown": {
-                "accommodation": accommodation_budget,
-                "food": food_budget,
-                "activities": activities_budget,
-                "transportation": transport_budget
+                "accommodation": f"{currency_symbol}{accommodation_budget:,.2f}",
+                "food": f"{currency_symbol}{food_budget:,.2f}",
+                "activities": f"{currency_symbol}{activities_budget:,.2f}",
+                "transportation": f"{currency_symbol}{transport_budget:,.2f}"
             },
             "itinerary": self._generate_enhanced_itinerary(destination, start_date, end_date, preferences),
-            "accommodations": self._generate_enhanced_accommodations(destination, budget, duration_days),
-            "activities": self._generate_enhanced_activities(destination, preferences, activities_budget),
-            "restaurants": self._generate_enhanced_restaurants(destination, food_budget, duration_days),
-            "transportation": self._generate_enhanced_transportation(destination, transport_budget),
+            "accommodations": self._generate_enhanced_accommodations(destination, budget, duration_days, currency_symbol),
+            "activities": self._generate_enhanced_activities(destination, preferences, activities_budget, currency_symbol),
+            "restaurants": self._generate_enhanced_restaurants(destination, food_budget, duration_days, currency_symbol),
+            "transportation": self._generate_enhanced_transportation(destination, transport_budget, currency_symbol),
             "tips": self._generate_enhanced_tips(destination, preferences),
             "weather": self._generate_weather_info(destination, start_date),
             "packing_list": self._generate_packing_list(destination, preferences, duration_days)
@@ -405,19 +413,19 @@ Only output the JSON. Nothing else.
             "dinner": f"Recommended dinner venue"
         }
     
-    def _generate_enhanced_accommodations(self, destination: str, budget: float, duration_days: int) -> List[Dict]:
+    def _generate_enhanced_accommodations(self, destination: str, budget: float, duration_days: int, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced accommodation suggestions"""
         budget_per_night = budget * 0.4 / duration_days if duration_days > 0 else budget * 0.4
         
         if budget_per_night < 50:
             budget_level = "budget"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         elif budget_per_night < 150:
             budget_level = "mid-range"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         else:
             budget_level = "luxury"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         
         accommodations = [
             {
@@ -442,14 +450,14 @@ Only output the JSON. Nothing else.
         
         return accommodations
     
-    def _generate_enhanced_activities(self, destination: str, preferences: str, budget: float) -> List[Dict]:
+    def _generate_enhanced_activities(self, destination: str, preferences: str, budget: float, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced activity suggestions"""
         activities = [
             {
                 "name": f"Explore {destination} Historic Center",
                 "type": "Sightseeing",
                 "duration": "Half Day",
-                "cost": "Free - $20",
+                "cost": f"Free - {currency_symbol}20",
                 "description": "Walk through the historic district and visit key landmarks",
                 "rating": 4.5,
                 "best_time": "Morning"
@@ -458,7 +466,7 @@ Only output the JSON. Nothing else.
                 "name": f"{destination} Local Market Tour",
                 "type": "Cultural",
                 "duration": "2-3 hours",
-                "cost": "$15-30",
+                "cost": f"{currency_symbol}15-30",
                 "description": "Experience local culture and taste traditional foods",
                 "rating": 4.3,
                 "best_time": "Afternoon"
@@ -471,7 +479,7 @@ Only output the JSON. Nothing else.
                 "name": f"{destination} Adventure Tour",
                 "type": "Adventure",
                 "duration": "Full Day",
-                "cost": "$50-100",
+                "cost": f"{currency_symbol}50-100",
                 "description": "Exciting outdoor activities and adventure sports",
                 "rating": 4.7,
                 "best_time": "All Day"
@@ -482,7 +490,7 @@ Only output the JSON. Nothing else.
                 "name": f"{destination} Museum Pass",
                 "type": "Cultural",
                 "duration": "Full Day",
-                "cost": "$25-40",
+                "cost": f"{currency_symbol}25-40",
                 "description": "Access to multiple museums and cultural sites",
                 "rating": 4.4,
                 "best_time": "All Day"
@@ -490,7 +498,7 @@ Only output the JSON. Nothing else.
         
         return activities
     
-    def _generate_enhanced_restaurants(self, destination: str, budget: float, duration_days: int) -> List[Dict]:
+    def _generate_enhanced_restaurants(self, destination: str, budget: float, duration_days: int, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced restaurant suggestions"""
         budget_per_meal = budget / (duration_days * 3) if duration_days > 0 else budget / 3
         
@@ -498,7 +506,7 @@ Only output the JSON. Nothing else.
             {
                 "name": f"Local Traditional Restaurant",
                 "cuisine": "Local Traditional",
-                "price_range": f"${budget_per_meal * 0.8:.0f}-{budget_per_meal * 1.2:.0f} per person",
+                "price_range": f"{currency_symbol}{budget_per_meal * 0.8:.0f}-{budget_per_meal * 1.2:.0f} per person",
                 "rating": 4.3,
                 "specialties": ["Traditional dishes", "Local ingredients", "Authentic flavors"],
                 "location": f"Central {destination}",
@@ -507,7 +515,7 @@ Only output the JSON. Nothing else.
             {
                 "name": f"{destination} Street Food Market",
                 "cuisine": "Street Food",
-                "price_range": f"${budget_per_meal * 0.3:.0f}-{budget_per_meal * 0.7:.0f} per person",
+                "price_range": f"{currency_symbol}{budget_per_meal * 0.3:.0f}-{budget_per_meal * 0.7:.0f} per person",
                 "rating": 4.5,
                 "specialties": ["Authentic local flavors", "Quick bites", "Local specialties"],
                 "location": f"Historic {destination}",
@@ -517,13 +525,13 @@ Only output the JSON. Nothing else.
         
         return restaurants
     
-    def _generate_enhanced_transportation(self, destination: str, budget: float) -> List[Dict]:
+    def _generate_enhanced_transportation(self, destination: str, budget: float, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced transportation suggestions"""
         return [
             {
                 "type": "Airport Transfer",
                 "option": "Taxi/Uber",
-                "cost": "$20-40",
+                "cost": f"{currency_symbol}20-40",
                 "duration": "30-45 minutes",
                 "description": "Convenient door-to-door service",
                 "booking_required": False
@@ -531,7 +539,7 @@ Only output the JSON. Nothing else.
             {
                 "type": "Local Transport",
                 "option": "Public Transport Pass",
-                "cost": "$10-20 per day",
+                "cost": f"{currency_symbol}10-20 per day",
                 "duration": "Unlimited daily use",
                 "description": "Cost-effective way to explore the city",
                 "booking_required": False
@@ -539,7 +547,7 @@ Only output the JSON. Nothing else.
             {
                 "type": "Intercity Travel",
                 "option": "Train/Bus",
-                "cost": "$15-50",
+                "cost": f"{currency_symbol}15-50",
                 "duration": "1-3 hours",
                 "description": "Comfortable travel between cities",
                 "booking_required": True
