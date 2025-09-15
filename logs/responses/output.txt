@@ -1,207 +1,203 @@
 ```json
 {
-  "destination": "paris",
+  "destination": "bengaluru",
   "duration": "2 days",
-  "budget": 550.0,
-  "currency": "EUR",
-  "currency_symbol": "€",
+  "budget": 1000.0,
   "budget_breakdown": {
-    "accommodation": 120.0,
-    "food": 100.0,
-    "activities": 300.0,
-    "transportation": 30.0
+    "accommodation": 0.0,
+    "food": 450.0,
+    "activities": 200.0,
+    "transportation": 350.0
   },
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-16",
-      "day_name": "Tuesday",
+      "date": "2025-09-15",
+      "day_name": "Monday",
       "activities": [
-        "Arrive and check into your accommodation in a lively district like Belleville or near Bastille.",
-        "Afternoon exploration of Le Marais: wander through its historic streets, browse unique shops, and soak in the trendy atmosphere.",
-        "Evening drinks and bar hopping along Rue de Lappe near Bastille, known for its numerous bars and vibrant nightlife.",
-        "Late night party at a club like Wanderlust or Le Rouge Pigalle for music and dancing."
+        "Morning exploration of Lalbagh Botanical Garden",
+        "Visit the Bull Temple (Dodda Ganeshana Gudi) in Basavanagudi",
+        "Evening stroll and budget dinner at VV Puram Food Street"
       ],
       "meals": {
-        "breakfast": "Grab a fresh croissant and coffee from a local boulangerie.",
-        "lunch": "Affordable and delicious falafel sandwich from L'As du Fallafel in Le Marais.",
-        "dinner": "Pre-party dinner of savory crepes at Le P'tit Grec in the Latin Quarter."
+        "breakfast": "Iconic South Indian breakfast at Vidyarthi Bhavan in Basavanagudi.",
+        "lunch": "Affordable and authentic meal at a local darshini near Lalbagh.",
+        "dinner": "Sample various street food items at VV Puram Food Street."
       }
     },
     {
       "day": 2,
-      "date": "2025-09-17",
-      "day_name": "Wednesday",
+      "date": "2025-09-16",
+      "day_name": "Tuesday",
       "activities": [
-        "Morning walk along Canal Saint-Martin, a favorite spot for young Parisians.",
-        "Afternoon visit to Montmartre. Climb the steps to the Sacré-Cœur for a free panoramic view of Paris, then explore the artistic Place du Tertre.",
-        "Sunset drinks in South Pigalle (SoPi), a trendy area with many cocktail bars.",
-        "Experience a classic, budget-friendly French dinner at a 'bouillon' restaurant before a final night out or heading for departure."
+        "Walk through Cubbon Park and see Vidhana Soudha from the outside",
+        "Visit Tipu Sultan's Summer Palace and Bangalore Fort",
+        "Experience the local culture and chaos at KR Market"
       ],
       "meals": {
-        "breakfast": "Pain au chocolat and orange juice from a patisserie.",
-        "lunch": "Pick up a 'jambon-beurre' (ham and butter baguette) and have a picnic at the Square Louise Michel below the Sacré-Cœur.",
-        "dinner": "Experience traditional French dining on a budget at Bouillon Chartier."
+        "breakfast": "Quick and cheap breakfast at Brahmin's Coffee Bar.",
+        "lunch": "Thali meal at a local restaurant near KR Market.",
+        "dinner": "Simple dinner at a local eatery before departure."
       }
     }
   ],
   "accommodations": [
     {
-      "name": "The People - Paris Belleville",
+      "name": "Zostel Bengaluru",
       "type": "Hostel",
-      "price_range": "€45 - €70 per night (dorm bed)",
-      "rating": 4.6,
-      "amenities": ["Bar", "Rooftop", "Social events", "Free Wi-Fi"],
-      "location": "Belleville",
-      "description": "A trendy hostel with a great rooftop bar and social atmosphere, perfect for meeting other travelers."
+      "price_range": "₹500 - ₹800 per dorm bed",
+      "rating": 4.4,
+      "amenities": ["Wi-Fi", "Common Room", "Lockers"],
+      "location": "Indiranagar",
+      "description": "A budget-friendly hostel popular with backpackers. Located in Indiranagar, which is a metro ride away from Jayanagar. This is the most realistic option if accommodation is needed within a tight budget, though it exceeds the total trip budget."
     },
     {
-      "name": "Generator Paris",
-      "type": "Hostel",
-      "price_range": "€50 - €80 per night (dorm bed)",
-      "rating": 4.2,
-      "amenities": ["On-site club", "Rooftop bar", "24-hour reception", "Café"],
-      "location": "10th arrondissement",
-      "description": "A large, stylish hostel known for its vibrant social scene and its own nightclub in the basement."
-    },
-    {
-      "name": "JO&JOE Paris - Gentilly",
-      "type": "Hostel",
-      "price_range": "€40 - €65 per night (dorm bed)",
+      "name": "Hotel Lilac",
+      "type": "Hotel",
+      "price_range": "₹2,500 - ₹4,000 per night",
       "rating": 4.1,
-      "amenities": ["Bar", "Restaurant", "Garden", "Events"],
-      "location": "Gentilly (short RER ride to city center)",
-      "description": "An 'Open House' concept with a lively bar, regular events, and a fun, social design, offering great value."
+      "amenities": ["Wi-Fi", "Restaurant", "Room Service"],
+      "location": "Jayanagar",
+      "description": "A well-regarded mid-range hotel located directly in Jayanagar. Note: The price is significantly outside the specified trip budget of ₹1000 for 2 days."
+    },
+    {
+      "name": "The President Hotel",
+      "type": "Hotel",
+      "price_range": "₹4,000 - ₹6,000 per night",
+      "rating": 4.3,
+      "amenities": ["Wi-Fi", "Restaurant", "Fitness Center", "Bar"],
+      "location": "Jayanagar",
+      "description": "A popular 3-star hotel in Jayanagar offering comfortable stays and multiple dining options. Note: The price is significantly outside the specified trip budget."
     }
   ],
   "activities": [
     {
-      "name": "Bar Hopping in Bastille/Oberkampf",
-      "type": "Nightlife",
-      "duration": "3-5 hours",
-      "cost": "€30 - €70",
-      "description": "Explore the streets of Rue de Lappe, Rue de la Roquette, and Rue Oberkampf, which are packed with diverse bars, from dive bars to chic cocktail spots.",
-      "rating": 4.7,
-      "best_time": "Evening/Night"
-    },
-    {
-      "name": "Clubbing at Rex Club",
-      "type": "Nightlife",
-      "duration": "4-6 hours",
-      "cost": "€15 - €25 (entry) + drinks",
-      "description": "A legendary Parisian institution for techno and electronic music, featuring world-renowned DJs.",
-      "rating": 4.4,
-      "best_time": "After midnight, Thursday-Saturday"
-    },
-    {
-      "name": "Explore Le Marais",
-      "type": "Sightseeing/Cultural",
+      "name": "Lalbagh Botanical Garden",
+      "type": "Sightseeing",
       "duration": "2-3 hours",
-      "cost": "Free (shopping/food extra)",
-      "description": "A historic and trendy neighborhood with beautiful architecture, hidden courtyards, art galleries, and lively gay-friendly bars.",
-      "rating": 4.8,
-      "best_time": "Afternoon/Evening"
-    },
-    {
-      "name": "Wander through Montmartre and Pigalle",
-      "type": "Sightseeing/Nightlife",
-      "duration": "3-4 hours",
-      "cost": "Free (drinks/shows extra)",
-      "description": "Discover the artistic charm of Montmartre and the Sacré-Cœur, then head down the hill to the edgy Pigalle district for cocktail bars and music venues.",
-      "rating": 4.6,
-      "best_time": "Late Afternoon/Evening"
-    },
-    {
-      "name": "Evening by Canal Saint-Martin",
-      "type": "Leisure",
-      "duration": "1-2 hours",
-      "cost": "€5 - €15",
-      "description": "Join young Parisians for an evening 'apéro'. Grab a bottle of wine or some beers from a local shop and sit along the canal's edge.",
+      "cost": "₹25 - ₹30 per person",
+      "description": "A historic and expansive botanical garden with a famous glass house and diverse flora. Great for a peaceful morning walk.",
       "rating": 4.5,
-      "best_time": "Early Evening"
+      "best_time": "Morning (6 AM - 9 AM for free entry for walkers)"
+    },
+    {
+      "name": "Bull Temple (Dodda Ganeshana Gudi)",
+      "type": "Cultural",
+      "duration": "30-45 minutes",
+      "cost": "Free",
+      "description": "A famous 16th-century temple in Basavanagudi, known for its massive monolithic statue of Nandi, the bull.",
+      "rating": 4.6,
+      "best_time": "Morning or Evening"
+    },
+    {
+      "name": "VV Puram Food Street",
+      "type": "Cultural",
+      "duration": "1-2 hours",
+      "cost": "₹150 - ₹250 per person for a full meal",
+      "description": "A bustling street that comes alive in the evening, offering a wide variety of vegetarian South Indian, North Indian, and local snacks.",
+      "rating": 4.3,
+      "best_time": "Evening (7 PM onwards)"
+    },
+    {
+      "name": "Cubbon Park",
+      "type": "Sightseeing",
+      "duration": "1-2 hours",
+      "cost": "Free",
+      "description": "A vast green space in the heart of the city, ideal for a relaxing walk. It's surrounded by important government buildings like Vidhana Soudha.",
+      "rating": 4.4,
+      "best_time": "Anytime"
+    },
+    {
+      "name": "Tipu Sultan's Summer Palace",
+      "type": "Sightseeing",
+      "duration": "1 hour",
+      "cost": "₹20 - ₹25 per person",
+      "description": "An elegant teakwood palace, once the summer residence of Tipu Sultan. It showcases Indo-Islamic architecture.",
+      "rating": 4.2,
+      "best_time": "Morning or Afternoon"
+    },
+    {
+      "name": "KR Market (Krishna Rajendra Market)",
+      "type": "Cultural",
+      "duration": "1-1.5 hours",
+      "cost": "Free",
+      "description": "A vibrant and chaotic wholesale market, offering a sensory overload of sights, sounds, and smells. Famous for its flower market.",
+      "rating": 4.0,
+      "best_time": "Early Morning"
     }
   ],
   "restaurants": [
     {
-      "name": "Bouillon Chartier",
-      "cuisine": "Traditional French",
-      "price_range": "€15 - €25 per person",
-      "rating": 4.0,
-      "specialties": ["Escargots", "Steak frites", "Confit de canard"],
-      "location": "Grands Boulevards / Montparnasse",
-      "reservation_required": false
-    },
-    {
-      "name": "L'As du Fallafel",
-      "cuisine": "Middle Eastern",
-      "price_range": "€8 - €12 per person",
-      "rating": 4.4,
-      "specialties": ["Falafel special sandwich", "Shawarma plate"],
-      "location": "Le Marais",
-      "reservation_required": false
-    },
-    {
-      "name": "Le P'tit Grec",
-      "cuisine": "Crêperie",
-      "price_range": "€7 - €12 per person",
-      "rating": 4.6,
-      "specialties": ["Savory crepes (Galettes)", "Sweet crepes"],
-      "location": "Latin Quarter",
-      "reservation_required": false
-    },
-    {
-      "name": "Pink Mamma",
-      "cuisine": "Italian",
-      "price_range": "€25 - €45 per person",
+      "name": "Vidyarthi Bhavan",
+      "cuisine": "South Indian",
+      "price_range": "₹100 - ₹200 per person",
       "rating": 4.5,
-      "specialties": ["Truffle Pasta", "Neapolitan Pizza", "T-Bone Steak"],
-      "location": "Pigalle",
-      "reservation_required": true
+      "specialties": ["Masala Dosa", "Filter Coffee"],
+      "location": "Basavanagudi",
+      "reservation_required": false
+    },
+    {
+      "name": "Brahmin's Coffee Bar",
+      "cuisine": "South Indian Snacks",
+      "price_range": "₹50 - ₹100 per person",
+      "rating": 4.6,
+      "specialties": ["Idli", "Vada", "Kesari Bath", "Filter Coffee"],
+      "location": "Basavanagudi",
+      "reservation_required": false
+    },
+    {
+      "name": "MTR - Mavalli Tiffin Rooms",
+      "cuisine": "South Indian",
+      "price_range": "₹200 - ₹350 per person",
+      "rating": 4.4,
+      "specialties": ["Rava Idli", "Bisi Bele Bath", "Masala Dosa"],
+      "location": "Near Lalbagh Main Gate",
+      "reservation_required": false
     }
   ],
   "transportation": [
     {
       "type": "Local",
-      "option": "Paris Métro/Bus",
-      "cost": "€2.10 per ticket or €16.90 for a carnet of 10",
-      "duration": "5-30 mins between stops",
-      "description": "The most efficient way to get around Paris. A carnet of 10 t+ tickets is a cost-effective option for a short trip.",
-      "booking_required": false
-    },
-    {
-      "type": "Airport Transfer",
-      "option": "RER B Train",
-      "cost": "€11.45 from CDG",
-      "duration": "35-50 minutes",
-      "description": "Direct train line connecting Charles de Gaulle (CDG) and Orly (via Orlyval) airports to central Paris stations like Gare du Nord and Châtelet-Les Halles.",
-      "booking_required": false
-    },
-    {
-      "type": "Nightlife",
-      "option": "Noctilien (Night Bus)",
-      "cost": "€2.10 per ticket",
+      "option": "BMTC Bus",
+      "cost": "₹10 - ₹40 per trip",
       "duration": "Varies",
-      "description": "A network of buses that run from approximately 00:30 to 05:30, essential for getting back after the metro closes.",
+      "description": "The most budget-friendly way to travel around the city. Extensive network covering all major areas.",
+      "booking_required": false
+    },
+    {
+      "type": "Local",
+      "option": "Auto Rickshaw (App-based)",
+      "cost": "₹50 - ₹200 per trip",
+      "duration": "Varies",
+      "description": "Use Ola or Uber apps to book auto-rickshaws for fair pricing. Good for short distances or last-mile connectivity.",
+      "booking_required": true
+    },
+    {
+      "type": "Local",
+      "option": "Namma Metro",
+      "cost": "₹10 - ₹60 per trip",
+      "duration": "Varies",
+      "description": "Fast and efficient for connecting key areas like Jayanagar, MG Road, and Majestic. Good for avoiding traffic.",
       "booking_required": false
     }
   ],
   "tips": [
-    "Most clubs have a dress code; avoid sneakers, shorts, and sportswear. A smart-casual look is a safe bet.",
-    "Pre-drinking ('apéro') is common. Save money by having drinks with friends at your hostel or by the Seine/Canal Saint-Martin before heading to expensive clubs.",
-    "The metro closes around 00:45 on weekdays. Plan your night around this or be prepared to use the Noctilien night bus or a ride-sharing app.",
-    "Keep a close watch on your belongings in crowded bars, clubs, and on public transport to avoid pickpockets."
+    "The ₹1000 budget is extremely tight for 2 days and assumes you have free accommodation. It primarily covers food and transport.",
+    "Rely on BMTC buses and Namma Metro for the most economical travel. Purchase a daily bus pass if you plan multiple trips.",
+    "Eat at local 'darshinis' or 'tiffin rooms' for authentic, delicious, and very cheap meals.",
+    "Carry a mix of cash and digital payment options, as smaller eateries and shops may only accept cash."
   ],
   "weather": {
-    "temperature": "12°C to 20°C (54°F to 68°F)",
-    "conditions": "Mild and pleasant, with a mix of sunshine and potential for light rain showers. Evenings will be cool.",
-    "recommendation": "Pack in layers. A light jacket or stylish sweater is essential for the evenings. Include a compact umbrella."
+    "temperature": "20°C - 28°C",
+    "conditions": "Pleasant with a high chance of afternoon or evening rain showers, typical for September.",
+    "recommendation": "Pack light clothes, but carry an umbrella or a light raincoat. A light jacket for cooler evenings is also advisable."
   },
   "packing_list": [
-    "Comfortable yet stylish walking shoes",
-    "A smart outfit for going out (e.g., dark jeans/chinos, a nice shirt or top)",
-    "Portable power bank for long days and nights",
-    "A valid photo ID (passport or driver's license) for entry into bars and clubs",
-    "A reusable water bottle to stay hydrated and save money"
+    "Comfortable walking shoes",
+    "Umbrella and/or light raincoat",
+    "Reusable water bottle to stay hydrated",
+    "Power bank for your phone",
+    "Light sweater or jacket"
   ]
 }
 ```

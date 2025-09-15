@@ -322,7 +322,7 @@ def get_currency_options():
 # )
 
 # Now import other modules
-from auth import show_auth_pages, check_auth
+from misc.auth import show_auth_pages, check_auth
 # from trip_planner import show_trip_planner
 
 def logout():
@@ -501,7 +501,7 @@ def show_trip_planner():
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
                 <span style="font-size: 2rem; margin-right: 0.5rem;">🗺️</span>
-                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Trip Planner</h1>
+                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer</h1>
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
         </div>
@@ -695,6 +695,7 @@ def plan_new_trip():
                 
                 # Popular currencies with flags for better UX
                 popular_currencies_display = [
+                    ("INR", "🇮🇳 Indian Rupee (₹)"),
                     ("USD", "🇺🇸 US Dollar ($)"),
                     ("EUR", "🇪🇺 Euro (€)"),
                     ("GBP", "🇬🇧 British Pound (£)"),
@@ -702,7 +703,6 @@ def plan_new_trip():
                     ("CAD", "🇨🇦 Canadian Dollar (C$)"),
                     ("AUD", "🇦🇺 Australian Dollar (A$)"),
                     ("CHF", "🇨🇭 Swiss Franc (CHF)"),
-                    ("INR", "🇮🇳 Indian Rupee (₹)"),
                     ("BRL", "🇧🇷 Brazilian Real (R$)"),
                     ("MXN", "🇲🇽 Mexican Peso ($)"),
                     ("SGD", "🇸🇬 Singapore Dollar (S$)"),
@@ -738,7 +738,7 @@ def plan_new_trip():
                 selected_currency_display = st.selectbox(
                     "Currency",
                     currency_choices,
-                    index=0,  # Default to USD
+                    index=0,  # Default to INR
                     help="Select your preferred currency",
                     key="currency_selectbox"
                 )
@@ -749,7 +749,7 @@ def plan_new_trip():
                 currency_symbol = currency_options[selected_currency]["symbol"]
                 
                 # Show selected currency with flag
-                st.caption(f"Selected: {selected_currency_display}")
+                #st.caption(f"Selected: {selected_currency_display}")
             
             with col_budget:
                 budget = st.number_input(
