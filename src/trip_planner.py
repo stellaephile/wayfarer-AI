@@ -494,6 +494,12 @@ def show_trip_planner():
         show_trip_modification_interface()
         return
     
+    # Check if we're in booking mode
+    if 'show_booking_interface' in st.session_state and st.session_state.show_booking_interface:
+        from booking_interface import booking_interface
+        booking_interface.show_booking_interface()
+        return
+    
     # Optimized sidebar
     with st.sidebar:
         # Compact header with app name and icon
@@ -635,7 +641,7 @@ def plan_new_trip():
             st.write(suggestions['additional_info'])
         
         # Action buttons
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             if st.button("🔄 Generate New Trip", type="secondary"):
                 # Clear current trip and show form again
@@ -659,6 +665,14 @@ def plan_new_trip():
         with col4:
             if st.button("💾 Save & Continue", type="secondary"):
                 st.success("✅ Trip saved! You can view it in 'My Trips' anytime.")
+        
+        with col5:
+            # Import booking interface
+            from booking_interface import booking_interface
+            
+            # Show booking button
+            if booking_interface.show_booking_button(suggestions, st.session_state.user):
+                st.rerun()
         
         return
     
@@ -917,10 +931,20 @@ def show_my_trips():
                 st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
                 currency_symbol = trip.get('currency_symbol', '$')
                 st.write(f"💰 Budget: {currency_symbol}{trip['budget']:,.2f}")
-                st.write(f"📊 Status: {trip['status'].title()}")
+                
+                # Show status with booking information
+                status = trip['status'].title()
+                booking_status = trip.get('booking_status', 'not_booked')
+                
+                if booking_status == 'confirmed':
+                    st.write(f"📊 Status: {status} ✅ Booked")
+                elif booking_status == 'pending':
+                    st.write(f"📊 Status: {status} ⏳ Booking Pending")
+                else:
+                    st.write(f"📊 Status: {status}")
             
             with col2:
-                col_view, col_modify = st.columns(2)
+                col_view, col_modify, col_book = st.columns(3)
                 with col_view:
                     if st.button("View", key=f"view_{trip['id']}"):
                         st.session_state.selected_trip = trip
@@ -930,6 +954,38 @@ def show_my_trips():
                         st.session_state.modification_mode = True
                         st.session_state.modification_trip_id = trip['id']
                         st.rerun()
+                with col_book:
+                    # Import booking interface
+                    from booking_interface import booking_interface
+                    
+                    # Show booking button for trips with AI suggestions
+                    try:
+                        ai_suggestions = trip.get('ai_suggestions', {})
+                        if isinstance(ai_suggestions, str):
+                            ai_suggestions = json.loads(ai_suggestions)
+                        
+                        if ai_suggestions and trip['status'] != 'booked':
+                            if st.button("Book", key=f"book_{trip['id']}"):
+                                # Prepare trip data for booking
+                                trip_data = {
+                                    'trip_id': trip['id'],
+                                    'destination': trip['destination'],
+                                    'start_date': trip['start_date'],
+                                    'end_date': trip['end_date'],
+                                    'budget': trip['budget'],
+                                    'currency': trip.get('currency', 'INR'),
+                                    'currency_symbol': trip.get('currency_symbol', '₹'),
+                                    'preferences': trip['preferences'],
+                                    'ai_suggestions': ai_suggestions
+                                }
+                                
+                                # Store booking data in session state
+                                st.session_state.booking_trip_data = trip_data
+                                st.session_state.booking_user_data = st.session_state.user
+                                st.session_state.show_booking_interface = True
+                                st.rerun()
+                    except Exception as e:
+                        st.write("N/A")
             
             with col3:
                 if st.button("Delete", key=f"delete_{trip['id']}"):
@@ -969,7 +1025,15 @@ def show_trip_details(trip_data):
         currency_symbol = trip_data.get('currency_symbol', '$')
         st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
     with col3:
-        st.metric("Status", trip_data['status'].title())
+        status = trip_data['status'].title()
+        booking_status = trip_data.get('booking_status', 'not_booked')
+        
+        if booking_status == 'confirmed':
+            st.metric("Status", f"{status} ✅ Booked")
+        elif booking_status == 'pending':
+            st.metric("Status", f"{status} ⏳ Booking Pending")
+        else:
+            st.metric("Status", status)
     
     # AI suggestions
     if suggestions:
@@ -1089,6 +1153,56 @@ def show_trip_details(trip_data):
             st.write(f"**Temperature:** {weather.get('temperature', 'N/A')}")
             st.write(f"**Conditions:** {weather.get('conditions', 'N/A')}")
             st.write(f"**Packing:** {weather.get('packing', 'N/A')}")
+    
+    # Booking information
+    if trip_data.get('booking_status') == 'confirmed' and trip_data.get('booking_confirmation'):
+        st.subheader("🎫 Booking Information")
+        
+        try:
+            booking_confirmation = json.loads(trip_data['booking_confirmation']) if isinstance(trip_data['booking_confirmation'], str) else trip_data['booking_confirmation']
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write(f"**Booking ID:** {booking_confirmation.get('booking_id', 'N/A')}")
+                st.write(f"**Confirmation Number:** {booking_confirmation.get('confirmation_number', 'N/A')}")
+                st.write(f"**Booking Date:** {booking_confirmation.get('booking_date', 'N/A')[:10]}")
+            
+            with col2:
+                st.write(f"**Total Amount:** ₹{booking_confirmation.get('total_amount', 0):,}")
+                st.write(f"**Payment Status:** {booking_confirmation.get('payment_status', 'N/A').title()}")
+                st.write(f"**Status:** {booking_confirmation.get('status', 'N/A').title()}")
+            
+            # Show booking details
+            if 'booking_details' in booking_confirmation:
+                st.subheader("📋 Booking Details")
+                details = booking_confirmation['booking_details']
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write(f"**Customer Name:** {details.get('customer_name', 'N/A')}")
+                    st.write(f"**Email:** {details.get('customer_email', 'N/A')}")
+                
+                with col2:
+                    st.write(f"**Phone:** {details.get('customer_phone', 'N/A')}")
+                    st.write(f"**Travel Dates:** {details.get('travel_dates', {}).get('start', 'N/A')} to {details.get('travel_dates', {}).get('end', 'N/A')}")
+            
+            # Show support contact
+            if 'support_contact' in booking_confirmation:
+                st.subheader("📞 Support Contact")
+                support = booking_confirmation['support_contact']
+                st.write(f"**Phone:** {support.get('phone', 'N/A')}")
+                st.write(f"**Email:** {support.get('email', 'N/A')}")
+            
+            # Show next steps
+            if 'next_steps' in booking_confirmation:
+                st.subheader("📝 Next Steps")
+                for step in booking_confirmation['next_steps']:
+                    st.write(f"• {step}")
+                    
+        except Exception as e:
+            st.error(f"Error loading booking information: {str(e)}")
 
 def show_analytics():
     """Show trip analytics and statistics"""
