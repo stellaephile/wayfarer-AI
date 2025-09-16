@@ -19,6 +19,9 @@ class DatabaseManager:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
+        # Enable foreign key constraints
+        cursor.execute("PRAGMA foreign_keys = ON")
+        
         # Users table with enhanced security, Google OAuth support, and user profile fields
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -56,6 +59,9 @@ class DatabaseManager:
                 preferences TEXT,
                 ai_suggestions TEXT,
                 status TEXT DEFAULT 'planned',
+                booking_status TEXT DEFAULT 'not_booked',
+                booking_id TEXT,
+                booking_confirmation TEXT,
                 credits_used INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -112,7 +118,37 @@ class DatabaseManager:
         ''')
         
         conn.commit()
+        
+        # Check and add missing booking columns if they don't exist
+        self._ensure_booking_columns(conn)
+        
         conn.close()
+    
+    def _ensure_booking_columns(self, conn):
+        """Ensure booking-related columns exist in the trips table"""
+        try:
+            cursor = conn.cursor()
+            
+            # Check existing columns
+            cursor.execute("PRAGMA table_info(trips)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            # Add missing columns
+            if 'booking_status' not in columns:
+                cursor.execute("ALTER TABLE trips ADD COLUMN booking_status TEXT DEFAULT 'not_booked'")
+            
+            if 'booking_id' not in columns:
+                cursor.execute("ALTER TABLE trips ADD COLUMN booking_id TEXT")
+            
+            if 'booking_confirmation' not in columns:
+                cursor.execute("ALTER TABLE trips ADD COLUMN booking_confirmation TEXT")
+            
+            conn.commit()
+            
+        except Exception as e:
+            # If there's an error, it might be because the table doesn't exist yet
+            # This is handled by the CREATE TABLE IF NOT EXISTS above
+            pass
     
     def create_user(self, username, email, password, name=None):
         """Create a new user with hashed password"""
@@ -369,7 +405,8 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol
+                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol,
+                       booking_status, booking_id, booking_confirmation
                 FROM trips WHERE user_id = ? ORDER BY created_at DESC
             ''', (user_id,))
             
@@ -389,7 +426,10 @@ class DatabaseManager:
                     'created_at': trip[8],
                     'updated_at': trip[9],
                     'currency': trip[10],
-                    'currency_symbol': trip[11]
+                    'currency_symbol': trip[11],
+                    'booking_status': trip[12],
+                    'booking_id': trip[13],
+                    'booking_confirmation': trip[14]
                 }
                 for trip in trips
             ]
@@ -406,7 +446,8 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol
+                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol,
+                       booking_status, booking_id, booking_confirmation
                 FROM trips WHERE id = ? AND user_id = ?
             ''', (trip_id, user_id))
             
@@ -426,7 +467,10 @@ class DatabaseManager:
                     'created_at': trip[8],
                     'updated_at': trip[9],
                     'currency': trip[10],
-                    'currency_symbol': trip[11]
+                    'currency_symbol': trip[11],
+                    'booking_status': trip[12],
+                    'booking_id': trip[13],
+                    'booking_confirmation': trip[14]
                 }
             return None
             
@@ -441,7 +485,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             # Build dynamic update query
-            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'status']
+            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'status', 'booking_status', 'booking_id', 'booking_confirmation']
             update_fields = []
             values = []
             
