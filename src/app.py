@@ -32,30 +32,9 @@ def main():
         # Auth page container
         with col2:
             st.markdown("""
-            <style>
-                .auth-header {
-                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-                    padding: 0rem;
-                    border-radius: 12px;
-                    text-align: center;
-                    margin-bottom: 1rem;
-                }
-                .auth-header h1 {
-                    color: white;
-                    margin: 0;
-                    font-size: 2rem;
-                    font-family: 'Space Grotesk', sans-serif;
-                }
-                .auth-header p {
-                    color: rgba(255,255,255,0.9);
-                    margin: 0rem 0 0 0;
-                    font-size: 1rem;
-                }
-            </style>
-
             <div class="auth-header">
                 <h1>🌍 Wayfarer</h1>
-                <p>Your AI-powered travel companion</p>
+                <p>Reimagine Travel with AI</p>
             </div>
     """, unsafe_allow_html=True)
             with st.container():

@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
-
+from css_styles import inject_floating_button
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
     today = datetime.now().date()
@@ -322,7 +322,7 @@ def get_currency_options():
 # )
 
 # Now import other modules
-from misc.auth import show_auth_pages, check_auth
+from auth import  check_auth
 # from trip_planner import show_trip_planner
 
 def logout():
@@ -501,6 +501,7 @@ def show_trip_planner():
         return
     
     # Optimized sidebar
+    inject_floating_button()
     with st.sidebar:
         # Compact header with app name and icon
         st.markdown("""
@@ -511,6 +512,7 @@ def show_trip_planner():
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
         </div>
+        
         """, unsafe_allow_html=True)
         
         # Compact user info

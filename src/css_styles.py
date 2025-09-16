@@ -1,5 +1,5 @@
 import streamlit as st
-
+import streamlit.components.v1 as components
 def inject_css():
     """Inject custom CSS for Wayfarer styling"""
     st.markdown("""
@@ -49,7 +49,24 @@ def inject_css():
     flex-direction: column;
     justify-content: center;
 }
-
+.auth-header {
+                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                    padding: 0rem;
+                    border-radius: 12px;
+                    text-align: center;
+                    margin-bottom: 1rem;
+                }
+.auth-header h1 {
+                    color: white;
+                    margin: 0;
+                    font-size: 2rem;
+                    font-family: 'Space Grotesk', sans-serif;
+                }
+ .auth-header p {
+                    color: rgba(255,255,255,0.9);
+                    margin: 0rem 0 0 0;
+                    font-size: 1rem;
+                }
 
 /* Inputs */
 .stTextInput input {
@@ -188,6 +205,56 @@ def inject_css():
     margin-top: 0.3rem;
 }
 
+
+    
+
+
+    
+
 </style>
 
+
+
     """, unsafe_allow_html=True)
+
+
+def inject_floating_button():
+    components.html("""
+    <style>
+    .floating-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        font-size: 22px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    .floating-btn:hover {
+        transform: scale(1.1);
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    </style>
+
+    <button class="floating-btn" id="toggleSidebar">☰</button>
+
+    <script>
+    const btn = document.getElementById("toggleSidebar");
+    btn.addEventListener("click", function() {
+        let sidebar = window.parent.document.querySelector('section[data-testid="stSidebar"]');
+        if (sidebar.style.display === "none") {
+            sidebar.style.display = "block";
+        } else {
+            sidebar.style.display = "none";
+        }
+    });
+    </script>
+""", height=100)
