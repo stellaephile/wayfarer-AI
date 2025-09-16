@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_floating_button
+from credit_widget import credit_widget
+
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
     today = datetime.now().date()
@@ -531,6 +533,8 @@ def show_trip_planner():
                 </div>
             </div>
             """, unsafe_allow_html=True)
+            credit_widget.show_credit_sidebar(st.session_state.user['id'])
+       
         else:
             st.error("Please log in first!")
             return
