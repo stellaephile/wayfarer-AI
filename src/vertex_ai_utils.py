@@ -12,7 +12,8 @@ import logging
 from dotenv import load_dotenv
 
 print("Current path:", os.getcwd())
-log_file = "logs/app.log"
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+log_file = os.getenv("LOG_FILE")
 
 # Configure logging
 logging.basicConfig(
@@ -27,7 +28,7 @@ logging.basicConfig(
 # Optional: Get named logger for your module
 logger = logging.getLogger(__name__)
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 
 def get_config_value(env_var, secret_key, default):
     
@@ -108,18 +109,20 @@ class VertexAITripPlanner:
             response = self.model.generate_content(prompt, generation_config=generation_config)
 
             try:
-                with open("logs/prompts/output.txt", "w", encoding="utf-8") as f:
+                prompt_logs= os.getenv("LOG_PROMPTS")
+                with open(prompt_logs, "w", encoding="utf-8") as f:
                     f.write(prompt)
             except Exception as e:
-                logger.warning(f"Could not write prompt to prompts/output.txt: {e}")
+                logger.warning(f"Could not write prompt to {prompt_logs} : {e}")
                     
 
             if response and response.text:
                 try:
-                    with open("logs/responses/output.txt", "w", encoding="utf-8") as f:
+                    response_logs = os.getenv("LOG_RESPONSES")
+                    with open(response_logs, "w", encoding="utf-8") as f:
                         f.write(response.text)
                 except Exception as e:
-                    logger.warning(f"Could not write response to reponses/output.txt: {e}")
+                    logger.warning(f"Could not write response to {response_logs}: {e}")
                         # Parse the AI response
                 return self._parse_ai_response(response.text, destination, start_date, end_date, budget, currency, currency_symbol)
             

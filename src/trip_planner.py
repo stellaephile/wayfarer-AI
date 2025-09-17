@@ -1,10 +1,13 @@
 import streamlit as st
-import json
+import json,os
 from datetime import datetime, timedelta
-from database import db
+from firestore_database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
+from dotenv import load_dotenv
+
+
 
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
