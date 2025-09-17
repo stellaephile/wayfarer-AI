@@ -2,20 +2,20 @@
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 **IMPORTANT: Consider the weather forecast provided and adjust all recommendations accordingly.**
 **TRIP DETAILS**
-- Destination: punjab
-- Dates: 2025-09-17 to 2025-09-18 (2 days)
+- Destination: mumbai
+- Dates: 2025-09-18 to 2025-09-19 (2 days)
 - Budget: ₹30,000.00 INR
-- Preferences: 
+- Preferences: General travel | Additional: best places to stay near marine drive
 
 
 **WEATHER FORECAST**
-Weather conditions for punjab during your trip:
-Overall: 14°C - 24°C with Partly Rainy conditions
+Weather conditions for mumbai during your trip:
+Overall: 20°C - 28°C with Warm conditions
 Daily forecast:
-- Wednesday (2025-09-17): Light rain, 22°C/12°C, 30% chance of rain
-- Thursday (2025-09-18): Partly cloudy, 25°C/15°C
+- Thursday (2025-09-18): Partly cloudy, 27°C/19°C
+- Friday (2025-09-19): Partly cloudy, 30°C/22°C
 
-Weather recommendations: Pack versatile clothing for varying temperatures, Essential rain gear required, Plan indoor backup activities
+Weather recommendations: Pack versatile clothing for varying temperatures, Check weather updates before daily activities
 
 
 **RESPONSE INSTRUCTIONS**
@@ -37,7 +37,7 @@ Respond ONLY with a valid JSON object.
 **REQUIRED JSON STRUCTURE**
 
 {
-  "destination": "punjab",
+  "destination": "mumbai",
   "duration": "2 days",
   "budget": 30000.0,
   "budget_breakdown": {
@@ -49,7 +49,7 @@ Respond ONLY with a valid JSON object.
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-17",
+      "date": "2025-09-18",
       "day_name": "Day of week",
       "weather_conditions": "Brief weather note for this day",
       "activities": ["weather-appropriate activity 1", "weather-appropriate activity 2"],

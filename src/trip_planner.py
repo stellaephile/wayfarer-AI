@@ -1122,7 +1122,7 @@ def show_my_trips():
                 st.write(f"💰 Budget: {currency_symbol}{trip['budget']:,.2f}")
                 
                 # Show status with booking information
-                status = trip['status'].title()
+                status = (trip.get('status') or 'Unknown').title()
                 booking_status = trip.get('booking_status', 'not_booked')
                 
                 if booking_status == 'confirmed':
@@ -1214,7 +1214,7 @@ def show_trip_details(trip_data):
         currency_symbol = trip_data.get('currency_symbol', '$')
         st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
     with col3:
-        status = trip_data['status'].title()
+        status = (trip_data.get('status') or 'Unknown').title()
         booking_status = trip_data.get('booking_status', 'not_booked')
         
         if booking_status == 'confirmed':

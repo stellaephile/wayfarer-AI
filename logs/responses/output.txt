@@ -1,237 +1,253 @@
 ```json
 {
-  "destination": "punjab",
+  "destination": "mumbai",
   "duration": "2 days",
   "budget": 30000.0,
   "budget_breakdown": {
-    "accommodation": 5000.0,
-    "food": 8000.0,
+    "accommodation": 10000.0,
+    "food": 6000.0,
     "activities": 5000.0,
-    "transportation": 12000.0
+    "transportation": 4000.0
   },
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-17",
-      "day_name": "Wednesday",
-      "weather_conditions": "Light rain with cool temperatures (22°C/12°C).",
+      "date": "2025-09-18",
+      "day_name": "Thursday",
+      "weather_conditions": "Partly cloudy and warm, 27°C/19°C. Pleasant for exploring.",
       "activities": [
-        "Morning visit to the Golden Temple; the rain can create beautiful reflections and mean fewer crowds.",
-        "Afternoon exploration of the Partition Museum, a perfect indoor activity for a rainy day.",
-        "Evening trip to the Wagah Border for the Beating Retreat ceremony; it proceeds even in light rain."
+        "Arrive and check into your hotel near Marine Drive.",
+        "Explore the historic Colaba district, visiting the Gateway of India and the Taj Mahal Palace hotel exterior.",
+        "Visit the Chhatrapati Shivaji Maharaj Vastu Sangrahalaya (Museum) in the afternoon.",
+        "Take a sunset walk along Marine Drive, also known as the Queen's Necklace."
       ],
       "weather_tips": [
-        "Carry an umbrella and wear a waterproof jacket. The marble floors at the Golden Temple can be slippery when wet, so wear footwear with good grip."
+        "The weather is ideal for walking. Wear comfortable shoes. The evening will be cooler, so a light jacket or shawl is recommended for your walk along the sea."
       ],
       "meals": {
-        "breakfast": "Amritsari Kulcha at a local eatery like Kulcha Land.",
-        "lunch": "Experience the community meal (Langar) at the Golden Temple.",
-        "dinner": "Traditional Punjabi thali at Bharawan Da Dhaba, which offers cozy indoor seating."
+        "breakfast": "Kyani & Co. for a classic Irani cafe experience.",
+        "lunch": "Cafe Mondegar or Leopold Cafe in Colaba for a lively atmosphere and multi-cuisine food.",
+        "dinner": "Bademiya for famous street-style kebabs and rolls."
       }
     },
     {
       "day": 2,
-      "date": "2025-09-18",
-      "day_name": "Thursday",
-      "weather_conditions": "Partly cloudy and pleasant (25°C/15°C).",
+      "date": "2025-09-19",
+      "day_name": "Friday",
+      "weather_conditions": "Partly cloudy and warmer, 30°C/22°C.",
       "activities": [
-        "Morning visit to Jallianwala Bagh to pay respects.",
-        "Afternoon shopping for Phulkari textiles and souvenirs at Hall Bazaar.",
-        "Late afternoon food tour, exploring Amritsar's famous street food scene in comfortable weather."
+        "Morning visit to Mahalaxmi Dhobi Ghat, the world's largest outdoor laundry.",
+        "Explore Bandra: Walk along Bandstand Promenade and see the street art.",
+        "Afternoon shopping at Linking Road or Hill Road for bargains.",
+        "Visit the Basilica of Our Lady of the Mount (Mount Mary Church) for panoramic views."
       ],
       "weather_tips": [
-        "The weather is ideal for walking, but carry a light jacket or shawl as it might get cool in the evening."
+        "It will be warmer today. Plan outdoor activities for the morning and stay hydrated. Use air-conditioned transport during the hotter midday period."
       ],
       "meals": {
-        "breakfast": "Poori Chole and a tall glass of Lassi from Ahuja Milk Bhandar.",
-        "lunch": "Sample street food like chaat, jalebi, and golgappe near Hall Bazaar.",
-        "dinner": "A farewell dinner with famous tandoori dishes at Surjit Food Plaza."
+        "breakfast": "Grab a coffee and pastry at a cafe in Bandra like Candies.",
+        "lunch": "Gajalee for authentic coastal seafood (there's an outlet in Vile Parle, a short cab ride from Bandra).",
+        "dinner": "Trishna in Fort for its renowned butter garlic crab before heading to the airport."
       }
     }
   ],
   "accommodations": [
     {
-      "name": "Ramada by Wyndham Amritsar",
+      "name": "The Ambassador, Mumbai",
       "type": "Hotel",
-      "price_range": "₹4000 - ₹5500 per night",
+      "price_range": "₹8,000 - ₹12,000 per night",
+      "rating": 4.2,
+      "amenities": ["Wi-Fi", "Restaurant", "Air Conditioning", "Room Service"],
+      "location": "Churchgate, near Marine Drive",
+      "description": "A heritage hotel offering panoramic views of the Arabian Sea. Known for its revolving restaurant.",
+      "weather_suitability": "Excellent. Fully air-conditioned rooms provide a comfortable retreat from the daytime warmth."
+    },
+    {
+      "name": "Hotel Marine Plaza",
+      "type": "Hotel",
+      "price_range": "₹10,000 - ₹15,000 per night",
       "rating": 4.5,
-      "amenities": ["Free WiFi", "Restaurant", "Room Service"],
-      "location": "Near Hall Bazaar",
-      "description": "A modern hotel offering comfortable stays with easy access to major attractions.",
-      "weather_suitability": "Excellent. Fully indoor facilities and on-site dining are perfect for rainy conditions."
+      "amenities": ["Rooftop Pool", "Wi-Fi", "Sea View Rooms", "Fitness Center"],
+      "location": "Marine Drive",
+      "description": "A 5-star boutique hotel located directly on Marine Drive, offering stunning views and luxury amenities.",
+      "weather_suitability": "Excellent. The rooftop pool is perfect for a warm day, and all areas are air-conditioned."
     },
     {
-      "name": "Hyatt Regency Amritsar",
+      "name": "Bentley's Hotel",
       "type": "Hotel",
-      "price_range": "₹6000 - ₹8000 per night",
-      "rating": 4.6,
-      "amenities": ["Swimming Pool", "Spa", "Multiple Restaurants"],
-      "location": "Adjoining Nexus Mall",
-      "description": "A luxury option with premium amenities, providing a comfortable retreat from any inclement weather.",
-      "weather_suitability": "Superior. Offers numerous indoor activities like a spa and multiple dining options, great for a rainy day."
-    },
-    {
-      "name": "Courtyard by Marriott Amritsar",
-      "type": "Hotel",
-      "price_range": "₹5000 - ₹7000 per night",
-      "rating": 4.4,
-      "amenities": ["Fitness Center", "Restaurant", "Airport Shuttle"],
-      "location": "Near the airport",
-      "description": "A reliable and comfortable hotel with modern amenities.",
-      "weather_suitability": "Excellent. Comfortable rooms and indoor dining make it a great base, especially if the weather is unpredictable."
+      "price_range": "₹4,000 - ₹6,000 per night",
+      "rating": 3.9,
+      "amenities": ["Air Conditioning", "Wi-Fi", "Basic Furnishings"],
+      "location": "Colaba, near Marine Drive",
+      "description": "A budget-friendly, no-frills hotel in a prime location. Offers clean rooms in a charming old building.",
+      "weather_suitability": "Good. Air-conditioned rooms offer necessary comfort, though common areas might be less climate-controlled."
     }
   ],
   "activities": [
     {
-      "name": "Golden Temple (Harmandir Sahib)",
-      "type": "Cultural/Sightseeing",
-      "duration": "2-3 hours",
-      "cost": "Free",
-      "description": "The holiest shrine in Sikhism, known for its stunning golden architecture and serene atmosphere.",
-      "rating": 5.0,
-      "best_time": "Early morning or late evening",
-      "weather_dependency": "low",
-      "alternative_if_bad_weather": "Not needed, as most of the complex is covered or semi-covered."
-    },
-    {
-      "name": "Partition Museum",
-      "type": "Cultural/Historical",
-      "duration": "2-3 hours",
-      "cost": "₹250 per person",
-      "description": "The world's first museum dedicated to the 1947 Partition of India, telling the story through personal accounts and artifacts.",
-      "rating": 4.8,
-      "best_time": "Afternoon",
-      "weather_dependency": "low",
-      "alternative_if_bad_weather": "This is the primary bad-weather alternative."
-    },
-    {
-      "name": "Wagah Border Ceremony",
+      "name": "Walk along Marine Drive",
       "type": "Sightseeing",
-      "duration": "3-4 hours (including travel)",
-      "cost": "Free (seating is first-come, first-served)",
-      "description": "A daily military practice that the security forces of India and Pakistan have jointly followed since 1959.",
-      "rating": 4.6,
-      "best_time": "Late afternoon (arrive by 4 PM)",
-      "weather_dependency": "medium",
-      "alternative_if_bad_weather": "Visit Gobindgarh Fort for its evening light and sound show, which has covered viewing areas."
-    },
-    {
-      "name": "Jallianwala Bagh",
-      "type": "Historical",
-      "duration": "1 hour",
+      "duration": "1-2 hours",
       "cost": "Free",
-      "description": "A public garden housing a memorial of national importance, established in 1951 to commemorate the massacre of peaceful celebrators on April 13, 1919.",
-      "rating": 4.5,
-      "best_time": "Morning or Afternoon",
-      "weather_dependency": "medium",
-      "alternative_if_bad_weather": "Explore the museums inside Gobindgarh Fort."
+      "description": "Stroll along the 3.6km long C-shaped boulevard overlooking the Arabian Sea. It's spectacular at sunset and at night when the lights turn on.",
+      "rating": 4.8,
+      "best_time": "Evening or early morning",
+      "weather_dependency": "Medium",
+      "alternative_if_bad_weather": "Visit a sea-facing cafe like Pizza By The Bay."
     },
     {
-      "name": "Hall Bazaar Shopping",
-      "type": "Cultural/Shopping",
+      "name": "Gateway of India",
+      "type": "Sightseeing",
+      "duration": "30-60 minutes",
+      "cost": "Free",
+      "description": "An arch-monument built in the early 20th century, it's one of Mumbai's most famous landmarks. Located on the waterfront in Colaba.",
+      "rating": 4.6,
+      "best_time": "Morning or late afternoon",
+      "weather_dependency": "Low",
+      "alternative_if_bad_weather": "Explore the shops and cafes inside the nearby Taj Mahal Palace hotel."
+    },
+    {
+      "name": "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya",
+      "type": "Cultural",
       "duration": "2-3 hours",
-      "cost": "Varies",
-      "description": "One of the oldest and busiest markets in Amritsar, perfect for buying Phulkari dupattas, juttis, and local handicrafts.",
-      "rating": 4.2,
-      "best_time": "Afternoon/Evening",
-      "weather_dependency": "low",
-      "alternative_if_bad_weather": "Explore the air-conditioned Nexus Mall for a modern shopping experience."
+      "cost": "₹150 - ₹700",
+      "description": "Mumbai's main museum, housing a vast collection of ancient Indian history as well as objects from foreign lands.",
+      "rating": 4.7,
+      "best_time": "Afternoon",
+      "weather_dependency": "Low",
+      "alternative_if_bad_weather": "This is an excellent bad-weather activity itself."
+    },
+    {
+      "name": "Mahalaxmi Dhobi Ghat",
+      "type": "Sightseeing",
+      "duration": "30 minutes",
+      "cost": "Free (view from bridge)",
+      "description": "A massive open-air laundromat where washers, known as 'dhobis', work in the open to wash clothes from Mumbai's hotels and hospitals.",
+      "rating": 4.1,
+      "best_time": "Early morning to see the most activity",
+      "weather_dependency": "Medium",
+      "alternative_if_bad_weather": "Take a taxi to the Nehru Science Centre."
+    },
+    {
+      "name": "Explore Bandra West",
+      "type": "Sightseeing",
+      "duration": "2-3 hours",
+      "cost": "Free (unless shopping)",
+      "description": "Discover the trendy suburb of Bandra. Walk the Bandstand promenade, see celebrity homes, admire street art, and visit Mount Mary Church.",
+      "rating": 4.4,
+      "best_time": "Late afternoon",
+      "weather_dependency": "Medium",
+      "alternative_if_bad_weather": "Go cafe-hopping in Bandra's many indoor, air-conditioned eateries."
     }
   ],
   "restaurants": [
     {
-      "name": "Kesar Da Dhaba",
-      "cuisine": "Punjabi",
-      "price_range": "₹400 - ₹600 per person",
-      "rating": 4.2,
-      "specialties": ["Dal Makhani", "Palak Paneer", "Phirni"],
-      "location": "Chowk Passian",
+      "name": "Leopold Cafe",
+      "cuisine": "Multi-cuisine",
+      "price_range": "₹1,500 for two",
+      "rating": 4.0,
+      "specialties": ["Beer Tower", "Chicken Tikka", "Cheesecake"],
+      "location": "Colaba",
       "reservation_required": false,
-      "weather_notes": "Basic indoor seating, can get crowded. A good option to escape rain."
+      "weather_notes": "Lively, air-conditioned indoor seating provides a good break from the heat."
     },
     {
-      "name": "Bharawan Da Dhaba",
-      "cuisine": "Punjabi Vegetarian",
-      "price_range": "₹300 - ₹500 per person",
-      "rating": 4.1,
-      "specialties": ["Amritsari Kulcha", "Special Thali", "Makki di Roti & Sarson da Saag (seasonal)"],
-      "location": "Near Town Hall",
-      "reservation_required": false,
-      "weather_notes": "Clean, air-conditioned indoor dining hall suitable for all weather conditions."
-    },
-    {
-      "name": "Surjit Food Plaza",
-      "cuisine": "North Indian/Mughlai",
-      "price_range": "₹700 - ₹1000 per person",
+      "name": "Britannia & Co. Restaurant",
+      "cuisine": "Parsi/Irani",
+      "price_range": "₹1,000 for two",
       "rating": 4.3,
-      "specialties": ["Amritsari Fish Fry", "Tandoori Chicken", "Mutton Tikka"],
-      "location": "Lawrence Road",
+      "specialties": ["Berry Pulao", "Sali Boti", "Caramel Custard"],
+      "location": "Ballard Estate",
+      "reservation_required": false,
+      "weather_notes": "Vintage, non-AC seating. Best for a day when it's not too hot. Open only for lunch."
+    },
+    {
+      "name": "Trishna",
+      "cuisine": "Seafood",
+      "price_range": "₹4,000 for two",
+      "rating": 4.4,
+      "specialties": ["Butter Pepper Garlic Crab", "Prawns Koliwada", "Hyderabadi Fish Tikka"],
+      "location": "Fort",
       "reservation_required": true,
-      "weather_notes": "Comfortable indoor seating, ideal for a relaxed dinner regardless of the weather."
+      "weather_notes": "Comfortable, air-conditioned indoor dining. Ideal for a nice dinner regardless of the weather."
+    },
+    {
+      "name": "Kyani & Co.",
+      "cuisine": "Irani Cafe",
+      "price_range": "₹400 for two",
+      "rating": 4.2,
+      "specialties": ["Bun Maska", "Mawa Cake", "Keema Pav"],
+      "location": "Marine Lines",
+      "reservation_required": false,
+      "weather_notes": "Classic old-world charm, partially air-conditioned. Great for a quick, budget-friendly meal."
     }
   ],
   "transportation": [
     {
-      "type": "Local",
-      "option": "Private Car Hire",
-      "cost": "₹2500 - ₹3500 per day",
-      "duration": "8-10 hours",
-      "description": "Hiring a car with a driver offers the most comfort and flexibility, especially for visiting the Wagah Border.",
-      "booking_required": true,
-      "weather_considerations": "Highly recommended for the rainy first day to ensure comfort and keep to the schedule."
+      "type": "Airport Transfer",
+      "option": "Ride-sharing (Uber/Ola)",
+      "cost": "₹500 - ₹800",
+      "duration": "60-90 minutes",
+      "description": "Book via app upon arrival. The most convenient and comfortable way to get to South Mumbai.",
+      "booking_required": false,
+      "weather_considerations": "Air-conditioned cars are a major plus in warm weather. Fares may surge during heavy rain, which is not forecast."
     },
     {
       "type": "Local",
-      "option": "App-based Cabs (Uber/Ola)",
-      "cost": "₹100 - ₹400 per trip",
-      "duration": "Varies",
-      "description": "Convenient for point-to-point travel within the city. Availability may vary.",
+      "option": "Mumbai Local Train",
+      "cost": "₹10 - ₹30 per trip",
+      "duration": "15-45 minutes",
+      "description": "The lifeline of Mumbai. An authentic experience. Use it for longer distances like Churchgate to Bandra.",
       "booking_required": false,
-      "weather_considerations": "Good option for staying dry, but surge pricing may apply during heavy rain."
+      "weather_considerations": "Avoid peak hours (8-11 AM, 5-8 PM). Can be hot and crowded. First-class compartments are slightly more comfortable."
     },
     {
       "type": "Local",
-      "option": "Auto-rickshaw/E-rickshaw",
-      "cost": "₹50 - ₹200 per trip",
-      "duration": "Varies",
-      "description": "Best for short distances and navigating narrow lanes in old city areas.",
+      "option": "Kaali-Peeli Taxi",
+      "cost": "Metered (starts at ₹28)",
+      "duration": "Varies with traffic",
+      "description": "Iconic black-and-yellow taxis. Best for short-to-medium distances within South Mumbai. Go by the meter.",
       "booking_required": false,
-      "weather_considerations": "Not ideal in rain as you may get wet from the sides. Use for short trips on the clearer second day."
+      "weather_considerations": "Most are not air-conditioned, which can be uncomfortable during the hotter parts of the day."
     }
   ],
   "tips": [
-    "Pack non-slip, comfortable shoes as marble surfaces at temples can be very slippery when wet.",
-    "Carry a waterproof bag or cover for your electronics like phones and cameras due to the rain forecast.",
-    "Dress modestly when visiting the Golden Temple. Head coverings are mandatory for everyone (scarves are available for free at the entrance).",
-    "Book a private cab for Day 1 to make travel between sites (especially to Wagah Border) seamless and dry."
+    "Stay hydrated by drinking plenty of water, especially on the warmer second day.",
+    "Even with partly cloudy skies, the sun can be strong. Use sunscreen.",
+    "For a more comfortable local train experience, travel between 11 AM and 4 PM and consider a first-class ticket.",
+    "Bargain respectfully at street markets like Colaba Causeway and Linking Road.",
+    "Always carry some cash, as smaller shops and taxis may not accept digital payments."
   ],
   "weather_adaptations": {
     "rainy_day_activities": [
-      "Partition Museum",
-      "Gobindgarh Fort (indoor museums and shows)",
-      "Take a Punjabi cooking class"
+      "Jehangir Art Gallery",
+      "National Gallery of Modern Art (NGMA)",
+      "Watch a Bollywood movie at a classic cinema like Regal or Eros",
+      "Shopping at Phoenix Palladium mall"
     ],
     "hot_weather_tips": [
-      "The weather is pleasant, but stay hydrated by drinking water and local beverages like lassi."
+      "Schedule outdoor sightseeing for the cooler morning and evening hours, especially on Friday when the temperature hits 30°C.",
+      "Opt for air-conditioned transport like Uber/Ola during midday.",
+      "Take frequent breaks in indoor, air-conditioned spaces like cafes, museums, or shops."
     ],
     "cold_weather_tips": [
-      "Evenings and early mornings will be cool (12-15°C). A light jacket, sweater, or shawl is essential for comfort."
+      "The evenings can get a bit cooler (19°C-22°C), especially by the sea. A light jacket, scarf, or shawl is perfect for a walk on Marine Drive."
     ],
     "packing_weather_essentials": [
-      "Compact umbrella",
-      "Lightweight waterproof jacket",
-      "Quick-dry clothing",
-      "Water-resistant shoes"
+      "Light jacket or shawl",
+      "Sunscreen (SPF 30+)",
+      "Sunglasses and a hat",
+      "A small, foldable umbrella just in case of a passing shower."
     ]
   },
   "packing_list": [
-    "A light waterproof jacket or poncho",
-    "A compact travel umbrella",
-    "Comfortable walking shoes with good grip, preferably water-resistant",
-    "A light sweater or fleece for cool evenings and early mornings",
-    "Layered clothing (e.g., t-shirts and a long-sleeve shirt)",
-    "A scarf or bandana for covering your head at religious sites",
-    "Portable power bank for charging devices on the go"
+    "Lightweight cotton or linen clothing",
+    "Comfortable walking shoes and/or sandals",
+    "A light jacket or shawl for evenings",
+    "Sunscreen, sunglasses, and a cap/hat",
+    "Reusable water bottle to stay hydrated",
+    "Portable charger/power bank",
+    "Basic medications and a small first-aid kit"
   ]
 }
 ```
