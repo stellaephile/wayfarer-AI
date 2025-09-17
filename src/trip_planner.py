@@ -919,12 +919,18 @@ def plan_new_trip():
                 st.write(f"Debug info: {str(e)}")
 
 def show_my_trips():
-    """Display user's saved trips"""
+    """Display user's saved trips with modern card-based layout"""
     # Inject compact CSS only
     inject_compact_css()
     
-    # Start content immediately at the top
-    st.title("🗺️ My Trips")
+    # Header section
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.title("🗺️ My Trips")
+    with col2:
+        if st.button("➕ Plan New Trip", type="primary", use_container_width=True):
+            st.session_state.navigation_target = "🗺️ Plan Trip"
+            st.rerun()
     
     if 'user' not in st.session_state:
         st.error("Please log in to view your trips")
@@ -937,47 +943,113 @@ def show_my_trips():
         st.info("No trips found. Start planning your first trip!")
         return
     
-    # Display trips in a more compact layout
-    for trip in trips:
-        with st.container():
-            # Trip details and actions in a single row
-            col1, col2 = st.columns([3, 2])
-            
-            with col1:
-                # Compact trip details
-                st.markdown(f"### 🗺️ {trip['destination']}")
-                col_date, col_budget = st.columns(2)
-                with col_date:
-                    st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
-                with col_budget:
-                    currency_symbol = trip.get('currency_symbol', '$')
-                    st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
-                
-                # Show status with booking information
+    # Search and filter section
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        search_query = st.text_input("", placeholder="Search destinations...", key="trip_search")
+    with col2:
+        filter_option = st.selectbox("", ["All Trips", "Upcoming", "Active", "Completed"], key="trip_filter")
+    
+    # Filter trips based on search and filter
+    filtered_trips = trips
+    if search_query:
+        filtered_trips = [trip for trip in filtered_trips if search_query.lower() in trip['destination'].lower()]
+    
+    if filter_option != "All Trips":
+        status_map = {"Upcoming": "planned", "Active": "active", "Completed": "completed"}
+        filtered_trips = [trip for trip in filtered_trips if trip['status'] == status_map[filter_option]]
+    
+    # Display trips in card layout
+    if filtered_trips:
+        # Create columns for card grid (3 cards per row)
+        cols = st.columns(3)
+        
+        for i, trip in enumerate(filtered_trips):
+            col_index = i % 3
+            with cols[col_index]:
+                # Determine status and colors
                 status = trip['status'].title()
                 booking_status = trip.get('booking_status', 'not_booked')
                 
-                if booking_status == 'confirmed':
-                    st.write(f"📊 Status: {status} ✅ Booked")
-                elif booking_status == 'pending':
-                    st.write(f"📊 Status: {status} ⏳ Booking Pending")
-                else:
-                    st.write(f"📊 Status: {status}")
-            
-            with col2:
-                # Action buttons in a single row with proper spacing
-                st.markdown("**Actions:**")
-                col_view, col_modify, col_book, col_delete = st.columns(4, gap="small")
+                # Create card using Streamlit containers with proper styling
+                with st.container():
+                    # Card header with gradient background
+                    if status == "Planned":
+                        header_bg = "linear-gradient(90deg, #3B82F6, #06B6D4)"
+                        status_bg = "#1E40AF"
+                    elif status == "Active":
+                        header_bg = "linear-gradient(90deg, #F59E0B, #84CC16)"
+                        status_bg = "#D97706"
+                    elif status == "Completed":
+                        header_bg = "linear-gradient(90deg, #6B7280, #8B5CF6)"
+                        status_bg = "#4B5563"
+                    else:
+                        header_bg = "linear-gradient(90deg, #3B82F6, #06B6D4)"
+                        status_bg = "#1E40AF"
+                    
+                    # Card container
+                    st.markdown(f"""
+                    <div style="
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        margin-bottom: 1rem;
+                        border: 1px solid #E5E7EB;
+                        overflow: hidden;
+                    ">
+                    """, unsafe_allow_html=True)
+                    
+                    # Header section
+                    st.markdown(f"""
+                    <div style="
+                        background: {header_bg};
+                        color: white;
+                        padding: 1rem;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    ">
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 1.2rem; margin-right: 0.5rem;">📍</span>
+                            <span style="font-weight: 600; font-size: 1.1rem;">{trip['destination']}</span>
+                        </div>
+                        <div style="
+                            background: {status_bg};
+                            color: white;
+                            padding: 0.25rem 0.75rem;
+                            border-radius: 20px;
+                            font-size: 0.8rem;
+                            font-weight: 500;
+                        ">
+                            {status}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Content section
+                    st.markdown(f"""
+                    <div style="padding: 1rem;">
+                        <h3 style="margin: 0 0 0.75rem 0; color: #1F2937; font-size: 1.25rem; font-weight: 700;">
+                            {trip['destination']}
+                        </h3>
+                        <div style="margin-bottom: 0.5rem; color: #6B7280; font-size: 0.9rem;">
+                            📅 {trip['start_date']} - {trip['end_date']}
+                        </div>
+                        <div style="margin-bottom: 1rem; color: #6B7280; font-size: 0.9rem;">
+                            💰 {trip.get('currency_symbol', '$')}{trip['budget']:,.0f}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Close card container
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                # Action buttons outside the card but within the column
+                col_view, col_book, col_delete = st.columns(3)
                 
                 with col_view:
-                    if st.button("View", key=f"view_{trip['id']}", use_container_width=True, type="secondary"):
+                    if st.button("👁️ View", key=f"view_{trip['id']}", use_container_width=True, type="primary"):
                         st.session_state.selected_trip = trip
-                        st.rerun()
-                
-                with col_modify:
-                    if st.button("Modify", key=f"modify_{trip['id']}", use_container_width=True, type="secondary"):
-                        st.session_state.modification_mode = True
-                        st.session_state.modification_trip_id = trip['id']
                         st.rerun()
                 
                 with col_book:
@@ -997,12 +1069,12 @@ def show_my_trips():
                     
                     # Determine button state and styling
                     if booking_status == 'confirmed':
-                        # Trip is already booked - show disabled button with success type
+                        # Trip is already booked - show disabled button
                         st.button("✅ Booked", key=f"book_{trip['id']}", use_container_width=True, disabled=True, 
                                 help="This trip has already been booked", type="secondary")
                         
                     elif booking_status == 'pending':
-                        # Booking is pending - show disabled button with warning type
+                        # Booking is pending - show disabled button
                         st.button("⏳ Pending", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
                                 help="Booking is pending confirmation", type="secondary")
                         
@@ -1033,18 +1105,19 @@ def show_my_trips():
                                 help="No booking options available for this trip", type="secondary")
                 
                 with col_delete:
-                    if st.button("Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
+                    if st.button("🗑️ Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
                         success, message = db.delete_trip(trip['id'], user_id)
                         if success:
                             st.success("Trip deleted successfully!")
                             st.rerun()
                         else:
                             st.error(f"Error deleting trip: {message}")
-            
-            st.write("---")
+    else:
+        st.info("No trips match your search criteria.")
     
-    # Show selected trip details
+    # Show selected trip details in a separate section
     if 'selected_trip' in st.session_state:
+        st.markdown("---")
         st.subheader("Trip Details")
         show_trip_details(st.session_state.selected_trip)
         
