@@ -18,12 +18,11 @@ def inject_css():
 
 /* Main app container */
 .main .block-container {
-    padding-top: 0 !important;
-        padding-bottom: 0 !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 100% !important;
 }
 
 /* Fullscreen auth page */
@@ -244,6 +243,141 @@ def inject_css():
 
 
 
+    """, unsafe_allow_html=True)
+
+
+def inject_app_header():
+    """Inject application header"""
+    st.markdown("""
+    <div class="app-header">
+        <div class="header-content">
+            <div class="header-left">
+                <span class="app-icon">🗺️</span>
+                <h1 class="app-title">Wayfarer</h1>
+                <span class="app-tagline">Reimagine Travel with AI</span>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="user-name">Welcome back!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def inject_compact_css():
+    """Inject compact CSS for reduced spacing"""
+    st.markdown("""
+    <style>
+    /* Reduce top spacing globally */
+    .main .block-container {
+        padding-top: 0 !important;
+        padding-bottom: 0.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Reduce spacing in trip containers */
+    .stContainer {
+        margin-bottom: 0.5rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    /* Compact trip display */
+    .trip-container {
+        margin-bottom: 0.3rem !important;
+        padding: 0.3rem !important;
+    }
+    
+    /* Reduce spacing between elements */
+    .element-container {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Compact sidebar */
+    .css-1d391kg {
+        padding-top: 0.5rem !important;
+    }
+    
+    /* Reduce title spacing */
+    h1 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Reduce spacing in main content */
+    .main .block-container > div {
+        margin-top: 0.5rem !important;
+    }
+    
+    /* Compact dashboard layout */
+    .stMetric {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* App Header Styling */
+    .app-header {
+        background: linear-gradient(135deg, #00A4D4 0%, #008bb5 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        margin: -1rem -1rem 1rem -1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 0 0 12px 12px;
+    }
+    
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .app-icon {
+        font-size: 2rem;
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .app-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+    }
+    
+    .app-tagline {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-left: 0.5rem;
+        font-style: italic;
+    }
+    
+    .header-right {
+        display: flex;
+        align-items: center;
+    }
+    
+    .user-info {
+        text-align: right;
+    }
+    
+    .user-name {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    </style>
     """, unsafe_allow_html=True)
 
 
