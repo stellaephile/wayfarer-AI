@@ -365,42 +365,8 @@ def show_dashboard():
     user = st.session_state.user
     user_trips = db.get_user_trips(user['id'])
     
-    # Create sidebar navigation
-    with st.sidebar:
-        # App branding
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem 0; margin-bottom: 2rem;">
-            <h2 style="color: #1f2937; margin: 0; display: flex; align-items: center; justify-content: center;">
-                📍 Wayfarer
-            </h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # User profile
-        st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); 
-                        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-                        margin: 0 auto 0.5rem; color: white; font-size: 1.5rem; font-weight: bold;">
-                {user['name'][0].upper() if user.get('name') else user['username'][0].upper()}
-            </div>
-            <h4 style="margin: 0; color: #1f2937;">{user['name'] or user['username']}</h4>
-            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">{user['email']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Navigation menu
-        st.markdown("### Navigation")
-        nav_options = ["Dashboard", "Plan Trip", "My Trips", "Analytics", "Profile"]
-        selected_nav = st.radio("", nav_options, index=0)
-        
-        # Logout button
-        st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True, type="secondary"):
-            # Clear session state
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+    
+    
     
     # Main content area
     # Welcome banner
@@ -614,7 +580,7 @@ def show_trip_planner():
         st.markdown("""
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 2rem; margin-right: 0.5rem;">🗺️</span>
+                <span style="font-size: 2rem; margin-right: 0.5rem;">♒︎</span>
                 <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer</h1>
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
