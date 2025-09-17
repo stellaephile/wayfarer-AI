@@ -9,12 +9,8 @@ from vertexai.preview.generative_models import GenerationConfig
 from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
-from dotenv import load_dotenv
 
-print("Current path:", os.getcwd())
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
-log_file = os.getenv("LOG_FILE")
-
+log_file = os.getenv("VERTEX_AI_LOG")
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,  # Or DEBUG
@@ -24,7 +20,6 @@ logging.basicConfig(
         logging.StreamHandler()                  # Also print to terminal
     ]
 )
-
 # Optional: Get named logger for your module
 logger = logging.getLogger(__name__)
 

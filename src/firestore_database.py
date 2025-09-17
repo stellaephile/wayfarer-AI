@@ -1,8 +1,18 @@
-import os
 import json
 import bcrypt
 import firebase_admin
 from firebase_admin import credentials, firestore
+import logging
+import os
+
+
+logging.basicConfig(
+    filename=os.getenv("DATABASE_LOG"),
+    level=logging.ERROR,  # can use INFO or DEBUG if you want more verbosity
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 class FirestoreDatabaseManager:
     def __init__(self):
@@ -126,7 +136,7 @@ class FirestoreDatabaseManager:
 
             # Create a new document with auto-generated ID
             trip_doc = trip_ref.document()  
-            trip_ref.set({
+            trip_doc.set({
                 "destination": destination,
                 "start_date": start_date,
                 "end_date": end_date,
@@ -143,9 +153,10 @@ class FirestoreDatabaseManager:
                 "created_at": firestore.SERVER_TIMESTAMP,
                 "updated_at": firestore.SERVER_TIMESTAMP
             })
-            return True, f"Trip created with ID: {trip_ref.id}"
+            return True, trip_doc.id   # 🔑 Return actual trip_id string
         except Exception as e:
-            return False, f"Error creating trip: {str(e)}"
+            logger.error(f"❌ Error creating trip for user={user_id}: {str(e)}", exc_info=True)
+            return False, str(e)
 
     def get_user_trips(self, user_id):
         try:
@@ -273,6 +284,31 @@ class FirestoreDatabaseManager:
         except Exception as e:
             print(f"Error getting modifications: {str(e)}")
             return []
+    
+    def update_trip_credits(self, user_id: str, trip_id: str, credits_used: int):
+        try:
+            trip_ref = (
+                self.db.collection("users")
+                .document(str(user_id))
+                .collection("trips")
+                .document(str(trip_id))
+            )
+            trip_ref.update({
+                "credits_used": firestore.Increment(credits_used),
+                "updated_at": firestore.SERVER_TIMESTAMP,
+            })
+            logger.info(
+                f"✅ Updated credits for trip_id={trip_id}, user_id={user_id}, credits_used={credits_used}"
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                f"❌ Failed to update credits for trip_id={trip_id}, user_id={user_id}: {str(e)}",
+                exc_info=True
+            )
+            return False
+
+
 
 # Global instance
 db = FirestoreDatabaseManager()

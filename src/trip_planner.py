@@ -1,12 +1,24 @@
 import streamlit as st
-import json,os
+import json,os,logging
 from datetime import datetime, timedelta
 from firestore_database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
-from dotenv import load_dotenv
 
+
+log_file = os.getenv("TRIP_PLANNER_LOG")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),           # Log to file
+        logging.StreamHandler()                  # Also print to terminal
+    ]
+)
+# Optional: Get named logger for your module
+logger = logging.getLogger(__name__)
 
 
 def validate_trip_dates(start_date, end_date):
@@ -583,8 +595,8 @@ def show_trip_planner():
         st.markdown("""
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 2rem; margin-right: 0.5rem;">♒︎</span>
-                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer</h1>
+                <span style="font-size: 2rem; margin-right: 0.5rem;">ᨒ</span>
+                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer.AI</h1>
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
         </div>
@@ -902,7 +914,8 @@ def plan_new_trip():
                 return
             
             
-            st.success("✅ Form validation passed!")
+            #st.success("✅ Form validation passed!")
+            logger.info("✅ Form validation passed!", exc_info=True)
             
             # Prepare preferences string
             preferences_str = ", ".join(preferences) if preferences else "General travel"
@@ -924,7 +937,7 @@ def plan_new_trip():
             
             # Generate suggestions
             try:
-                with st.spinner("🤖 AI is planning your perfect trip... This may take a moment."):
+                with st.spinner("🤖 Wayfarer AI is planning your perfect trip... This may take a moment."):
                     suggestions = vertex_ai.generate_trip_suggestions(
                         destination=destination.strip(),
                         start_date=start_date.strftime("%Y-%m-%d"),
@@ -949,43 +962,57 @@ def plan_new_trip():
             # Save trip to database
             try:
                 success, message = db.create_trip(
-                    st.session_state.user['id'],
-                    destination.strip(),
-                    start_date.strftime("%Y-%m-%d"),
-                    end_date.strftime("%Y-%m-%d"),
-                    float(budget),
-                    preferences_str,
-                    json.dumps(suggestions),
-                    selected_currency,
-                    currency_symbol
-                )
-                
+                st.session_state.user['id'],
+                destination.strip(),
+                start_date.strftime("%Y-%m-%d"),
+                end_date.strftime("%Y-%m-%d"),
+                float(budget),
+                preferences_str,
+                json.dumps(suggestions),
+                selected_currency,
+                currency_symbol
+            )
+
                 if success:
                     # Extract trip_id from message
-                    trip_id = int(message.split("ID: ")[1])
+                    trip_id = message
                     
-                    # Calculate and track credits used
-                    credits_used = calculate_credits_used(suggestions)
-                    db.update_trip_credits(trip_id, credits_used)
-                    db.add_credit_transaction(
-                        st.session_state.user['id'],
-                        trip_id,
-                        'usage',
-                        credits_used,
-                        f"AI trip generation for {destination}"
-                    )
-                    
-                    st.session_state.current_trip = suggestions
-                    st.session_state.trip_id = trip_id
-                    st.success(f"🎉 Trip plan generated and saved successfully! (Used {credits_used} credits)")
-                    st.rerun()
+                    try:
+                        # Calculate and track credits used
+                        credits_used = calculate_credits_used(suggestions)
+                        db.update_trip_credits(st.session_state.user['id'], trip_id, credits_used)
+                        db.add_credit_transaction(
+                            st.session_state.user['id'],
+                            trip_id,
+                            'usage',
+                            credits_used,
+                            f"AI trip generation for {destination}"
+                        )
+
+                        st.session_state.current_trip = suggestions
+                        st.session_state.trip_id = trip_id
+                        st.success(f"🎉 Trip plan generated and saved successfully! (Used {credits_used} credits)")
+                        st.rerun()
+                    except Exception as e:
+                        logger.error(
+                            f"❌ Failed to update credits/transactions for trip_id={trip_id}, user_id={st.session_state.user['id']}: {str(e)}",
+                            exc_info=True
+                        )
+                        st.error("⚠️ Trip was saved, but credit tracking failed. Please check logs.")
+
                 else:
+                    logger.error(
+                        f"❌ Failed to create trip for user_id={st.session_state.user['id']}: {message}"
+                    )
                     st.error(f"❌ Failed to save trip: {message}")
                     
             except Exception as e:
+                logger.error(
+                    f"❌ Unexpected error in trip planning for user_id={st.session_state.user['id']}: {str(e)}",
+                    exc_info=True
+                )
                 st.error(f"❌ Error saving trip: {str(e)}")
                 st.write(f"Debug info: {str(e)}")
-
 def show_my_trips():
     """Display user's saved trips with modern card-based layout"""
     # Inject compact CSS only

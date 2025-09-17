@@ -55,7 +55,7 @@ Thumbs.db
 
 # Logs
 *.log
-
+logs/
 
 # Credentials
 #credentials/

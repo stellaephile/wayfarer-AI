@@ -1,10 +1,12 @@
 import streamlit as st
+import os
 from css_styles import inject_css
-
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 # Configure page FIRST - before any other Streamlit commands
 st.set_page_config(
-    page_title="AI Trip Planner",
-    page_icon="🗺️",
+    page_title="Wayfarer AI",
+    page_icon="ᨒ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -34,7 +36,7 @@ def main():
         with col2:
             st.markdown("""
             <div class="auth-header">
-                <h1>🌍 Wayfarer</h1>
+                <h1>ᨒ Wayfarer AI</h1>
                 <p>Reimagine Travel with AI</p>
             </div>
     """, unsafe_allow_html=True)
