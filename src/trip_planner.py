@@ -354,122 +354,221 @@ def check_auth():
     return True
 
 def show_dashboard():
-    """Show user dashboard with overview"""
+    """Show modern user dashboard with sidebar and overview"""
     # Inject compact CSS only
     inject_compact_css()
-    
-    # Start content immediately at the top
-    st.title("🏠 Dashboard")
     
     if 'user' not in st.session_state:
         st.error("❌ Please log in to view dashboard!")
         return
     
     user = st.session_state.user
+    user_trips = db.get_user_trips(user['id'])
     
-    # Welcome message
-    st.markdown(f"### 👋 Welcome back, {user['name'] or user['username']}!")
-    st.markdown("Here's your trip planning overview")
+    # Create sidebar navigation
+    with st.sidebar:
+        # App branding
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem 0; margin-bottom: 2rem;">
+            <h2 style="color: #1f2937; margin: 0; display: flex; align-items: center; justify-content: center;">
+                📍 Wayfarer
+            </h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # User profile
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); 
+                        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+                        margin: 0 auto 0.5rem; color: white; font-size: 1.5rem; font-weight: bold;">
+                {user['name'][0].upper() if user.get('name') else user['username'][0].upper()}
+            </div>
+            <h4 style="margin: 0; color: #1f2937;">{user['name'] or user['username']}</h4>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">{user['email']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Navigation menu
+        st.markdown("### Navigation")
+        nav_options = ["Dashboard", "Plan Trip", "My Trips", "Analytics", "Profile"]
+        selected_nav = st.radio("", nav_options, index=0)
+        
+        # Logout button
+        st.markdown("---")
+        if st.button("🚪 Logout", use_container_width=True, type="secondary"):
+            # Clear session state
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
     
-    # Quick stats
+    # Main content area
+    # Welcome banner
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #3B82F6, #06B6D4, #F59E0B);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+    ">
+        <h1 style="margin: 0 0 0.5rem 0; font-size: 2.5rem; font-weight: bold;">
+            Welcome back, {user['name'] or user['username']}! ✈️
+        </h1>
+        <p style="margin: 0; font-size: 1.2rem; opacity: 0.9;">
+            Ready to plan your next adventure?
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Statistics cards
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric(
-            label="🧳 Total Trips",
-            value=len(db.get_user_trips(user['id'])),
-            delta=None
-        )
+        st.markdown(f"""
+        <div style="
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+            position: relative;
+        ">
+            <div style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;">✈️</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 2rem; font-weight: bold;">
+                {len(user_trips)}
+            </h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total Trips</p>
+            <p style="margin: 0.5rem 0 0 0; color: #10b981; font-size: 0.8rem;">+2 from last month</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.metric(
-            label="🗺️ Active Trips",
-            value=len([trip for trip in db.get_user_trips(user['id']) if trip['status'] == 'active']),
-            delta=None
-        )
+        active_trips = len([trip for trip in user_trips if trip['status'] == 'active'])
+        st.markdown(f"""
+        <div style="
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+            position: relative;
+        ">
+            <div style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;">📍</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 2rem; font-weight: bold;">
+                {active_trips}
+            </h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Active Trips</p>
+            <p style="margin: 0.5rem 0 0 0; color: #f59e0b; font-size: 0.8rem;">Currently planning</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
-        st.metric(
-            label="✅ Completed Trips",
-            value=len([trip for trip in db.get_user_trips(user['id']) if trip['status'] == 'completed']),
-            delta=None
-        )
+        completed_trips = len([trip for trip in user_trips if trip['status'] == 'completed'])
+        st.markdown(f"""
+        <div style="
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+            position: relative;
+        ">
+            <div style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;">✅</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 2rem; font-weight: bold;">
+                {completed_trips}
+            </h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Completed Trips</p>
+            <p style="margin: 0.5rem 0 0 0; color: #10b981; font-size: 0.8rem;">Amazing memories!</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col4:
-        # Calculate total budget with mixed currencies
-        user_trips = db.get_user_trips(user['id'])
         total_budget = sum(trip['budget'] for trip in user_trips)
-        # For mixed currencies, show total with note
-        if user_trips:
-            currencies = set(trip.get('currency', 'USD') for trip in user_trips)
-            if len(currencies) == 1:
-                currency_symbol = user_trips[0].get('currency_symbol', '$')
-                st.metric(
-                    label="💰 Total Budget",
-                    value=f"{currency_symbol}{total_budget:,.0f}",
-                    delta=None
-                )
-            else:
-                st.metric(
-                    label="💰 Total Budget",
-                    value=f"${total_budget:,.0f}",
-                    delta=None
-                )
-                st.caption("Mixed currencies - showing USD equivalent")
-        else:
-            st.metric(
-                label="💰 Total Budget",
-                value="$0",
-                delta=None
-            )
+        currency_symbol = user_trips[0].get('currency_symbol', '$') if user_trips else '$'
+        st.markdown(f"""
+        <div style="
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+            position: relative;
+        ">
+            <div style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;">💰</div>
+            <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 2rem; font-weight: bold;">
+                {currency_symbol}{total_budget:,.0f}
+            </h3>
+            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total Budget</p>
+            <p style="margin: 0.5rem 0 0 0; color: #3b82f6; font-size: 0.8rem;">This year</p>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Quick actions
-    st.subheader("🚀 Quick Actions")
-    
+    # Quick Actions
+    st.markdown("### Quick Actions")
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🗺️ Plan New Trip", type="primary", use_container_width=True):
-            # Set navigation target and rerun
+        if st.button("➕ Plan New Trip", use_container_width=True, type="primary"):
             st.session_state.navigation_target = "🗺️ Plan Trip"
             st.rerun()
     
     with col2:
-        if st.button("📚 View My Trips", type="secondary", use_container_width=True):
+        if st.button("👁️ View My Trips", use_container_width=True, type="secondary"):
             st.session_state.navigation_target = "📚 My Trips"
             st.rerun()
     
     with col3:
-        if st.button("👤 Edit Profile", type="secondary", use_container_width=True):
+        if st.button("👤 Edit Profile", use_container_width=True, type="secondary"):
             st.session_state.navigation_target = "👤 Profile"
             st.rerun()
     
-    # Recent trips
-    st.subheader("📜 Recent Trips")
-    trips = db.get_user_trips(user['id'])
+    # Recent Trips
+    st.markdown("### Recent Trips")
+    recent_trips = user_trips[:3]  # Show last 3 trips
     
-    if trips:
-        # Show last 3 trips
-        for trip in trips[:3]:
-            with st.container():
-                col1, col2, col3 = st.columns([3, 1, 1])
+    if recent_trips:
+        cols = st.columns(3)
+        for i, trip in enumerate(recent_trips):
+            with cols[i]:
+                # Determine status colors
+                if trip['status'] == 'planned':
+                    card_bg = "linear-gradient(135deg, #3B82F6, #06B6D4)"
+                    status_text = "Upcoming"
+                elif trip['status'] == 'active':
+                    card_bg = "linear-gradient(135deg, #F59E0B, #84CC16)"
+                    status_text = "Active"
+                elif trip['status'] == 'completed':
+                    card_bg = "linear-gradient(135deg, #6B7280, #8B5CF6)"
+                    status_text = "Completed"
+                else:
+                    card_bg = "linear-gradient(135deg, #3B82F6, #06B6D4)"
+                    status_text = "Planned"
                 
-                with col1:
-                    st.write(f"**{trip['destination']}**")
-                    st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
-                    currency_symbol = trip.get('currency_symbol', '$')
-                    st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
-                
-                with col2:
-                    st.write(f"Status: {trip['status'].title()}")
-                
-                with col3:
-                    if st.button("View", key=f"view_{trip['id']}"):
-                        st.session_state.selected_trip = trip
-                        st.session_state.navigation_target = "📚 My Trips"
-                        st.rerun()
-                
-                st.divider()
+                st.markdown(f"""
+                <div style="
+                    background: {card_bg};
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 1rem;
+                    position: relative;
+                ">
+                    <div style="position: absolute; top: 1rem; right: 1rem; 
+                                background: rgba(255,255,255,0.2); padding: 0.25rem 0.75rem; 
+                                border-radius: 20px; font-size: 0.8rem;">
+                        {status_text}
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 1rem;">
+                        <span style="font-size: 1.2rem; margin-right: 0.5rem;">📍</span>
+                        <h4 style="margin: 0; font-size: 1.1rem;">{trip['destination']}</h4>
+                    </div>
+                    <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">
+                        {trip['start_date']} - {trip['end_date']}
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
     else:
         st.info("No trips found. Start planning your first trip!")
     
@@ -926,7 +1025,7 @@ def show_my_trips():
     # Header section
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.title("🗺️ My Trips")
+        st.title("📚 My Trips")
     with col2:
         if st.button("➕ Plan New Trip", type="primary", use_container_width=True):
             st.session_state.navigation_target = "🗺️ Plan Trip"
@@ -1050,7 +1149,7 @@ def show_my_trips():
                     st.markdown("</div>", unsafe_allow_html=True)
                 
                 # Action buttons outside the card but within the column
-                col_view, col_book, col_delete = st.columns(3)
+                col_view, col_book, col_complete, col_delete = st.columns(4)
                 
                 with col_view:
                     if st.button("👁️ View", key=f"view_{trip['id']}", use_container_width=True, type="primary"):
@@ -1108,6 +1207,27 @@ def show_my_trips():
                         # No AI suggestions or other conditions - show disabled button
                         st.button("🧳 Book", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
                                 help="No booking options available for this trip", type="secondary")
+                
+                with col_complete:
+                    # Complete trip functionality
+                    if trip['status'] == 'completed':
+                        # Trip is already completed - show disabled button
+                        st.button("✅ Completed", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
+                                help="This trip has already been completed", type="secondary")
+                    elif trip['status'] in ['planned', 'active']:
+                        # Trip can be completed - show active button
+                        if st.button("🏁 Complete", key=f"complete_{trip['id']}", use_container_width=True, type="secondary"):
+                            # Update trip status directly
+                            success, message = db.update_trip(trip['id'], user_id, status='completed')
+                            if success:
+                                st.success(f"🎉 Trip to {trip['destination']} marked as completed!")
+                                st.rerun()
+                            else:
+                                st.error(f"Error completing trip: {message}")
+                    else:
+                        # Other status - show disabled button
+                        st.button("🏁 Complete", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
+                                help="Cannot complete this trip", type="secondary")
                 
                 with col_delete:
                     if st.button("🗑️ Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
