@@ -153,7 +153,7 @@ class TripModificationChat:
         
         # Itinerary preview
         if 'itinerary' in current_trip_data and current_trip_data['itinerary']:
-            with st.expander("📅 Itinerary Preview", expanded=False):
+            with st.expander("🧳 Itinerary Preview", expanded=False):
                 for day in current_trip_data['itinerary'][:3]:  # Show first 3 days
                     if isinstance(day, dict):
                         st.write(f"**Day {day.get('day', 'N/A')}:** {day.get('day_name', '')}")
@@ -177,7 +177,7 @@ class TripModificationChat:
             ("🏛️ Cultural Focus", "Add more cultural experiences"),
             ("🍽️ Food Experience", "Enhance dining recommendations"),
             ("🏨 Upgrade Stay", "Suggest better accommodations"),
-            ("📅 Reschedule", "Adjust the itinerary timing")
+            ("🧳 Reschedule", "Adjust the itinerary timing")
         ]
         
         for button_text, suggestion in suggestion_buttons:

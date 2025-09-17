@@ -80,19 +80,48 @@ def inject_css():
     box-shadow: 0 0 0 3px rgba(0,164,212,0.2) !important;
 }
 
-/* Buttons */
+/* All buttons - force consistent sizing */
 .stButton button {
-    background: var(--wayfarer-blue) !important;
-    color: white !important;
-    font-weight: 600 !important;
-    border-radius: 10px !important;
     padding: 0.8rem 1.2rem !important;
     width: 100% !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    height: 2.5rem !important;
+    min-height: 2.5rem !important;
+    max-height: 2.5rem !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* Enabled buttons - custom styling */
+.stButton button:not(:disabled) {
+    background: var(--wayfarer-blue) !important;
+    color: white !important;
     transition: all 0.25s ease !important;
 }
-.stButton button:hover {
+
+.stButton button:not(:disabled):hover {
     background: var(--wayfarer-blue-dark) !important;
     transform: translateY(-2px) !important;
+}
+
+/* Disabled buttons - force same size and styling */
+.stButton button:disabled {
+    height: 2.5rem !important;
+    min-height: 2.5rem !important;
+    max-height: 2.5rem !important;
+    padding: 0.8rem 1.2rem !important;
+    width: 100% !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
 }
 
 /* Divider */
