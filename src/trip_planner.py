@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
-from css_styles import inject_floating_button
+from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
 
 def validate_trip_dates(start_date, end_date):
@@ -355,6 +355,10 @@ def check_auth():
 
 def show_dashboard():
     """Show user dashboard with overview"""
+    # Inject compact CSS only
+    inject_compact_css()
+    
+    # Start content immediately at the top
     st.title("🏠 Dashboard")
     
     if 'user' not in st.session_state:
@@ -485,6 +489,9 @@ def show_dashboard():
 def show_trip_planner():
     """Main trip planner interface with optimized sidebar"""
     
+    # Inject compact CSS only (header will be injected by individual pages)
+    inject_compact_css()
+    
     # Check for navigation target from dashboard
     if 'navigation_target' in st.session_state:
         target = st.session_state.navigation_target
@@ -503,7 +510,6 @@ def show_trip_planner():
         return
     
     # Optimized sidebar
-    inject_floating_button()
     with st.sidebar:
         # Compact header with app name and icon
         st.markdown("""
@@ -914,6 +920,10 @@ def plan_new_trip():
 
 def show_my_trips():
     """Display user's saved trips"""
+    # Inject compact CSS only
+    inject_compact_css()
+    
+    # Start content immediately at the top
     st.title("🗺️ My Trips")
     
     if 'user' not in st.session_state:
@@ -927,17 +937,21 @@ def show_my_trips():
         st.info("No trips found. Start planning your first trip!")
         return
     
-    # Display trips
+    # Display trips in a more compact layout
     for trip in trips:
         with st.container():
-            # Trip details in first column
-            col1, col2 = st.columns([2, 1])
+            # Trip details and actions in a single row
+            col1, col2 = st.columns([3, 2])
             
             with col1:
-                st.subheader(f"🗺️ {trip['destination']}")
-                st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
-                currency_symbol = trip.get('currency_symbol', '$')
-                st.write(f"💰 Budget: {currency_symbol}{trip['budget']:,.2f}")
+                # Compact trip details
+                st.markdown(f"### 🗺️ {trip['destination']}")
+                col_date, col_budget = st.columns(2)
+                with col_date:
+                    st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
+                with col_budget:
+                    currency_symbol = trip.get('currency_symbol', '$')
+                    st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
                 
                 # Show status with booking information
                 status = trip['status'].title()
