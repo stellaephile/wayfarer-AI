@@ -1,203 +1,237 @@
 ```json
 {
-  "destination": "bengaluru",
+  "destination": "punjab",
   "duration": "2 days",
-  "budget": 1000.0,
+  "budget": 30000.0,
   "budget_breakdown": {
-    "accommodation": 0.0,
-    "food": 450.0,
-    "activities": 200.0,
-    "transportation": 350.0
+    "accommodation": 5000.0,
+    "food": 8000.0,
+    "activities": 5000.0,
+    "transportation": 12000.0
   },
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-15",
-      "day_name": "Monday",
+      "date": "2025-09-17",
+      "day_name": "Wednesday",
+      "weather_conditions": "Light rain with cool temperatures (22°C/12°C).",
       "activities": [
-        "Morning exploration of Lalbagh Botanical Garden",
-        "Visit the Bull Temple (Dodda Ganeshana Gudi) in Basavanagudi",
-        "Evening stroll and budget dinner at VV Puram Food Street"
+        "Morning visit to the Golden Temple; the rain can create beautiful reflections and mean fewer crowds.",
+        "Afternoon exploration of the Partition Museum, a perfect indoor activity for a rainy day.",
+        "Evening trip to the Wagah Border for the Beating Retreat ceremony; it proceeds even in light rain."
+      ],
+      "weather_tips": [
+        "Carry an umbrella and wear a waterproof jacket. The marble floors at the Golden Temple can be slippery when wet, so wear footwear with good grip."
       ],
       "meals": {
-        "breakfast": "Iconic South Indian breakfast at Vidyarthi Bhavan in Basavanagudi.",
-        "lunch": "Affordable and authentic meal at a local darshini near Lalbagh.",
-        "dinner": "Sample various street food items at VV Puram Food Street."
+        "breakfast": "Amritsari Kulcha at a local eatery like Kulcha Land.",
+        "lunch": "Experience the community meal (Langar) at the Golden Temple.",
+        "dinner": "Traditional Punjabi thali at Bharawan Da Dhaba, which offers cozy indoor seating."
       }
     },
     {
       "day": 2,
-      "date": "2025-09-16",
-      "day_name": "Tuesday",
+      "date": "2025-09-18",
+      "day_name": "Thursday",
+      "weather_conditions": "Partly cloudy and pleasant (25°C/15°C).",
       "activities": [
-        "Walk through Cubbon Park and see Vidhana Soudha from the outside",
-        "Visit Tipu Sultan's Summer Palace and Bangalore Fort",
-        "Experience the local culture and chaos at KR Market"
+        "Morning visit to Jallianwala Bagh to pay respects.",
+        "Afternoon shopping for Phulkari textiles and souvenirs at Hall Bazaar.",
+        "Late afternoon food tour, exploring Amritsar's famous street food scene in comfortable weather."
+      ],
+      "weather_tips": [
+        "The weather is ideal for walking, but carry a light jacket or shawl as it might get cool in the evening."
       ],
       "meals": {
-        "breakfast": "Quick and cheap breakfast at Brahmin's Coffee Bar.",
-        "lunch": "Thali meal at a local restaurant near KR Market.",
-        "dinner": "Simple dinner at a local eatery before departure."
+        "breakfast": "Poori Chole and a tall glass of Lassi from Ahuja Milk Bhandar.",
+        "lunch": "Sample street food like chaat, jalebi, and golgappe near Hall Bazaar.",
+        "dinner": "A farewell dinner with famous tandoori dishes at Surjit Food Plaza."
       }
     }
   ],
   "accommodations": [
     {
-      "name": "Zostel Bengaluru",
-      "type": "Hostel",
-      "price_range": "₹500 - ₹800 per dorm bed",
+      "name": "Ramada by Wyndham Amritsar",
+      "type": "Hotel",
+      "price_range": "₹4000 - ₹5500 per night",
+      "rating": 4.5,
+      "amenities": ["Free WiFi", "Restaurant", "Room Service"],
+      "location": "Near Hall Bazaar",
+      "description": "A modern hotel offering comfortable stays with easy access to major attractions.",
+      "weather_suitability": "Excellent. Fully indoor facilities and on-site dining are perfect for rainy conditions."
+    },
+    {
+      "name": "Hyatt Regency Amritsar",
+      "type": "Hotel",
+      "price_range": "₹6000 - ₹8000 per night",
+      "rating": 4.6,
+      "amenities": ["Swimming Pool", "Spa", "Multiple Restaurants"],
+      "location": "Adjoining Nexus Mall",
+      "description": "A luxury option with premium amenities, providing a comfortable retreat from any inclement weather.",
+      "weather_suitability": "Superior. Offers numerous indoor activities like a spa and multiple dining options, great for a rainy day."
+    },
+    {
+      "name": "Courtyard by Marriott Amritsar",
+      "type": "Hotel",
+      "price_range": "₹5000 - ₹7000 per night",
       "rating": 4.4,
-      "amenities": ["Wi-Fi", "Common Room", "Lockers"],
-      "location": "Indiranagar",
-      "description": "A budget-friendly hostel popular with backpackers. Located in Indiranagar, which is a metro ride away from Jayanagar. This is the most realistic option if accommodation is needed within a tight budget, though it exceeds the total trip budget."
-    },
-    {
-      "name": "Hotel Lilac",
-      "type": "Hotel",
-      "price_range": "₹2,500 - ₹4,000 per night",
-      "rating": 4.1,
-      "amenities": ["Wi-Fi", "Restaurant", "Room Service"],
-      "location": "Jayanagar",
-      "description": "A well-regarded mid-range hotel located directly in Jayanagar. Note: The price is significantly outside the specified trip budget of ₹1000 for 2 days."
-    },
-    {
-      "name": "The President Hotel",
-      "type": "Hotel",
-      "price_range": "₹4,000 - ₹6,000 per night",
-      "rating": 4.3,
-      "amenities": ["Wi-Fi", "Restaurant", "Fitness Center", "Bar"],
-      "location": "Jayanagar",
-      "description": "A popular 3-star hotel in Jayanagar offering comfortable stays and multiple dining options. Note: The price is significantly outside the specified trip budget."
+      "amenities": ["Fitness Center", "Restaurant", "Airport Shuttle"],
+      "location": "Near the airport",
+      "description": "A reliable and comfortable hotel with modern amenities.",
+      "weather_suitability": "Excellent. Comfortable rooms and indoor dining make it a great base, especially if the weather is unpredictable."
     }
   ],
   "activities": [
     {
-      "name": "Lalbagh Botanical Garden",
-      "type": "Sightseeing",
+      "name": "Golden Temple (Harmandir Sahib)",
+      "type": "Cultural/Sightseeing",
       "duration": "2-3 hours",
-      "cost": "₹25 - ₹30 per person",
-      "description": "A historic and expansive botanical garden with a famous glass house and diverse flora. Great for a peaceful morning walk.",
-      "rating": 4.5,
-      "best_time": "Morning (6 AM - 9 AM for free entry for walkers)"
+      "cost": "Free",
+      "description": "The holiest shrine in Sikhism, known for its stunning golden architecture and serene atmosphere.",
+      "rating": 5.0,
+      "best_time": "Early morning or late evening",
+      "weather_dependency": "low",
+      "alternative_if_bad_weather": "Not needed, as most of the complex is covered or semi-covered."
     },
     {
-      "name": "Bull Temple (Dodda Ganeshana Gudi)",
-      "type": "Cultural",
-      "duration": "30-45 minutes",
-      "cost": "Free",
-      "description": "A famous 16th-century temple in Basavanagudi, known for its massive monolithic statue of Nandi, the bull.",
+      "name": "Partition Museum",
+      "type": "Cultural/Historical",
+      "duration": "2-3 hours",
+      "cost": "₹250 per person",
+      "description": "The world's first museum dedicated to the 1947 Partition of India, telling the story through personal accounts and artifacts.",
+      "rating": 4.8,
+      "best_time": "Afternoon",
+      "weather_dependency": "low",
+      "alternative_if_bad_weather": "This is the primary bad-weather alternative."
+    },
+    {
+      "name": "Wagah Border Ceremony",
+      "type": "Sightseeing",
+      "duration": "3-4 hours (including travel)",
+      "cost": "Free (seating is first-come, first-served)",
+      "description": "A daily military practice that the security forces of India and Pakistan have jointly followed since 1959.",
       "rating": 4.6,
-      "best_time": "Morning or Evening"
+      "best_time": "Late afternoon (arrive by 4 PM)",
+      "weather_dependency": "medium",
+      "alternative_if_bad_weather": "Visit Gobindgarh Fort for its evening light and sound show, which has covered viewing areas."
     },
     {
-      "name": "VV Puram Food Street",
-      "type": "Cultural",
-      "duration": "1-2 hours",
-      "cost": "₹150 - ₹250 per person for a full meal",
-      "description": "A bustling street that comes alive in the evening, offering a wide variety of vegetarian South Indian, North Indian, and local snacks.",
-      "rating": 4.3,
-      "best_time": "Evening (7 PM onwards)"
-    },
-    {
-      "name": "Cubbon Park",
-      "type": "Sightseeing",
-      "duration": "1-2 hours",
-      "cost": "Free",
-      "description": "A vast green space in the heart of the city, ideal for a relaxing walk. It's surrounded by important government buildings like Vidhana Soudha.",
-      "rating": 4.4,
-      "best_time": "Anytime"
-    },
-    {
-      "name": "Tipu Sultan's Summer Palace",
-      "type": "Sightseeing",
+      "name": "Jallianwala Bagh",
+      "type": "Historical",
       "duration": "1 hour",
-      "cost": "₹20 - ₹25 per person",
-      "description": "An elegant teakwood palace, once the summer residence of Tipu Sultan. It showcases Indo-Islamic architecture.",
-      "rating": 4.2,
-      "best_time": "Morning or Afternoon"
+      "cost": "Free",
+      "description": "A public garden housing a memorial of national importance, established in 1951 to commemorate the massacre of peaceful celebrators on April 13, 1919.",
+      "rating": 4.5,
+      "best_time": "Morning or Afternoon",
+      "weather_dependency": "medium",
+      "alternative_if_bad_weather": "Explore the museums inside Gobindgarh Fort."
     },
     {
-      "name": "KR Market (Krishna Rajendra Market)",
-      "type": "Cultural",
-      "duration": "1-1.5 hours",
-      "cost": "Free",
-      "description": "A vibrant and chaotic wholesale market, offering a sensory overload of sights, sounds, and smells. Famous for its flower market.",
-      "rating": 4.0,
-      "best_time": "Early Morning"
+      "name": "Hall Bazaar Shopping",
+      "type": "Cultural/Shopping",
+      "duration": "2-3 hours",
+      "cost": "Varies",
+      "description": "One of the oldest and busiest markets in Amritsar, perfect for buying Phulkari dupattas, juttis, and local handicrafts.",
+      "rating": 4.2,
+      "best_time": "Afternoon/Evening",
+      "weather_dependency": "low",
+      "alternative_if_bad_weather": "Explore the air-conditioned Nexus Mall for a modern shopping experience."
     }
   ],
   "restaurants": [
     {
-      "name": "Vidyarthi Bhavan",
-      "cuisine": "South Indian",
-      "price_range": "₹100 - ₹200 per person",
-      "rating": 4.5,
-      "specialties": ["Masala Dosa", "Filter Coffee"],
-      "location": "Basavanagudi",
-      "reservation_required": false
+      "name": "Kesar Da Dhaba",
+      "cuisine": "Punjabi",
+      "price_range": "₹400 - ₹600 per person",
+      "rating": 4.2,
+      "specialties": ["Dal Makhani", "Palak Paneer", "Phirni"],
+      "location": "Chowk Passian",
+      "reservation_required": false,
+      "weather_notes": "Basic indoor seating, can get crowded. A good option to escape rain."
     },
     {
-      "name": "Brahmin's Coffee Bar",
-      "cuisine": "South Indian Snacks",
-      "price_range": "₹50 - ₹100 per person",
-      "rating": 4.6,
-      "specialties": ["Idli", "Vada", "Kesari Bath", "Filter Coffee"],
-      "location": "Basavanagudi",
-      "reservation_required": false
+      "name": "Bharawan Da Dhaba",
+      "cuisine": "Punjabi Vegetarian",
+      "price_range": "₹300 - ₹500 per person",
+      "rating": 4.1,
+      "specialties": ["Amritsari Kulcha", "Special Thali", "Makki di Roti & Sarson da Saag (seasonal)"],
+      "location": "Near Town Hall",
+      "reservation_required": false,
+      "weather_notes": "Clean, air-conditioned indoor dining hall suitable for all weather conditions."
     },
     {
-      "name": "MTR - Mavalli Tiffin Rooms",
-      "cuisine": "South Indian",
-      "price_range": "₹200 - ₹350 per person",
-      "rating": 4.4,
-      "specialties": ["Rava Idli", "Bisi Bele Bath", "Masala Dosa"],
-      "location": "Near Lalbagh Main Gate",
-      "reservation_required": false
+      "name": "Surjit Food Plaza",
+      "cuisine": "North Indian/Mughlai",
+      "price_range": "₹700 - ₹1000 per person",
+      "rating": 4.3,
+      "specialties": ["Amritsari Fish Fry", "Tandoori Chicken", "Mutton Tikka"],
+      "location": "Lawrence Road",
+      "reservation_required": true,
+      "weather_notes": "Comfortable indoor seating, ideal for a relaxed dinner regardless of the weather."
     }
   ],
   "transportation": [
     {
       "type": "Local",
-      "option": "BMTC Bus",
-      "cost": "₹10 - ₹40 per trip",
-      "duration": "Varies",
-      "description": "The most budget-friendly way to travel around the city. Extensive network covering all major areas.",
-      "booking_required": false
+      "option": "Private Car Hire",
+      "cost": "₹2500 - ₹3500 per day",
+      "duration": "8-10 hours",
+      "description": "Hiring a car with a driver offers the most comfort and flexibility, especially for visiting the Wagah Border.",
+      "booking_required": true,
+      "weather_considerations": "Highly recommended for the rainy first day to ensure comfort and keep to the schedule."
     },
     {
       "type": "Local",
-      "option": "Auto Rickshaw (App-based)",
+      "option": "App-based Cabs (Uber/Ola)",
+      "cost": "₹100 - ₹400 per trip",
+      "duration": "Varies",
+      "description": "Convenient for point-to-point travel within the city. Availability may vary.",
+      "booking_required": false,
+      "weather_considerations": "Good option for staying dry, but surge pricing may apply during heavy rain."
+    },
+    {
+      "type": "Local",
+      "option": "Auto-rickshaw/E-rickshaw",
       "cost": "₹50 - ₹200 per trip",
       "duration": "Varies",
-      "description": "Use Ola or Uber apps to book auto-rickshaws for fair pricing. Good for short distances or last-mile connectivity.",
-      "booking_required": true
-    },
-    {
-      "type": "Local",
-      "option": "Namma Metro",
-      "cost": "₹10 - ₹60 per trip",
-      "duration": "Varies",
-      "description": "Fast and efficient for connecting key areas like Jayanagar, MG Road, and Majestic. Good for avoiding traffic.",
-      "booking_required": false
+      "description": "Best for short distances and navigating narrow lanes in old city areas.",
+      "booking_required": false,
+      "weather_considerations": "Not ideal in rain as you may get wet from the sides. Use for short trips on the clearer second day."
     }
   ],
   "tips": [
-    "The ₹1000 budget is extremely tight for 2 days and assumes you have free accommodation. It primarily covers food and transport.",
-    "Rely on BMTC buses and Namma Metro for the most economical travel. Purchase a daily bus pass if you plan multiple trips.",
-    "Eat at local 'darshinis' or 'tiffin rooms' for authentic, delicious, and very cheap meals.",
-    "Carry a mix of cash and digital payment options, as smaller eateries and shops may only accept cash."
+    "Pack non-slip, comfortable shoes as marble surfaces at temples can be very slippery when wet.",
+    "Carry a waterproof bag or cover for your electronics like phones and cameras due to the rain forecast.",
+    "Dress modestly when visiting the Golden Temple. Head coverings are mandatory for everyone (scarves are available for free at the entrance).",
+    "Book a private cab for Day 1 to make travel between sites (especially to Wagah Border) seamless and dry."
   ],
-  "weather": {
-    "temperature": "20°C - 28°C",
-    "conditions": "Pleasant with a high chance of afternoon or evening rain showers, typical for September.",
-    "recommendation": "Pack light clothes, but carry an umbrella or a light raincoat. A light jacket for cooler evenings is also advisable."
+  "weather_adaptations": {
+    "rainy_day_activities": [
+      "Partition Museum",
+      "Gobindgarh Fort (indoor museums and shows)",
+      "Take a Punjabi cooking class"
+    ],
+    "hot_weather_tips": [
+      "The weather is pleasant, but stay hydrated by drinking water and local beverages like lassi."
+    ],
+    "cold_weather_tips": [
+      "Evenings and early mornings will be cool (12-15°C). A light jacket, sweater, or shawl is essential for comfort."
+    ],
+    "packing_weather_essentials": [
+      "Compact umbrella",
+      "Lightweight waterproof jacket",
+      "Quick-dry clothing",
+      "Water-resistant shoes"
+    ]
   },
   "packing_list": [
-    "Comfortable walking shoes",
-    "Umbrella and/or light raincoat",
-    "Reusable water bottle to stay hydrated",
-    "Power bank for your phone",
-    "Light sweater or jacket"
+    "A light waterproof jacket or poncho",
+    "A compact travel umbrella",
+    "Comfortable walking shoes with good grip, preferably water-resistant",
+    "A light sweater or fleece for cool evenings and early mornings",
+    "Layered clothing (e.g., t-shirts and a long-sleeve shirt)",
+    "A scarf or bandana for covering your head at religious sites",
+    "Portable power bank for charging devices on the go"
   ]
 }
 ```

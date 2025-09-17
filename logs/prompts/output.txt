@@ -1,11 +1,22 @@
 
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
-
+**IMPORTANT: Consider the weather forecast provided and adjust all recommendations accordingly.**
 **TRIP DETAILS**
-- Destination: bengaluru
-- Dates: 2025-09-15 to 2025-09-16 (2 days)
-- Budget: ₹1,000.00 INR
-- Preferences: General travel | Additional: best hotels near jayanagar
+- Destination: punjab
+- Dates: 2025-09-17 to 2025-09-18 (2 days)
+- Budget: ₹30,000.00 INR
+- Preferences: 
+
+
+**WEATHER FORECAST**
+Weather conditions for punjab during your trip:
+Overall: 14°C - 24°C with Partly Rainy conditions
+Daily forecast:
+- Wednesday (2025-09-17): Light rain, 22°C/12°C, 30% chance of rain
+- Thursday (2025-09-18): Partly cloudy, 25°C/15°C
+
+Weather recommendations: Pack versatile clothing for varying temperatures, Essential rain gear required, Plan indoor backup activities
+
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -13,13 +24,22 @@ Respond ONLY with a valid JSON object.
 - JSON must be compact and properly formatted.
 - Follow the exact structure and field names below.
 - Ensure all fields are filled with realistic values.
+- **WEATHER ADAPTATION**: Adjust all recommendations based on the weather forecast:
+
+  * Suggest indoor activities for rainy/stormy days
+
+  * Recommend appropriate clothing and gear
+
+  * Adjust activity timing based on temperature
+
+  * Include weather-specific tips and precautions
 
 **REQUIRED JSON STRUCTURE**
 
 {
-  "destination": "bengaluru",
+  "destination": "punjab",
   "duration": "2 days",
-  "budget": 1000.0,
+  "budget": 30000.0,
   "budget_breakdown": {
     "accommodation": "amount",
     "food": "amount",
@@ -29,16 +49,18 @@ Respond ONLY with a valid JSON object.
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-15",
+      "date": "2025-09-17",
       "day_name": "Day of week",
-      "activities": ["activity 1", "activity 2"],
+      "weather_conditions": "Brief weather note for this day",
+      "activities": ["weather-appropriate activity 1", "weather-appropriate activity 2"],
+      "weather_tips": ["tip for this specific day based on weather"],
       "meals": {
         "breakfast": "meal suggestion",
         "lunch": "meal suggestion",
         "dinner": "meal suggestion"
       }
     }
-    // Add more days accordingly
+    // Add more days accordingly, each with weather-specific adaptations
   ],
   "accommodations": [
     {
@@ -48,7 +70,8 @@ Respond ONLY with a valid JSON object.
       "rating": 4.5,
       "amenities": ["amenity1", "amenity2"],
       "location": "area",
-      "description": "short description"
+      "description": "short description",
+      "weather_suitability": "How well-suited for expected weather"
     }
     // Include 2-3 options
   ],
@@ -60,9 +83,11 @@ Respond ONLY with a valid JSON object.
       "cost": "cost range",
       "description": "brief overview",
       "rating": 4.5,
-      "best_time": "best time of day or season"
+      "best_time": "best time of day or season",
+      "weather_dependency": "high/medium/low - how weather affects this activity",
+      "alternative_if_bad_weather": "backup plan if weather is poor"
     }
-    // Include 5-8 activities
+    // Include 5-8 activities with weather considerations
   ],
   "restaurants": [
     {
@@ -72,9 +97,10 @@ Respond ONLY with a valid JSON object.
       "rating": 4.3,
       "specialties": ["dish1", "dish2"],
       "location": "area",
-      "reservation_required": true
+      "reservation_required": true,
+      "weather_notes": "outdoor seating, indoor dining, etc."
     }
-    // Include 3-5 options
+    // Include 3-5 options 
   ],
   "transportation": [
     {
@@ -83,25 +109,32 @@ Respond ONLY with a valid JSON object.
       "cost": "range",
       "duration": "time required",
       "description": "brief info",
-      "booking_required": true
+      "booking_required": true,
+      "weather_considerations": "How weather might affect this transport"
     }
     // Include key transport modes
   ],
   "tips": [
-    "practical tip 1",
-    "practical tip 2",
+    "weather-specific practical tip 1",
+    "weather-specific practical tip 2", 
     "practical tip 3"
   ],
-  "weather": {
-    "temperature": "expected range",
-    "conditions": "weather type",
-    "recommendation": "packing advice"
-  },
-  "packing_list": [
-    "essential item 1",
-    "essential item 2",
-    "essential item 3"
-  ]
+  "weather_adaptations": {
+  "rainy_day_activities": ["indoor activity 1", "indoor activity 2"],
+  "hot_weather_tips": ["tip for hot days"],
+  "cold_weather_tips": ["tip for cold days"],
+  "packing_weather_essentials": ["weather-specific packing item 1", "item 2"]
+
+   },
+
+   "packing_list": [
+
+   "weather-appropriate essential item 1",
+   "weather-appropriate essential item 2", 
+  "weather-appropriate essential item 3"
+
+  // Include weather-specific items based on forecast
+   ]
 }
 
 Only output the JSON. Nothing else.

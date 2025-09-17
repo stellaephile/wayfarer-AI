@@ -5,7 +5,187 @@ from database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_floating_button
 from credit_widget import credit_widget
+from pdf_utils import pdf_generator
+from calendar_utils import calendar_service
+import base64
+import io
+import json
 
+def display_weather_info(weather_data, ai_suggestions):
+    """Display weather information in the itinerary"""
+    if not weather_data:
+        return
+    
+    st.subheader("🌤️ Weather Forecast")
+    
+    summary = weather_data.get('summary', {})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(
+            label="Temperature Range",
+            value=summary.get('avg_temperature', 'N/A')
+        )
+    
+    with col2:
+        st.metric(
+            label="Conditions",
+            value=summary.get('conditions', 'N/A')
+        )
+    
+    # Weather recommendations
+    recommendations = summary.get('recommendations', [])
+    if recommendations:
+        st.write("**Weather Recommendations:**")
+        for rec in recommendations:
+            st.write(f"• {rec}")
+    
+    # Daily forecast (show first 7 days)
+    daily_forecast = weather_data.get('daily_forecast', [])
+    if daily_forecast:
+        st.write("**Daily Forecast:**")
+        
+        # Create a more compact daily forecast display
+        forecast_data = []
+        for day in daily_forecast[:7]:  # Show only first 7 days
+            date_str = day.get('date', '')
+            if date_str:
+                formatted_date = datetime.strptime(date_str, '%Y-%m-%d').strftime('%b %d')
+                day_name = day.get('day_name', '')[:3]  # Abbreviate day name
+                temp_high = day.get('temperature', {}).get('high', 'N/A')
+                temp_low = day.get('temperature', {}).get('low', 'N/A')
+                icon = day.get('icon', '☀️')
+                description = day.get('description', 'N/A')
+                
+                forecast_data.append([
+                    f"{day_name} {formatted_date}",
+                    f"{icon} {description}",
+                    f"{temp_high}°C / {temp_low}°C"
+                ])
+        
+        if forecast_data:
+            forecast_df = pd.DataFrame(forecast_data, columns=['Date', 'Weather', 'Temperature'])
+            st.dataframe(forecast_df, use_container_width=True, hide_index=True)
+    
+    st.divider()
+
+# Add this function to handle PDF generation
+def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=None):
+    """Generate PDF download options for the itinerary"""
+    
+    st.subheader("📄 Download Detailed Itinerary")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📥 Download PDF", type="primary", use_container_width=True):
+            try:
+                with st.spinner("🔄 Generating detailed PDF itinerary..."):
+                    # Generate PDF content
+                    pdf_content = pdf_generator.generate_trip_pdf(
+                        trip_data=trip_data,
+                        ai_suggestions=ai_suggestions,
+                        weather_data=weather_data
+                    )
+                    
+                    # Create download filename
+                    destination = trip_data.get('destination', 'Trip').replace(' ', '_')
+                    start_date = trip_data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
+                    filename = f"{destination}_{start_date}_Itinerary.pdf"
+                    
+                    # Create download button
+                    st.download_button(
+                        label="📥 Download PDF Itinerary",
+                        data=pdf_content,
+                        file_name=filename,
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                    
+                    st.success("✅ PDF generated successfully!")
+                    
+            except Exception as e:
+                st.error(f"❌ Error generating PDF: {str(e)}")
+                logger.error(f"PDF generation error: {str(e)}")
+    
+    with col2:
+        st.info("📋 The PDF includes:\n• Complete itinerary with weather info\n• Accommodation recommendations\n• Activities & restaurants\n• Packing list & tips\n• Budget breakdown")
+
+# Add this function to handle calendar integration
+def generate_and_display_calendar_options(trip_data, ai_suggestions):
+    """Generate calendar integration options"""
+    
+    st.subheader("📅 Add to Calendar")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📅 Download Calendar (.ics)", type="secondary", use_container_width=True):
+            try:
+                with st.spinner("🔄 Creating calendar events..."):
+                    # Generate ICS calendar content
+                    calendar_content = calendar_service.create_calendar_from_itinerary(
+                        trip_data=trip_data,
+                        ai_suggestions=ai_suggestions
+                    )
+                    
+                    # Create download filename
+                    destination = trip_data.get('destination', 'Trip').replace(' ', '_')
+                    start_date = trip_data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
+                    filename = f"{destination}_{start_date}_Calendar.ics"
+                    
+                    # Create download button
+                    st.download_button(
+                        label="📥 Download Calendar File",
+                        data=calendar_content,
+                        file_name=filename,
+                        mime="text/calendar",
+                        use_container_width=True
+                    )
+                    
+                    st.success("✅ Calendar file created successfully!")
+                    
+            except Exception as e:
+                st.error(f"❌ Error creating calendar: {str(e)}")
+                logger.error(f"Calendar creation error: {str(e)}")
+    
+    with col2:
+        # Google Calendar quick add option
+        try:
+            google_calendar_url = calendar_service.create_google_calendar_url(
+                trip_data=trip_data,
+                ai_suggestions=ai_suggestions
+            )
+            
+            st.markdown(
+                f'<a href="{google_calendar_url}" target="_blank">'
+                '<button style="background-color: #4285f4; color: white; border: none; '
+                'padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;">'
+                '🗓️ Add to Google Calendar'
+                '</button></a>',
+                unsafe_allow_html=True
+            )
+            
+        except Exception as e:
+            st.button("🗓️ Add to Google Calendar", disabled=True, help="Calendar integration temporarily unavailable")
+
+def display_trip_source_info(trip_data):
+    """Display source information for the trip"""
+    source = trip_data.get('source', 'user_input')
+    
+    source_info = {
+        'user_input': ('👤', 'Created by you'),
+        'ai_generated': ('🤖', 'AI Generated'),
+        'imported': ('📁', 'Imported'),
+        'api': ('🔗', 'API Integration'),
+        'template': ('📋', 'From Template')
+    }
+    
+    icon, description = source_info.get(source, ('❓', 'Unknown Source'))
+    
+    st.caption(f"{icon} {description}")
+    
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
     today = datetime.now().date()
@@ -457,7 +637,10 @@ def show_dashboard():
                     st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
                 
                 with col2:
-                    st.write(f"Status: {trip['status'].title()}")
+                    #st.write(f"Status: {trip['status'].title()}")
+                    status = trip.get('status') or 'unknown'
+                    st.write(f"Status: {status.title()}")
+
                 
                 with col3:
                     if st.button("View", key=f"view_{trip['id']}"):
@@ -1530,6 +1713,602 @@ def show_credits_page():
         
         Contact our support team to discuss credit packages and upgrade options!
         """)
+
+# Update the save trip function to include weather data and source
+def save_trip_to_database(user_id, destination, start_date, end_date, budget, preferences, 
+                         ai_suggestions, currency, currency_symbol, weather_data=None, source="user_input"):
+    """Save trip to database with weather data and source tracking"""
+    try:
+        # Calculate credits used
+        credits_used = calculate_credits_used(ai_suggestions)
+        
+        # Create trip in database
+        success, message = db.create_trip(
+            user_id=user_id,
+            destination=destination,
+            start_date=start_date,
+            end_date=end_date,
+            budget=budget,
+            preferences=preferences,
+            ai_suggestions=json.dumps(ai_suggestions),
+            currency=currency,
+            currency_symbol=currency_symbol,
+            weather_data=weather_data,
+            source=source
+        )
+        
+        if success:
+            # Update user credits
+            db.update_trip_credits(
+                trip_id=success.split(":")[-1].strip() if ":" in message else None,
+                credits_used=credits_used
+            )
+            
+        return success, message
+        
+    except Exception as e:
+        logger.error(f"Error saving trip: {str(e)}")
+        return False, f"Failed to save trip: {str(e)}"
+
+# Add this function to display weather information
+def display_weather_info(weather_data, ai_suggestions):
+    """Display weather information in the itinerary"""
+    if not weather_data:
+        return
+    
+    st.subheader("🌤️ Weather Forecast")
+    
+    summary = weather_data.get('summary', {})
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.metric(
+            label="Temperature Range",
+            value=summary.get('avg_temperature', 'N/A')
+        )
+    
+    with col2:
+        st.metric(
+            label="Conditions",
+            value=summary.get('conditions', 'N/A')
+        )
+    
+    # Weather recommendations
+    recommendations = summary.get('recommendations', [])
+    if recommendations:
+        st.write("**Weather Recommendations:**")
+        for rec in recommendations:
+            st.write(f"• {rec}")
+    
+    # Daily forecast (show first 7 days)
+    daily_forecast = weather_data.get('daily_forecast', [])
+    if daily_forecast:
+        st.write("**Daily Forecast:**")
+        
+        # Create a more compact daily forecast display
+        forecast_data = []
+        for day in daily_forecast[:7]:  # Show only first 7 days
+            date_str = day.get('date', '')
+            if date_str:
+                formatted_date = datetime.strptime(date_str, '%Y-%m-%d').strftime('%b %d')
+                day_name = day.get('day_name', '')[:3]  # Abbreviate day name
+                temp_high = day.get('temperature', {}).get('high', 'N/A')
+                temp_low = day.get('temperature', {}).get('low', 'N/A')
+                icon = day.get('icon', '☀️')
+                description = day.get('description', 'N/A')
+                
+                forecast_data.append([
+                    f"{day_name} {formatted_date}",
+                    f"{icon} {description}",
+                    f"{temp_high}°C / {temp_low}°C"
+                ])
+        
+        if forecast_data:
+            forecast_df = pd.DataFrame(forecast_data, columns=['Date', 'Weather', 'Temperature'])
+            st.dataframe(forecast_df, use_container_width=True, hide_index=True)
+    
+    st.divider()
+
+# Add this function to handle PDF generation
+def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=None):
+    """Generate PDF download options for the itinerary"""
+    
+    st.subheader("📄 Download Detailed Itinerary")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📥 Download PDF", type="primary", use_container_width=True):
+            try:
+                with st.spinner("🔄 Generating detailed PDF itinerary..."):
+                    # Generate PDF content
+                    pdf_content = pdf_generator.generate_trip_pdf(
+                        trip_data=trip_data,
+                        ai_suggestions=ai_suggestions,
+                        weather_data=weather_data
+                    )
+                    
+                    # Create download filename
+                    destination = trip_data.get('destination', 'Trip').replace(' ', '_')
+                    start_date = trip_data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
+                    filename = f"{destination}_{start_date}_Itinerary.pdf"
+                    
+                    # Create download button
+                    st.download_button(
+                        label="📥 Download PDF Itinerary",
+                        data=pdf_content,
+                        file_name=filename,
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                    
+                    st.success("✅ PDF generated successfully!")
+                    
+            except Exception as e:
+                st.error(f"❌ Error generating PDF: {str(e)}")
+                logger.error(f"PDF generation error: {str(e)}")
+    
+    with col2:
+        st.info("📋 The PDF includes:\n• Complete itinerary with weather info\n• Accommodation recommendations\n• Activities & restaurants\n• Packing list & tips\n• Budget breakdown")
+
+# Add this function to handle calendar integration
+def generate_and_display_calendar_options(trip_data, ai_suggestions):
+    """Generate calendar integration options"""
+    
+    st.subheader("📅 Add to Calendar")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📅 Download Calendar (.ics)", type="secondary", use_container_width=True):
+            try:
+                with st.spinner("🔄 Creating calendar events..."):
+                    # Generate ICS calendar content
+                    calendar_content = calendar_service.create_calendar_from_itinerary(
+                        trip_data=trip_data,
+                        ai_suggestions=ai_suggestions
+                    )
+                    
+                    # Create download filename
+                    destination = trip_data.get('destination', 'Trip').replace(' ', '_')
+                    start_date = trip_data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
+                    filename = f"{destination}_{start_date}_Calendar.ics"
+                    
+                    # Create download button
+                    st.download_button(
+                        label="📥 Download Calendar File",
+                        data=calendar_content,
+                        file_name=filename,
+                        mime="text/calendar",
+                        use_container_width=True
+                    )
+                    
+                    st.success("✅ Calendar file created successfully!")
+                    
+            except Exception as e:
+                st.error(f"❌ Error creating calendar: {str(e)}")
+                logger.error(f"Calendar creation error: {str(e)}")
+    
+    with col2:
+        # Google Calendar quick add option
+        try:
+            google_calendar_url = calendar_service.create_google_calendar_url(
+                trip_data=trip_data,
+                ai_suggestions=ai_suggestions
+            )
+            
+            st.markdown(
+                f'<a href="{google_calendar_url}" target="_blank">'
+                '<button style="background-color: #4285f4; color: white; border: none; '
+                'padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;">'
+                '🗓️ Add to Google Calendar'
+                '</button></a>',
+                unsafe_allow_html=True
+            )
+            
+        except Exception as e:
+            st.button("🗓️ Add to Google Calendar", disabled=True, help="Calendar integration temporarily unavailable")
+
+# Add this function to display the source information
+def display_trip_source_info(trip_data):
+    """Display source information for the trip"""
+    source = trip_data.get('source', 'user_input')
+    
+    source_info = {
+        'user_input': ('👤', 'Created by you'),
+        'ai_generated': ('🤖', 'AI Generated'),
+        'imported': ('📁', 'Imported'),
+        'api': ('🔗', 'API Integration'),
+        'template': ('📋', 'From Template')
+    }
+    
+    icon, description = source_info.get(source, ('❓', 'Unknown Source'))
+    
+    st.caption(f"{icon} {description}")
+
+# Update the main display_trip_suggestions function
+def display_trip_suggestions(suggestions, trip_data, user_data):
+    """Display trip suggestions with new features"""
+    
+    if not suggestions:
+        st.error("❌ No suggestions available")
+        return
+    
+    # Display source information
+    display_trip_source_info(trip_data)
+    
+    # Display weather information if available
+    weather_data = suggestions.get('weather_data') or trip_data.get('weather_data')
+    if weather_data:
+        display_weather_info(weather_data, suggestions)
+    
+    # Display main trip information
+    destination = suggestions.get('destination', 'Unknown')
+    duration = suggestions.get('duration', 'Unknown')
+    budget = suggestions.get('budget', 0)
+    currency_symbol = suggestions.get('currency_symbol', '$')
+    
+    # Trip overview
+    st.subheader("🗺️ Trip Overview")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("Destination", destination)
+    with col2:
+        st.metric("Duration", duration)
+    with col3:
+        st.metric("Budget", f"{currency_symbol}{budget:,.2f}")
+    
+    # Budget breakdown
+    if 'budget_breakdown' in suggestions:
+        st.subheader("💰 Budget Breakdown")
+        budget_breakdown = suggestions['budget_breakdown']
+        
+        breakdown_cols = st.columns(len(budget_breakdown))
+        for i, (category, amount) in enumerate(budget_breakdown.items()):
+            with breakdown_cols[i]:
+                category_clean = category.replace('_', ' ').title()
+                st.metric(category_clean, str(amount))
+    
+    # Daily itinerary with weather integration
+    if 'itinerary' in suggestions and suggestions['itinerary']:
+        st.subheader("📅 Daily Itinerary")
+        
+        for day_plan in suggestions['itinerary']:
+            if not isinstance(day_plan, dict):
+                continue
+                
+            day_num = day_plan.get('day', '')
+            date_str = day_plan.get('date', '')
+            day_name = day_plan.get('day_name', '')
+            activities = day_plan.get('activities', [])
+            meals = day_plan.get('meals', {})
+            weather_conditions = day_plan.get('weather_conditions', '')
+            weather_tips = day_plan.get('weather_tips', [])
+            
+            # Day header
+            with st.expander(f"Day {day_num} - {day_name} ({date_str})", expanded=True):
+                
+                # Weather information for the day
+                if weather_conditions:
+                    st.info(f"🌤️ Weather: {weather_conditions}")
+                
+                # Weather tips
+                if weather_tips:
+                    st.write("**Weather Tips:**")
+                    for tip in weather_tips:
+                        st.write(f"• {tip}")
+                
+                # Activities
+                if activities:
+                    st.write("**Activities:**")
+                    for activity in activities:
+                        if isinstance(activity, str):
+                            st.write(f"• {activity}")
+                
+                # Meals
+                if meals:
+                    st.write("**Meals:**")
+                    meal_cols = st.columns(len(meals))
+                    for i, (meal_type, meal_desc) in enumerate(meals.items()):
+                        if meal_desc:
+                            with meal_cols[i]:
+                                st.write(f"**{meal_type.title()}:** {meal_desc}")
+    
+    # Display other sections (accommodations, activities, restaurants, etc.)
+    display_other_suggestions(suggestions)
+    
+    # Weather adaptations section
+    if 'weather_adaptations' in suggestions:
+        st.subheader("🌦️ Weather Adaptations")
+        weather_adaptations = suggestions['weather_adaptations']
+        
+        if weather_adaptations.get('rainy_day_activities'):
+            st.write("**Rainy Day Activities:**")
+            for activity in weather_adaptations['rainy_day_activities']:
+                st.write(f"• {activity}")
+        
+        if weather_adaptations.get('hot_weather_tips'):
+            st.write("**Hot Weather Tips:**")
+            for tip in weather_adaptations['hot_weather_tips']:
+                st.write(f"• {tip}")
+        
+        if weather_adaptations.get('cold_weather_tips'):
+            st.write("**Cold Weather Tips:**")
+            for tip in weather_adaptations['cold_weather_tips']:
+                st.write(f"• {tip}")
+    
+    st.divider()
+    
+    # Action buttons section
+    st.subheader("📋 Actions")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Save trip button
+        if st.button("💾 Save This Trip", type="primary", use_container_width=True):
+            try:
+                # Include weather data and source when saving
+                success, message = save_trip_to_database(
+                    user_id=user_data['id'],
+                    destination=destination,
+                    start_date=trip_data.get('start_date'),
+                    end_date=trip_data.get('end_date'),
+                    budget=budget,
+                    preferences=trip_data.get('preferences', ''),
+                    ai_suggestions=suggestions,
+                    currency=suggestions.get('currency', 'USD'),
+                    currency_symbol=currency_symbol,
+                    weather_data=weather_data,
+                    source=trip_data.get('source', 'ai_generated')
+                )
+                
+                if success:
+                    st.success("✅ Trip saved successfully!")
+                else:
+                    st.error(f"❌ {message}")
+                    
+            except Exception as e:
+                st.error(f"❌ Error saving trip: {str(e)}")
+    
+    with col2:
+        # Modify trip button
+        if st.button("✏️ Modify This Trip", type="secondary", use_container_width=True):
+            # Set up modification mode
+            st.session_state.modification_mode = True
+            st.session_state.current_trip_suggestions = suggestions
+            st.session_state.current_trip_data = trip_data
+            st.rerun()
+    
+    # PDF and Calendar options
+    generate_and_display_pdf_options(trip_data, suggestions, weather_data)
+    generate_and_display_calendar_options(trip_data, suggestions)
+
+def display_other_suggestions(suggestions):
+    """Display accommodations, activities, restaurants, and transportation"""
+    
+    # Accommodations
+    if 'accommodations' in suggestions and suggestions['accommodations']:
+        st.subheader("🏨 Recommended Accommodations")
+        
+        for hotel in suggestions['accommodations']:
+            if not isinstance(hotel, dict):
+                continue
+                
+            name = hotel.get('name', 'Hotel')
+            hotel_type = hotel.get('type', 'Hotel')
+            price_range = hotel.get('price_range', 'N/A')
+            rating = hotel.get('rating', 'N/A')
+            location = hotel.get('location', 'N/A')
+            amenities = hotel.get('amenities', [])
+            description = hotel.get('description', '')
+            weather_suitability = hotel.get('weather_suitability', '')
+            
+            with st.container():
+                st.write(f"**{name}** ({hotel_type})")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"📍 Location: {location}")
+                    st.write(f"💰 Price: {price_range}")
+                    st.write(f"⭐ Rating: {rating}/5" if rating != 'N/A' else f"⭐ Rating: {rating}")
+                
+                with col2:
+                    if amenities:
+                        st.write(f"🏨 Amenities: {', '.join(amenities[:4])}")
+                    if weather_suitability:
+                        st.write(f"🌤️ Weather: {weather_suitability}")
+                
+                if description:
+                    st.write(f"📝 {description}")
+                
+                st.divider()
+    
+    # Activities
+    if 'activities' in suggestions and suggestions['activities']:
+        st.subheader("🎯 Recommended Activities")
+        
+        for activity in suggestions['activities']:
+            if not isinstance(activity, dict):
+                continue
+                
+            name = activity.get('name', 'Activity')
+            activity_type = activity.get('type', 'Activity')
+            duration = activity.get('duration', 'N/A')
+            cost = activity.get('cost', 'N/A')
+            description = activity.get('description', '')
+            rating = activity.get('rating', 'N/A')
+            best_time = activity.get('best_time', 'N/A')
+            weather_dependency = activity.get('weather_dependency', 'N/A')
+            alternative = activity.get('alternative_if_bad_weather', '')
+            
+            with st.container():
+                st.write(f"**{name}** ({activity_type})")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"⏱️ Duration: {duration}")
+                    st.write(f"💰 Cost: {cost}")
+                    st.write(f"⭐ Rating: {rating}/5" if rating != 'N/A' else f"⭐ Rating: {rating}")
+                
+                with col2:
+                    st.write(f"🕐 Best Time: {best_time}")
+                    st.write(f"🌤️ Weather Dependency: {weather_dependency}")
+                
+                if description:
+                    st.write(f"📝 {description}")
+                    
+                if alternative:
+                    st.write(f"☔ Backup Plan: {alternative}")
+                
+                st.divider()
+    
+    # Restaurants
+    if 'restaurants' in suggestions and suggestions['restaurants']:
+        st.subheader("🍽️ Recommended Restaurants")
+        
+        for restaurant in suggestions['restaurants']:
+            if not isinstance(restaurant, dict):
+                continue
+                
+            name = restaurant.get('name', 'Restaurant')
+            cuisine = restaurant.get('cuisine', 'N/A')
+            price_range = restaurant.get('price_range', 'N/A')
+            rating = restaurant.get('rating', 'N/A')
+            location = restaurant.get('location', 'N/A')
+            specialties = restaurant.get('specialties', [])
+            reservation_required = restaurant.get('reservation_required', False)
+            weather_notes = restaurant.get('weather_notes', '')
+            
+            with st.container():
+                st.write(f"**{name}**")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"🍽️ Cuisine: {cuisine}")
+                    st.write(f"💰 Price: {price_range}")
+                    st.write(f"📍 Location: {location}")
+                
+                with col2:
+                    st.write(f"⭐ Rating: {rating}/5" if rating != 'N/A' else f"⭐ Rating: {rating}")
+                    st.write(f"📞 Reservation: {'Required' if reservation_required else 'Not Required'}")
+                    if weather_notes:
+                        st.write(f"🌤️ {weather_notes}")
+                
+                if specialties:
+                    st.write(f"👨‍🍳 Specialties: {', '.join(specialties)}")
+                
+                st.divider()
+    
+    # Transportation
+    if 'transportation' in suggestions and suggestions['transportation']:
+        st.subheader("🚗 Transportation Options")
+        
+        for transport in suggestions['transportation']:
+            if not isinstance(transport, dict):
+                continue
+                
+            transport_type = transport.get('type', 'Transportation')
+            option = transport.get('option', 'N/A')
+            cost = transport.get('cost', 'N/A')
+            duration = transport.get('duration', 'N/A')
+            description = transport.get('description', '')
+            booking_required = transport.get('booking_required', False)
+            weather_considerations = transport.get('weather_considerations', '')
+            
+            with st.container():
+                st.write(f"**{transport_type} - {option}**")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write(f"💰 Cost: {cost}")
+                    st.write(f"⏱️ Duration: {duration}")
+                
+                with col2:
+                    st.write(f"📞 Booking: {'Required' if booking_required else 'Not Required'}")
+                    if weather_considerations:
+                        st.write(f"🌤️ {weather_considerations}")
+                
+                if description:
+                    st.write(f"📝 {description}")
+                
+                st.divider()
+    
+    # Tips and Packing List
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if 'tips' in suggestions and suggestions['tips']:
+            st.subheader("💡 Travel Tips")
+            for tip in suggestions['tips']:
+                st.write(f"• {tip}")
+    
+    with col2:
+        if 'packing_list' in suggestions and suggestions['packing_list']:
+            st.subheader("🎒 Packing List")
+            for item in suggestions['packing_list']:
+                st.write(f"• {item}")
+
+# Add this to the main trip planner interface
+def show_trip_planner_with_new_features():
+    """Enhanced trip planner with weather integration and new features"""
+    
+    # ... existing code for form inputs ...
+    
+    # Add source field to the form
+    with st.sidebar:
+        st.subheader("📊 Trip Source")
+        source_options = {
+            'user_input': '👤 Manual Input',
+            'ai_generated': '🤖 AI Generated',
+            'template': '📋 From Template',
+            'imported': '📁 Imported'
+        }
+        
+        selected_source = st.selectbox(
+            "How was this trip created?",
+            options=list(source_options.keys()),
+            format_func=lambda x: source_options[x],
+            index=0
+        )
+    
+    # When generating suggestions, pass the source
+    if st.button("🗺️ Generate Trip Plan", type="primary", use_container_width=True):
+        if validate_inputs(destination, start_date, end_date, budget):
+            with st.spinner("🤖 Creating your personalized trip plan with weather forecast..."):
+                trip_data = {
+                    'destination': destination,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'budget': budget,
+                    'preferences': preferences,
+                    'currency': selected_currency,
+                    'currency_symbol': currency_info['symbol'],
+                    'source': selected_source  # Add source to trip data
+                }
+                
+                # Generate suggestions (this will automatically include weather data)
+                suggestions = trip_planner.generate_trip_suggestions(
+                    destination=destination,
+                    start_date=start_date,
+                    end_date=end_date,
+                    budget=budget,
+                    preferences=preferences,
+                    currency=selected_currency,
+                    currency_symbol=currency_info['symbol']
+                )
+                
+                if suggestions:
+                    st.session_state.current_suggestions = suggestions
+                    st.session_state.current_trip_data = trip_data
+                    st.session_state.current_user_data = user_data
+                    
+                    # Display with new features
+                    display_trip_suggestions(suggestions, trip_data, user_data)
+                else:
+                    st.error("❌ Unable to generate trip suggestions. Please try again.")      
 
 # Initialize the trip planner
 if __name__ == "__main__":

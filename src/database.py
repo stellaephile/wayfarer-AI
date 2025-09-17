@@ -58,6 +58,8 @@ class DatabaseManager:
                 currency_symbol TEXT DEFAULT '$',
                 preferences TEXT,
                 ai_suggestions TEXT,
+                weather_data TEXT,
+                source TEXT DEFAULT 'user_input',
                 status TEXT DEFAULT 'planned',
                 booking_status TEXT DEFAULT 'not_booked',
                 booking_id TEXT,
@@ -142,6 +144,13 @@ class DatabaseManager:
             
             if 'booking_confirmation' not in columns:
                 cursor.execute("ALTER TABLE trips ADD COLUMN booking_confirmation TEXT")
+            # Add weather_data column
+            if "weather_data" not in columns:
+                cursor.execute("ALTER TABLE trips ADD COLUMN weather_data TEXT")
+
+    # Add source column
+            if "source" not in columns:
+                cursor.execute("ALTER TABLE trips ADD COLUMN source TEXT DEFAULT 'user_input'")    
             
             conn.commit()
             
@@ -149,7 +158,33 @@ class DatabaseManager:
             # If there's an error, it might be because the table doesn't exist yet
             # This is handled by the CREATE TABLE IF NOT EXISTS above
             pass
-    
+
+    def _ensure_new_feature_columns(self, conn):
+      """Ensure new feature columns exist in the trips table"""
+
+      try:
+        cursor = conn.cursor()
+
+        cursor.execute("PRAGMA table_info(trips)")
+
+        columns = [column[1] for column in cursor.fetchall()]
+
+# Add missing columns for new features
+
+        if 'weather_data' not in columns:
+          cursor.execute("ALTER TABLE trips ADD COLUMN weather_data TEXT")
+
+        if 'source' not in columns:
+
+          cursor.execute("ALTER TABLE trips ADD COLUMN source TEXT DEFAULT 'user_input'")
+
+        conn.commit()
+
+      except Exception as e:
+        print(f"Warning: Could not add new feature columns: {e}")
+
+        pass
+
     def create_user(self, username, email, password, name=None):
         """Create a new user with hashed password"""
         try:
@@ -377,16 +412,20 @@ class DatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
     
-    def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency='USD', currency_symbol='$'):
+    def create_trip(self, user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency='USD', currency_symbol='$',weather_data=None, source='user_input'):
         """Create a new trip"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
+            # Convert weather_data to JSON string if it's a dict
+
+            weather_json = json.dumps(weather_data) if weather_data else None
+       
             
             cursor.execute('''
-                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency, currency_symbol)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, currency, currency_symbol))
+                INSERT INTO trips (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions,weather_data, source, currency, currency_symbol)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user_id, destination, start_date, end_date, budget, preferences, ai_suggestions, weather_json, source, currency, currency_symbol))
             
             conn.commit()
             trip_id = cursor.lastrowid
@@ -405,7 +444,7 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol,
+                       ai_suggestions, weather_data, source, status, created_at, updated_at, currency, currency_symbol,
                        booking_status, booking_id, booking_confirmation
                 FROM trips WHERE user_id = ? ORDER BY created_at DESC
             ''', (user_id,))
@@ -422,6 +461,8 @@ class DatabaseManager:
                     'budget': trip[4],
                     'preferences': trip[5],
                     'ai_suggestions': trip[6],
+                    'weather_data': json.loads(trip[7]) if trip[7] else None,
+                    'source': trip[8] or 'user_input',
                     'status': trip[7],
                     'created_at': trip[8],
                     'updated_at': trip[9],
@@ -446,7 +487,7 @@ class DatabaseManager:
             
             cursor.execute('''
                 SELECT id, destination, start_date, end_date, budget, preferences, 
-                       ai_suggestions, status, created_at, updated_at, currency, currency_symbol,
+                       ai_suggestions,weather_data, source, status, created_at, updated_at, currency, currency_symbol,
                        booking_status, booking_id, booking_confirmation
                 FROM trips WHERE id = ? AND user_id = ?
             ''', (trip_id, user_id))
@@ -463,6 +504,8 @@ class DatabaseManager:
                     'budget': trip[4],
                     'preferences': trip[5],
                     'ai_suggestions': trip[6],
+                    'weather_data': json.loads(trip[7]) if trip[7] else None,
+                    'source': trip[8] or 'user_input',
                     'status': trip[7],
                     'created_at': trip[8],
                     'updated_at': trip[9],
@@ -485,12 +528,14 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             # Build dynamic update query
-            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'status', 'booking_status', 'booking_id', 'booking_confirmation']
+            allowed_fields = ['destination', 'start_date', 'end_date', 'budget', 'preferences', 'ai_suggestions', 'weather_data', 'source','status', 'booking_status', 'booking_id', 'booking_confirmation']
             update_fields = []
             values = []
             
             for field, value in kwargs.items():
                 if field in allowed_fields:
+                  if field == 'weather_data' and isinstance(value, dict):
+                    value = json.dumps(value)
                     update_fields.append(f"{field} = ?")
                     values.append(value)
             
