@@ -372,7 +372,7 @@ def show_dashboard():
     
     with col1:
         st.metric(
-            label="📅 Total Trips",
+            label="🧳 Total Trips",
             value=len(db.get_user_trips(user['id'])),
             delta=None
         )
@@ -452,7 +452,7 @@ def show_dashboard():
                 
                 with col1:
                     st.write(f"**{trip['destination']}**")
-                    st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
+                    st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
                     currency_symbol = trip.get('currency_symbol', '$')
                     st.write(f"💰 {currency_symbol}{trip['budget']:,.2f}")
                 
@@ -609,7 +609,7 @@ def plan_new_trip():
         
         # Show itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
-            st.subheader("📅 Daily Itinerary")
+            st.subheader("🧳 Daily Itinerary")
             if isinstance(suggestions['itinerary'], list):
                 for day_info in suggestions['itinerary']:
                     with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')}"):
@@ -930,11 +930,12 @@ def show_my_trips():
     # Display trips
     for trip in trips:
         with st.container():
-            col1, col2, col3 = st.columns([3, 1, 1])
+            # Trip details in first column
+            col1, col2 = st.columns([2, 1])
             
             with col1:
                 st.subheader(f"🗺️ {trip['destination']}")
-                st.write(f"📅 {trip['start_date']} to {trip['end_date']}")
+                st.write(f"🧳 {trip['start_date']} to {trip['end_date']}")
                 currency_symbol = trip.get('currency_symbol', '$')
                 st.write(f"💰 Budget: {currency_symbol}{trip['budget']:,.2f}")
                 
@@ -950,57 +951,81 @@ def show_my_trips():
                     st.write(f"📊 Status: {status}")
             
             with col2:
-                col_view, col_modify, col_book = st.columns(3)
+                # Action buttons in a single row with proper spacing
+                st.markdown("**Actions:**")
+                col_view, col_modify, col_book, col_delete = st.columns(4, gap="small")
+                
                 with col_view:
-                    if st.button("View", key=f"view_{trip['id']}"):
+                    if st.button("View", key=f"view_{trip['id']}", use_container_width=True, type="secondary"):
                         st.session_state.selected_trip = trip
                         st.rerun()
+                
                 with col_modify:
-                    if st.button("Modify", key=f"modify_{trip['id']}"):
+                    if st.button("Modify", key=f"modify_{trip['id']}", use_container_width=True, type="secondary"):
                         st.session_state.modification_mode = True
                         st.session_state.modification_trip_id = trip['id']
                         st.rerun()
+                
                 with col_book:
                     # Import booking interface
                     from booking_interface import booking_interface
                     
-                    # Show booking button for trips with AI suggestions
+                    # Check booking status
+                    booking_status = trip.get('booking_status', 'not_booked')
+                    ai_suggestions = trip.get('ai_suggestions', {})
+                    
+                    # Parse AI suggestions if it's a string
                     try:
-                        ai_suggestions = trip.get('ai_suggestions', {})
                         if isinstance(ai_suggestions, str):
                             ai_suggestions = json.loads(ai_suggestions)
+                    except:
+                        ai_suggestions = {}
+                    
+                    # Determine button state and styling
+                    if booking_status == 'confirmed':
+                        # Trip is already booked - show disabled button with success type
+                        st.button("✅ Booked", key=f"book_{trip['id']}", use_container_width=True, disabled=True, 
+                                help="This trip has already been booked", type="secondary")
                         
-                        if ai_suggestions and trip['status'] != 'booked':
-                            if st.button("Book", key=f"book_{trip['id']}"):
-                                # Prepare trip data for booking
-                                trip_data = {
-                                    'trip_id': trip['id'],
-                                    'destination': trip['destination'],
-                                    'start_date': trip['start_date'],
-                                    'end_date': trip['end_date'],
-                                    'budget': trip['budget'],
-                                    'currency': trip.get('currency', 'INR'),
-                                    'currency_symbol': trip.get('currency_symbol', '₹'),
-                                    'preferences': trip['preferences'],
-                                    'ai_suggestions': ai_suggestions
-                                }
-                                
-                                # Store booking data in session state
-                                st.session_state.booking_trip_data = trip_data
-                                st.session_state.booking_user_data = st.session_state.user
-                                st.session_state.show_booking_interface = True
-                                st.rerun()
-                    except Exception as e:
-                        st.write("N/A")
-            
-            with col3:
-                if st.button("Delete", key=f"delete_{trip['id']}"):
-                    success, message = db.delete_trip(trip['id'], user_id)
-                    if success:
-                        st.success("Trip deleted successfully!")
-                        st.rerun()
+                    elif booking_status == 'pending':
+                        # Booking is pending - show disabled button with warning type
+                        st.button("⏳ Pending", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
+                                help="Booking is pending confirmation", type="secondary")
+                        
+                    elif ai_suggestions and trip['status'] != 'booked':
+                        # Trip can be booked - show active book button
+                        if st.button("🧳 Book", key=f"book_{trip['id']}", use_container_width=True, type="primary"):
+                            # Prepare trip data for booking
+                            trip_data = {
+                                'trip_id': trip['id'],
+                                'destination': trip['destination'],
+                                'start_date': trip['start_date'],
+                                'end_date': trip['end_date'],
+                                'budget': trip['budget'],
+                                'currency': trip.get('currency', 'INR'),
+                                'currency_symbol': trip.get('currency_symbol', '₹'),
+                                'preferences': trip['preferences'],
+                                'ai_suggestions': ai_suggestions
+                            }
+                            
+                            # Store booking data in session state
+                            st.session_state.booking_trip_data = trip_data
+                            st.session_state.booking_user_data = st.session_state.user
+                            st.session_state.show_booking_interface = True
+                            st.rerun()
                     else:
-                        st.error(f"Error deleting trip: {message}")
+                        # No AI suggestions or other conditions - show disabled button
+                        st.button("🧳 Book", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
+                                help="No booking options available for this trip", type="secondary")
+                
+                with col_delete:
+                    if st.button("Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
+                        success, message = db.delete_trip(trip['id'], user_id)
+                        if success:
+                            st.success("Trip deleted successfully!")
+                            st.rerun()
+                        else:
+                            st.error(f"Error deleting trip: {message}")
             
             st.write("---")
     
@@ -1047,7 +1072,7 @@ def show_trip_details(trip_data):
         
         # Itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
-            st.subheader("📅 Daily Itinerary")
+            st.subheader("🧳 Daily Itinerary")
             # Handle itinerary as list of dictionaries
             if isinstance(suggestions['itinerary'], list):
                 for day_info in suggestions['itinerary']:
