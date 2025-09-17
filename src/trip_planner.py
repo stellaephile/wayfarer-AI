@@ -948,7 +948,7 @@ def show_my_trips():
     with col1:
         search_query = st.text_input("", placeholder="Search destinations...", key="trip_search")
     with col2:
-        filter_option = st.selectbox("", ["All Trips", "Upcoming", "Active", "Completed"], key="trip_filter")
+        filter_option = st.selectbox("", ["All Trips", "Upcoming", "Active", "Completed", "Booked"], key="trip_filter")
     
     # Filter trips based on search and filter
     filtered_trips = trips
@@ -956,8 +956,13 @@ def show_my_trips():
         filtered_trips = [trip for trip in filtered_trips if search_query.lower() in trip['destination'].lower()]
     
     if filter_option != "All Trips":
-        status_map = {"Upcoming": "planned", "Active": "active", "Completed": "completed"}
-        filtered_trips = [trip for trip in filtered_trips if trip['status'] == status_map[filter_option]]
+        if filter_option == "Booked":
+            # Filter for trips that are booked (booking_status = 'confirmed')
+            filtered_trips = [trip for trip in filtered_trips if trip.get('booking_status') == 'confirmed']
+        else:
+            # Filter by trip status
+            status_map = {"Upcoming": "planned", "Active": "active", "Completed": "completed"}
+            filtered_trips = [trip for trip in filtered_trips if trip['status'] == status_map[filter_option]]
     
     # Display trips in card layout
     if filtered_trips:
