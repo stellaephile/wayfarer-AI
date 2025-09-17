@@ -47,13 +47,13 @@ def main():
                 #    unsafe_allow_html=True
                 #)
 
-                # Tabs for login/signup
-                tab1, tab2 = st.tabs(["🔑 Login", "📝 Sign Up"])
-
-                with tab1:
-                        login_page()
-                with tab2:
-                        signup_page()
+                # Show login or signup page based on session state
+                if st.session_state.get('show_login', True):
+                    # Show login page with option to switch to signup
+                    login_page()
+                else:
+                    # Show signup page with option to switch to login
+                    signup_page()
                 
                 
 
