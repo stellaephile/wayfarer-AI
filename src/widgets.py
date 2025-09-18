@@ -106,89 +106,106 @@ def format_date_pretty(date_input):
 
 
 
-def generate_trip_pdf(trip_data, ai_suggestions, weather_data=None):
-    """Generate a polished A4 itinerary PDF with logo, cover page, and details"""
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
+import os
 
+def generate_trip_pdf(trip_data, itinerary, weather_data=None):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=40, leftMargin=40,
-        topMargin=40, bottomMargin=40
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=40,
+        bottomMargin=40
     )
-
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="CenterTitle", fontSize=22, alignment=1, spaceAfter=20))
-    styles.add(ParagraphStyle(name="SubHeading", fontSize=14, textColor=colors.HexColor("#3b82f6"), spaceAfter=10))
-    styles.add(ParagraphStyle(name="NormalJustify", fontSize=11, leading=14, alignment=4))
-
     elements = []
 
-    # ---------------- Cover Page ----------------
-    try:
-        logo = os.getenv("LOGO_IMG")  # path to your uploaded logo
-        img = Image(logo, width=180, height=180)
-        img.hAlign = "CENTER"
-        elements.append(Spacer(1, 100))
-        elements.append(img)
-    except Exception as e:
-        print("Logo load error:", e)
+    destination = trip_data.get("destination", "Unknown").title()
 
-    destination = trip_data.get('destination', 'Your Trip')
-    start_date = trip_data.get('start_date', 'N/A')
-    end_date = trip_data.get('end_date', 'N/A')
-
-    elements.append(Spacer(1, 40))
-    elements.append(Paragraph(f"<b>{destination} Itinerary</b>", styles["CenterTitle"]))
-    elements.append(Paragraph(f"{start_date} ➝ {end_date}", styles["CenterTitle"]))
-    elements.append(Spacer(1, 200))
-    elements.append(Paragraph("Prepared with Wayfarer AI ✈️", styles["NormalJustify"]))
-
-    elements.append(PageBreak())
-
-    # ---------------- Itinerary Section ----------------
-    elements.append(Paragraph("✨ Suggested Itinerary", styles["SubHeading"]))
-    if isinstance(ai_suggestions, (dict, list)):
-        pretty_itinerary = json.dumps(ai_suggestions, indent=2)  # convert to string
+    # --- COVER PAGE or fallback ---
+    if not itinerary:
+        elements.append(Spacer(1, 200))
+        elements.append(Paragraph(f"<b>{destination} Itinerary</b>", styles["Title"]))
+        elements.append(Paragraph("🗓️ Duration not available", styles["Heading2"]))
     else:
-        pretty_itinerary = str(ai_suggestions)
+        start_date_str = itinerary[0].get("date", "")
+        end_date_str = itinerary[-1].get("date", "")
 
-    elements.append(Paragraph(pretty_itinerary.replace("\n", "<br/>"), styles["NormalJustify"]))
-    elements.append(Spacer(1, 20))
+        # Logo
+        logo = os.getenv("LOGO_IMG")
+        if logo and os.path.exists(logo):
+            elements.append(Spacer(1, 120))
+            img = Image(logo, width=200, height=200)
+            img.hAlign = "CENTER"
+            elements.append(img)
 
-    # ---------------- Weather Section ----------------
-    if weather_data:
-        elements.append(Paragraph("🌤️ Weather Forecast", styles["SubHeading"]))
-        if isinstance(weather_data, (dict, list)):
-            pretty_weather = json.dumps(weather_data, indent=2)
-        else:
-            pretty_weather = str(weather_data)
-        elements.append(Paragraph(pretty_weather.replace("\n", "<br/>"), styles["NormalJustify"]))
-        elements.append(Spacer(1, 20))
+        elements.append(Spacer(1, 60))
+        elements.append(Paragraph(f"<b>{destination} Itinerary</b>", styles["Title"]))
+        elements.append(Paragraph(f"{format_date_pretty(start_date_str)} ➝ {format_date_pretty(end_date_str)}", styles["Heading2"]))
 
-    # ---------------- Trip Details ----------------
-    details_data = [
-        ["Destination", destination],
-        ["Start Date", start_date],
-        ["End Date", end_date],
-        ["Budget", trip_data.get("budget", "N/A")],
-        ["Travelers", trip_data.get("travelers", "N/A")]
-    ]
-    table = Table(details_data, hAlign="LEFT", colWidths=[100, 300])
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#3b82f6")),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("ALIGN", (0,0), (-1,-1), "LEFT"),
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-        ("BOTTOMPADDING", (0,0), (-1,0), 8),
-        ("BACKGROUND", (0,1), (-1,-1), colors.whitesmoke),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-    ]))
-    elements.append(Paragraph("📋 Trip Details", styles["SubHeading"]))
-    elements.append(table)
-    elements.append(Spacer(1, 20))
+        # Duration
+        try:
+            start_dt = datetime.strptime(start_date_str, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date_str, "%Y-%m-%d")
+            num_days = (end_dt - start_dt).days + 1
+            num_nights = num_days - 1
+            duration_str = f"{num_days} Days, {num_nights} Nights"
+        except Exception:
+            duration_str = "Duration not available"
 
-    # Build PDF
+        elements.append(Paragraph(f"🗓️ {duration_str}", styles["Heading3"]))
+        elements.append(Spacer(1, 200))
+        elements.append(Paragraph("Prepared with ❤️ by Wayfarer AI", styles["Normal"]))
+        elements.append(PageBreak())
+
+        # --- DAILY ITINERARY ---
+        for day_plan in itinerary:
+            day_title = f"Day {day_plan.get('day', '')} - {day_plan.get('day_name', '')} ({format_date_pretty(day_plan.get('date', ''))}"
+            elements.append(Paragraph(day_title, styles["Heading2"]))
+
+            activity_data = [["Time/Meal", "Plan"]]
+
+            # Wrap activities in Paragraphs
+            for act in day_plan.get("activities", []):
+                activity_data.append(["Activity", Paragraph(act, styles["Normal"])])
+
+            # Wrap meals in Paragraphs
+            for meal, desc in day_plan.get("meals", {}).items():
+                activity_data.append([meal.capitalize(), Paragraph(desc, styles["Normal"])])
+
+            table = Table(activity_data, colWidths=[120, 360])
+            table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#3b82f6")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),  # keep text aligned top
+            ]))
+            elements.append(table)
+            elements.append(Spacer(1, 20))
+
+
+        # --- BUDGET BREAKDOWN ---
+        if "budget_breakdown" in trip_data:
+            elements.append(PageBreak())
+            elements.append(Paragraph("💰 Budget Breakdown", styles["Heading2"]))
+            budget_data = [["Category", "Amount (₹)"]]
+            for k, v in trip_data["budget_breakdown"].items():
+                budget_data.append([k.capitalize(), f"₹{v:,.0f}"])
+            budget_data.append(["Total", f"₹{trip_data.get('budget', 0):,.0f}"])
+            elements.append(Table(budget_data, colWidths=[200, 280]))
+
     doc.build(elements)
     pdf = buffer.getvalue()
     buffer.close()
@@ -196,36 +213,29 @@ def generate_trip_pdf(trip_data, ai_suggestions, weather_data=None):
 
 
 
+
 def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=None):
-    """Generate and download PDF itinerary in one click"""
+    try:
+        # ai_suggestions can be JSON string or dict
+        if isinstance(ai_suggestions, str):
+            ai_suggestions = json.loads(ai_suggestions)
+        
+        # ✅ Pull itinerary from ai_suggestions
+        itinerary = ai_suggestions.get("itinerary", []) if ai_suggestions else []
+        
+        # If itinerary is missing, fall back
+        if not itinerary:
+            itinerary = trip_data.get("itinerary", [])
+        
+        # Now pass itinerary into PDF generator
+        pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=None)
 
-    st.subheader("📄 Download Detailed Itinerary")
+        st.download_button(
+            label="📥 Download Itinerary PDF",
+            data=pdf_bytes,
+            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.pdf",
+            mime="application/pdf",
+        )
+    except Exception as e:
+        st.error(f"❌ Error generating PDF: {str(e)}")
 
-    if st.button("📄 Generate PDF Itinerary", type="primary", use_container_width=True):
-        try:
-            with st.spinner("🔄 Generating detailed PDF itinerary..."):
-                # ✅ Call your ReportLab generator
-                pdf_content = generate_trip_pdf(
-                    trip_data=trip_data,
-                    ai_suggestions=ai_suggestions,
-                    weather_data=weather_data
-                )
-
-                # ✅ Create filename
-                destination = trip_data.get('destination', 'Trip').replace(' ', '_')
-                start_date = trip_data.get('start_date', datetime.now().strftime('%Y-%m-%d'))
-                filename = f"{destination}_{start_date}_Itinerary.pdf"
-
-                # ✅ Streamlit download button
-                st.download_button(
-                    label="📥 Click to Download",
-                    data=pdf_content,
-                    file_name=filename,
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-
-                st.success("✅ PDF generated successfully!")
-
-        except Exception as e:
-            st.error(f"❌ Error generating PDF: {str(e)}")

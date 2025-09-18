@@ -934,9 +934,8 @@ def show_my_trips():
     if 'selected_trip' in st.session_state:
         st.markdown("---")
         st.subheader("Trip Details")
-        show_trip_details(st.session_state.selected_trip)
-        
-        
+        trip = st.session_state.selected_trip
+        show_trip_details(trip)
         generate_and_display_pdf_options(trip, ai_suggestions, weather_data=None)
 
         if st.button("Close Details"):
