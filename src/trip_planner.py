@@ -823,46 +823,6 @@ def plan_new_trip():
             
             with col_currency:
                 currency_options = get_currency_options()
-                
-                # Popular currencies with flags for better UX
-"""
-                popular_currencies_display = [
-                    ("INR", "🇮🇳 Indian Rupee (₹)"),
-                    ("USD", "🇺🇸 US Dollar ($)"),
-                    ("EUR", "🇪🇺 Euro (€)"),
-                    ("GBP", "🇬🇧 British Pound (£)"),
-                    ("JPY", "🇯🇵 Japanese Yen (¥)"),
-                    ("CAD", "🇨🇦 Canadian Dollar (C$)"),
-                    ("AUD", "🇦🇺 Australian Dollar (A$)"),
-                    ("CHF", "🇨🇭 Swiss Franc (CHF)"),
-                    ("BRL", "🇧🇷 Brazilian Real (R$)"),
-                    ("MXN", "🇲🇽 Mexican Peso ($)"),
-                    ("SGD", "🇸🇬 Singapore Dollar (S$)"),
-                    ("HKD", "🇭🇰 Hong Kong Dollar (HK$)"),
-                    ("NZD", "🇳🇿 New Zealand Dollar (NZ$)"),
-                    ("CNY", "🇨🇳 Chinese Yuan (¥)"),
-                    ("KRW", "🇰🇷 South Korean Won (₩)"),
-                    ("THB", "🇹🇭 Thai Baht (฿)"),
-                    ("MYR", "🇲🇾 Malaysian Ringgit (RM)"),
-                    ("IDR", "🇮🇩 Indonesian Rupiah (Rp)"),
-                    ("PHP", "🇵🇭 Philippine Peso (₱)"),
-                    ("VND", "🇻🇳 Vietnamese Dong (₫)"),
-                    ("TRY", "🇹🇷 Turkish Lira (₺)"),
-                    ("AED", "🇦🇪 UAE Dirham (د.إ)"),
-                    ("SAR", "🇸🇦 Saudi Riyal (ر.س)"),
-                    ("ILS", "🇮🇱 Israeli Shekel (₪)"),
-                    ("QAR", "🇶🇦 Qatari Riyal (ر.ق)"),
-                    ("KWD", "🇰🇼 Kuwaiti Dinar (د.ك)"),
-                    ("BHD", "🇧🇭 Bahraini Dinar (د.ب)"),
-                    ("OMR", "🇴🇲 Omani Rial (ر.ع.)"),
-                    ("JOD", "🇯🇴 Jordanian Dinar (د.ا)"),
-                    ("LBP", "🇱🇧 Lebanese Pound (ل.ل)"),
-                    ("PKR", "🇵🇰 Pakistani Rupee (₨)"),
-                    ("BDT", "🇧🇩 Bangladeshi Taka (৳)"),
-                    ("LKR", "🇱🇰 Sri Lankan Rupee (₨)"),
-                    ("NPR", "🇳🇵 Nepalese Rupee (₨)")
-                ]
-"""
                 popular_currencies_display = currency_mapping                
                 # Create currency options for selectbox
                 currency_choices = [display for code, display in popular_currencies_display]
@@ -1297,13 +1257,13 @@ def show_trip_details(trip_data):
     col1, col2, col3 = st.columns(3)
     with col1:
         try:
-            start_dt = datetime.strptime(trip_data['start_date'], "%Y-%m-%d")
-            end_dt = datetime.strptime(trip_data['end_date'], "%Y-%m-%d")
+            start_dt = trip_data['start_date']
+            end_dt = trip_data['end_date']
             num_days = (end_dt - start_dt).days + 1
             num_nights = num_days - 1
             duration_str = f"{num_days} Days, {num_nights} Nights"
-        except:
-            logger.error(" Duration Not Found")
+        except Exception as e:
+            logger.error(f" Duration Not Found: {str(e)}")
             duration_str="Unknown"
         st.metric("Duration", f"{duration_str}")
     with col2:
