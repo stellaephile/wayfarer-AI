@@ -2,10 +2,10 @@
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 
 **TRIP DETAILS**
-- Destination: bengaluru
-- Dates: 2025-09-15 to 2025-09-16 (2 days)
-- Budget: ₹1,000.00 INR
-- Preferences: General travel | Additional: best hotels near jayanagar
+- Destination: egypt
+- Dates: 2025-09-18 to 2025-09-23 (6 days)
+- Budget: ₹200,000.00 INR
+- Preferences: Culture | Additional: best sights
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -17,9 +17,9 @@ Respond ONLY with a valid JSON object.
 **REQUIRED JSON STRUCTURE**
 
 {
-  "destination": "bengaluru",
-  "duration": "2 days",
-  "budget": 1000.0,
+  "destination": "egypt",
+  "duration": "6 days",
+  "budget": 200000.0,
   "budget_breakdown": {
     "accommodation": "amount",
     "food": "amount",
@@ -29,7 +29,7 @@ Respond ONLY with a valid JSON object.
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-15",
+      "date": "2025-09-18",
       "day_name": "Day of week",
       "activities": ["activity 1", "activity 2"],
       "meals": {

@@ -1,10 +1,38 @@
 import streamlit as st
-import json
+import json,logging,os
 from datetime import datetime, timedelta
 from database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
+from widgets import with_dynamic_spinner, get_fun_spinner_messages
+
+log_file = os.getenv("TRIP_PLANNER_LOG")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),           # Log to file
+        logging.StreamHandler()                  # Also print to terminal
+    ]
+)
+
+# Optional: Get named logger for your module
+logger = logging.getLogger(__name__)
+
+@with_dynamic_spinner(get_fun_spinner_messages())
+def get_suggestions(vertex_ai,destination,start_date,end_date,budget,preferences_str,selected_currency,currency_symbol):
+    return vertex_ai.generate_trip_suggestions(
+        destination=destination.strip(),
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
+        budget=float(budget),
+        preferences=preferences_str,
+        currency=selected_currency,
+        currency_symbol=currency_symbol
+    )
 
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
@@ -315,13 +343,7 @@ def get_currency_options():
         "BAM": {"symbol": "КМ", "name": "Bosnia and Herzegovina Convertible Mark"}
     }
 
-# # Configure page FIRST - before any other Streamlit commands
-# st.set_page_config(
-#     page_title="AI Trip Planner",
-#     page_icon="🗺️",
-#     layout="wide",
-#     initial_sidebar_state="expanded"
-# )
+
 
 # Now import other modules
 from auth import  check_auth
@@ -542,7 +564,7 @@ def show_dashboard():
     st.subheader("💡 Tips & Suggestions")
     
     tips = [
-        "🗺️ Use the AI trip planner to get personalized recommendations",
+        "🗺️ Use the Wayfarer AI trip planner to get personalized recommendations",
         "📚 Save your favorite trips for future reference",
         "📊 Check your analytics to see your travel patterns",
         "👤 Keep your profile updated for better recommendations"
@@ -898,8 +920,7 @@ def plan_new_trip():
                 st.error("❌ Please enter a valid budget")
                 return
             
-            
-            st.success("✅ Form validation passed!")
+            logger.info("✅ Form validation passed!")
             
             # Prepare preferences string
             preferences_str = ", ".join(preferences) if preferences else "General travel"
@@ -921,16 +942,8 @@ def plan_new_trip():
             
             # Generate suggestions
             try:
-                with st.spinner("🤖 AI is planning your perfect trip... This may take a moment."):
-                    suggestions = vertex_ai.generate_trip_suggestions(
-                        destination=destination.strip(),
-                        start_date=start_date.strftime("%Y-%m-%d"),
-                        end_date=end_date.strftime("%Y-%m-%d"),
-                        budget=float(budget),
-                        preferences=preferences_str,
-                        currency=selected_currency,
-                        currency_symbol=currency_symbol
-                    )
+                suggestions = get_suggestions(vertex_ai,destination,start_date,
+                                              end_date,budget,preferences_str,selected_currency,currency_symbol)
                 
                 if not suggestions:
                     st.error("❌ Failed to generate trip suggestions. Please try again.")
