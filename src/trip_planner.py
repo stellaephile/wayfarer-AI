@@ -1122,7 +1122,7 @@ def show_my_trips():
                             {trip['destination']}
                         </h3>
                         <div style="margin-bottom: 0.5rem; color: #6B7280; font-size: 0.9rem;">
-                            📅 {trip['start_date']} - {trip['end_date']}
+                            📅 {format_date_pretty(trip['start_date'])} - {format_date_pretty(trip['end_date'])}
                         </div>
                         <div style="margin-bottom: 1rem; color: #6B7280; font-size: 0.9rem;">
                             💰 {trip.get('currency_symbol', '$')}{trip['budget']:,.0f}
@@ -1235,7 +1235,7 @@ def show_my_trips():
         unsafe_allow_html=True
         )
         trip = st.session_state.selected_trip
-        print(trip)
+        #print(trip)
         show_trip_details(trip)
         generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
         
@@ -1295,7 +1295,7 @@ def show_trip_details(trip_data):
             # Handle itinerary as list of dictionaries
             if isinstance(suggestions['itinerary'], list):
                 for day_info in suggestions['itinerary']:
-                    with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')} ({day_info.get('date', '')})"):
+                    with st.expander(f"Day {day_info.get('day', 'N/A')} - {day_info.get('day_name', '')} ({format_date_pretty(day_info.get('date', ''))})"):
                         if 'activities' in day_info:
                             st.write("**Activities:**")
                             for activity in day_info['activities']:
