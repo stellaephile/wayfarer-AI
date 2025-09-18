@@ -1,203 +1,259 @@
 ```json
 {
   "destination": "bengaluru",
-  "duration": "2 days",
-  "budget": 1000.0,
+  "duration": "3 days",
+  "budget": 20000.0,
   "budget_breakdown": {
-    "accommodation": 0.0,
-    "food": 450.0,
-    "activities": 200.0,
-    "transportation": 350.0
+    "accommodation": 7000.0,
+    "food": 5000.0,
+    "activities": 3000.0,
+    "transportation": 5000.0
   },
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-15",
-      "day_name": "Monday",
+      "date": "2025-09-20",
+      "day_name": "Saturday",
       "activities": [
-        "Morning exploration of Lalbagh Botanical Garden",
-        "Visit the Bull Temple (Dodda Ganeshana Gudi) in Basavanagudi",
-        "Evening stroll and budget dinner at VV Puram Food Street"
+        "Arrive and check into your hotel in Jayanagar.",
+        "Explore the vast Lalbagh Botanical Garden and its famous Glass House.",
+        "Visit the Bull Temple (Dodda Ganeshana Gudi) and the adjacent Nandi Temple.",
+        "Evening stroll and local shopping at Jayanagar 4th Block BDA Complex."
       ],
       "meals": {
-        "breakfast": "Iconic South Indian breakfast at Vidyarthi Bhavan in Basavanagudi.",
-        "lunch": "Affordable and authentic meal at a local darshini near Lalbagh.",
-        "dinner": "Sample various street food items at VV Puram Food Street."
+        "breakfast": "Authentic South Indian breakfast at a local darshini near your hotel.",
+        "lunch": "Traditional Karnataka thali at Mavalli Tiffin Rooms (MTR) near Lalbagh.",
+        "dinner": "Dinner at The Rogue Elephant, Basavanagudi for a relaxed ambiance."
       }
     },
     {
       "day": 2,
-      "date": "2025-09-16",
-      "day_name": "Tuesday",
+      "date": "2025-09-21",
+      "day_name": "Sunday",
       "activities": [
-        "Walk through Cubbon Park and see Vidhana Soudha from the outside",
-        "Visit Tipu Sultan's Summer Palace and Bangalore Fort",
-        "Experience the local culture and chaos at KR Market"
+        "Visit the magnificent Bangalore Palace, inspired by Windsor Castle.",
+        "Walk through Cubbon Park and see the Vidhana Soudha and High Court buildings from the outside.",
+        "Engage with science exhibits at the Visvesvaraya Industrial & Technological Museum.",
+        "Experience Bengaluru's nightlife and pub culture in Indiranagar."
       ],
       "meals": {
-        "breakfast": "Quick and cheap breakfast at Brahmin's Coffee Bar.",
-        "lunch": "Thali meal at a local restaurant near KR Market.",
-        "dinner": "Simple dinner at a local eatery before departure."
+        "breakfast": "Continental or Indian breakfast at the hotel.",
+        "lunch": "Lunch at Koshy's on St. Mark's Road for a taste of old Bangalore.",
+        "dinner": "Craft beer and food at Toit Brewpub in Indiranagar."
+      }
+    },
+    {
+      "day": 3,
+      "date": "2025-09-22",
+      "day_name": "Monday",
+      "activities": [
+        "Explore the historic Tipu Sultan's Summer Palace and the remnants of Bangalore Fort.",
+        "Experience the sensory overload of KR Market (City Market), a bustling flower and produce market.",
+        "Visit the National Gallery of Modern Art for a dose of culture.",
+        "Depart for the airport in the late afternoon/evening."
+      ],
+      "meals": {
+        "breakfast": "Crispy Masala Dosa at Vidyarthi Bhavan in Basavanagudi.",
+        "lunch": "Spicy Andhra-style biryani at Meghana Foods near KR Market area.",
+        "dinner": "Snack/early dinner at a cafe before heading to the airport."
       }
     }
   ],
   "accommodations": [
     {
-      "name": "Zostel Bengaluru",
-      "type": "Hostel",
-      "price_range": "₹500 - ₹800 per dorm bed",
-      "rating": 4.4,
-      "amenities": ["Wi-Fi", "Common Room", "Lockers"],
-      "location": "Indiranagar",
-      "description": "A budget-friendly hostel popular with backpackers. Located in Indiranagar, which is a metro ride away from Jayanagar. This is the most realistic option if accommodation is needed within a tight budget, though it exceeds the total trip budget."
-    },
-    {
-      "name": "Hotel Lilac",
-      "type": "Hotel",
-      "price_range": "₹2,500 - ₹4,000 per night",
-      "rating": 4.1,
-      "amenities": ["Wi-Fi", "Restaurant", "Room Service"],
-      "location": "Jayanagar",
-      "description": "A well-regarded mid-range hotel located directly in Jayanagar. Note: The price is significantly outside the specified trip budget of ₹1000 for 2 days."
-    },
-    {
       "name": "The President Hotel",
       "type": "Hotel",
-      "price_range": "₹4,000 - ₹6,000 per night",
-      "rating": 4.3,
-      "amenities": ["Wi-Fi", "Restaurant", "Fitness Center", "Bar"],
+      "price_range": "₹3000 - ₹4000 per night",
+      "rating": 4.2,
+      "amenities": [
+        "Free Wi-Fi",
+        "Restaurant",
+        "Room Service",
+        "Fitness Center"
+      ],
       "location": "Jayanagar",
-      "description": "A popular 3-star hotel in Jayanagar offering comfortable stays and multiple dining options. Note: The price is significantly outside the specified trip budget."
+      "description": "A well-regarded 3-star hotel in the heart of Jayanagar, offering comfortable rooms and good service. Close to major South Bengaluru attractions."
+    },
+    {
+      "name": "Lilac Hotel, 3rd Block",
+      "type": "Hotel",
+      "price_range": "₹2500 - ₹3500 per night",
+      "rating": 4.0,
+      "amenities": [
+        "Free Wi-Fi",
+        "Air Conditioning",
+        "Restaurant"
+      ],
+      "location": "Jayanagar",
+      "description": "A modern and clean budget-friendly hotel located conveniently in Jayanagar, perfect for travelers looking for value and location."
+    },
+    {
+      "name": "Treebo Trend Akshaya Lalbagh",
+      "type": "Hotel",
+      "price_range": "₹2000 - ₹3000 per night",
+      "rating": 4.1,
+      "amenities": [
+        "Free Wi-Fi",
+        "Complimentary Breakfast",
+        "Air Conditioning"
+      ],
+      "location": "Near Lalbagh West Gate",
+      "description": "A reliable budget hotel chain offering clean rooms and essential amenities, located very close to Lalbagh and Jayanagar."
     }
   ],
   "activities": [
     {
-      "name": "Lalbagh Botanical Garden",
+      "name": "Bangalore Palace",
       "type": "Sightseeing",
       "duration": "2-3 hours",
-      "cost": "₹25 - ₹30 per person",
-      "description": "A historic and expansive botanical garden with a famous glass house and diverse flora. Great for a peaceful morning walk.",
+      "cost": "₹230 (Indian), ₹460 (Foreigner)",
+      "description": "A Tudor-style palace with fortified towers, turrets, and intricate woodcarvings, offering a glimpse into the royal history of the Wodeyar dynasty.",
+      "rating": 4.3,
+      "best_time": "Morning or early afternoon"
+    },
+    {
+      "name": "Lalbagh Botanical Garden",
+      "type": "Nature",
+      "duration": "2-3 hours",
+      "cost": "₹30 per person",
+      "description": "A historic 240-acre garden with a rare collection of tropical plants, a famous glass house, and a serene lake. A green oasis in the city.",
       "rating": 4.5,
-      "best_time": "Morning (6 AM - 9 AM for free entry for walkers)"
+      "best_time": "Early morning or late afternoon"
+    },
+    {
+      "name": "Tipu Sultan's Summer Palace",
+      "type": "Historical",
+      "duration": "1 hour",
+      "cost": "₹20 (Indian), ₹250 (Foreigner)",
+      "description": "An elegant Indo-Islamic palace built entirely of teakwood, known for its ornamental frescoes, arches, and balconies.",
+      "rating": 4.1,
+      "best_time": "Anytime during opening hours"
+    },
+    {
+      "name": "Visvesvaraya Industrial & Technological Museum",
+      "type": "Educational",
+      "duration": "2-3 hours",
+      "cost": "₹85 per person",
+      "description": "An interactive science museum with various galleries on engineering, space, and technology, fun for all ages.",
+      "rating": 4.6,
+      "best_time": "Afternoon to avoid school crowds"
     },
     {
       "name": "Bull Temple (Dodda Ganeshana Gudi)",
       "type": "Cultural",
       "duration": "30-45 minutes",
       "cost": "Free",
-      "description": "A famous 16th-century temple in Basavanagudi, known for its massive monolithic statue of Nandi, the bull.",
+      "description": "A 16th-century Dravidian-style temple famous for its massive monolithic statue of Nandi (the bull).",
       "rating": 4.6,
-      "best_time": "Morning or Evening"
-    },
-    {
-      "name": "VV Puram Food Street",
-      "type": "Cultural",
-      "duration": "1-2 hours",
-      "cost": "₹150 - ₹250 per person for a full meal",
-      "description": "A bustling street that comes alive in the evening, offering a wide variety of vegetarian South Indian, North Indian, and local snacks.",
-      "rating": 4.3,
-      "best_time": "Evening (7 PM onwards)"
-    },
-    {
-      "name": "Cubbon Park",
-      "type": "Sightseeing",
-      "duration": "1-2 hours",
-      "cost": "Free",
-      "description": "A vast green space in the heart of the city, ideal for a relaxing walk. It's surrounded by important government buildings like Vidhana Soudha.",
-      "rating": 4.4,
-      "best_time": "Anytime"
-    },
-    {
-      "name": "Tipu Sultan's Summer Palace",
-      "type": "Sightseeing",
-      "duration": "1 hour",
-      "cost": "₹20 - ₹25 per person",
-      "description": "An elegant teakwood palace, once the summer residence of Tipu Sultan. It showcases Indo-Islamic architecture.",
-      "rating": 4.2,
-      "best_time": "Morning or Afternoon"
-    },
-    {
-      "name": "KR Market (Krishna Rajendra Market)",
-      "type": "Cultural",
-      "duration": "1-1.5 hours",
-      "cost": "Free",
-      "description": "A vibrant and chaotic wholesale market, offering a sensory overload of sights, sounds, and smells. Famous for its flower market.",
-      "rating": 4.0,
-      "best_time": "Early Morning"
+      "best_time": "Morning or evening during prayer times"
     }
   ],
   "restaurants": [
     {
+      "name": "Mavalli Tiffin Rooms (MTR)",
+      "cuisine": "South Indian",
+      "price_range": "₹250 - ₹400 per person",
+      "rating": 4.4,
+      "specialties": [
+        "Rava Idli",
+        "Masala Dosa",
+        "Filter Coffee"
+      ],
+      "location": "Lalbagh Road",
+      "reservation_required": false
+    },
+    {
       "name": "Vidyarthi Bhavan",
       "cuisine": "South Indian",
-      "price_range": "₹100 - ₹200 per person",
+      "price_range": "₹150 - ₹250 per person",
       "rating": 4.5,
-      "specialties": ["Masala Dosa", "Filter Coffee"],
+      "specialties": [
+        "Benne Masale Dose",
+        "Kesari Bath",
+        "Filter Coffee"
+      ],
       "location": "Basavanagudi",
       "reservation_required": false
     },
     {
-      "name": "Brahmin's Coffee Bar",
-      "cuisine": "South Indian Snacks",
-      "price_range": "₹50 - ₹100 per person",
+      "name": "Toit Brewpub",
+      "cuisine": "Multi-cuisine / Brewpub",
+      "price_range": "₹1000 - ₹1500 per person",
       "rating": 4.6,
-      "specialties": ["Idli", "Vada", "Kesari Bath", "Filter Coffee"],
-      "location": "Basavanagudi",
-      "reservation_required": false
+      "specialties": [
+        "Craft Beers",
+        "Wood-fired Pizza",
+        "Nachos"
+      ],
+      "location": "Indiranagar",
+      "reservation_required": true
     },
     {
-      "name": "MTR - Mavalli Tiffin Rooms",
-      "cuisine": "South Indian",
-      "price_range": "₹200 - ₹350 per person",
+      "name": "Meghana Foods",
+      "cuisine": "Andhra",
+      "price_range": "₹400 - ₹600 per person",
       "rating": 4.4,
-      "specialties": ["Rava Idli", "Bisi Bele Bath", "Masala Dosa"],
-      "location": "Near Lalbagh Main Gate",
+      "specialties": [
+        "Meghana Special Biryani",
+        "Andhra Chilli Chicken"
+      ],
+      "location": "Jayanagar",
       "reservation_required": false
     }
   ],
   "transportation": [
     {
-      "type": "Local",
-      "option": "BMTC Bus",
-      "cost": "₹10 - ₹40 per trip",
-      "duration": "Varies",
-      "description": "The most budget-friendly way to travel around the city. Extensive network covering all major areas.",
+      "type": "Airport Transfer",
+      "option": "Vayu Vajra (BMTC Bus)",
+      "cost": "₹250 - ₹350 per person",
+      "duration": "1.5 - 2.5 hours",
+      "description": "The most budget-friendly and efficient way to travel from the airport to various points in the city, including Jayanagar.",
       "booking_required": false
     },
     {
-      "type": "Local",
-      "option": "Auto Rickshaw (App-based)",
-      "cost": "₹50 - ₹200 per trip",
-      "duration": "Varies",
-      "description": "Use Ola or Uber apps to book auto-rickshaws for fair pricing. Good for short distances or last-mile connectivity.",
-      "booking_required": true
+      "type": "Airport Transfer",
+      "option": "Ride-sharing (Ola/Uber)",
+      "cost": "₹800 - ₹1400",
+      "duration": "1 - 2 hours",
+      "description": "Convenient door-to-door service. Prices vary significantly based on traffic and time of day.",
+      "booking_required": false
     },
     {
       "type": "Local",
       "option": "Namma Metro",
       "cost": "₹10 - ₹60 per trip",
       "duration": "Varies",
-      "description": "Fast and efficient for connecting key areas like Jayanagar, MG Road, and Majestic. Good for avoiding traffic.",
+      "description": "Fast, clean, and efficient for covering long distances along its routes, avoiding road traffic.",
+      "booking_required": false
+    },
+    {
+      "type": "Local",
+      "option": "Auto-rickshaw (via Apps)",
+      "cost": "₹50 - ₹250 per trip",
+      "duration": "Varies",
+      "description": "Ideal for short distances. Use Ola or Uber to book for fixed, fair pricing and to avoid haggling.",
       "booking_required": false
     }
   ],
   "tips": [
-    "The ₹1000 budget is extremely tight for 2 days and assumes you have free accommodation. It primarily covers food and transport.",
-    "Rely on BMTC buses and Namma Metro for the most economical travel. Purchase a daily bus pass if you plan multiple trips.",
-    "Eat at local 'darshinis' or 'tiffin rooms' for authentic, delicious, and very cheap meals.",
-    "Carry a mix of cash and digital payment options, as smaller eateries and shops may only accept cash."
+    "Bengaluru's traffic is unpredictable; buffer extra time for travel, especially during peak hours (8-11 AM and 5-8 PM).",
+    "Use ride-hailing apps like Ola or Uber to book auto-rickshaws and cabs for transparent pricing.",
+    "September can have surprise showers. Always carry a compact umbrella or a light raincoat.",
+    "Most eateries, including historic ones like MTR and Vidyarthi Bhavan, can be crowded. Be prepared for a short wait."
   ],
   "weather": {
     "temperature": "20°C - 28°C",
-    "conditions": "Pleasant with a high chance of afternoon or evening rain showers, typical for September.",
-    "recommendation": "Pack light clothes, but carry an umbrella or a light raincoat. A light jacket for cooler evenings is also advisable."
+    "conditions": "Pleasant and breezy with a high chance of intermittent rain showers or thunderstorms.",
+    "recommendation": "Pack light clothing, comfortable walking shoes, a light jacket for cooler evenings, and an umbrella."
   },
   "packing_list": [
     "Comfortable walking shoes",
-    "Umbrella and/or light raincoat",
-    "Reusable water bottle to stay hydrated",
-    "Power bank for your phone",
-    "Light sweater or jacket"
+    "Light jacket or sweater",
+    "Compact umbrella or raincoat",
+    "Portable power bank",
+    "Sunscreen and sunglasses",
+    "Valid ID proof",
+    "Reusable water bottle"
   ]
 }
 ```

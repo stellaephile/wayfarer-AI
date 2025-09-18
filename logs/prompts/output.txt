@@ -3,9 +3,9 @@ You are a professional travel planner. Create a detailed, realistic, and budget-
 
 **TRIP DETAILS**
 - Destination: bengaluru
-- Dates: 2025-09-15 to 2025-09-16 (2 days)
-- Budget: ₹1,000.00 INR
-- Preferences: General travel | Additional: best hotels near jayanagar
+- Dates: 2025-09-20 to 2025-09-22 (3 days)
+- Budget: ₹20,000.00 INR
+- Preferences: General travel | Additional: best places to stay near jayanagar
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -18,8 +18,8 @@ Respond ONLY with a valid JSON object.
 
 {
   "destination": "bengaluru",
-  "duration": "2 days",
-  "budget": 1000.0,
+  "duration": "3 days",
+  "budget": 20000.0,
   "budget_breakdown": {
     "accommodation": "amount",
     "food": "amount",
@@ -29,7 +29,7 @@ Respond ONLY with a valid JSON object.
   "itinerary": [
     {
       "day": 1,
-      "date": "2025-09-15",
+      "date": "2025-09-20",
       "day_name": "Day of week",
       "activities": ["activity 1", "activity 2"],
       "meals": {

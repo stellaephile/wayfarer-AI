@@ -1,11 +1,40 @@
 import streamlit as st
-import json
+import json,logging,os
 from datetime import datetime, timedelta
 from database_config import get_database
 db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
+from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty,generate_and_display_pdf_options
+from currency import currency_mapping,get_currency_options
+
+log_file = os.getenv("TRIP_PLANNER_LOG")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),           # Log to file
+        logging.StreamHandler()                  # Also print to terminal
+    ]
+)
+
+# Optional: Get named logger for your module
+logger = logging.getLogger(__name__)
+
+@with_dynamic_spinner(get_fun_spinner_messages())
+def get_suggestions(vertex_ai,destination,start_date,end_date,budget,preferences_str,selected_currency,currency_symbol):
+    return vertex_ai.generate_trip_suggestions(
+        destination=destination.strip(),
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
+        budget=float(budget),
+        preferences=preferences_str,
+        currency=selected_currency,
+        currency_symbol=currency_symbol
+    )
 
 def validate_trip_dates(start_date, end_date):
     """Validate trip dates to ensure they are not in the past and end date is after start date"""
@@ -542,7 +571,7 @@ def show_dashboard():
     st.subheader("💡 Tips & Suggestions")
     
     tips = [
-        "🗺️ Use the AI trip planner to get personalized recommendations",
+        "🗺️ Use the Wayfarer AI trip planner to get personalized recommendations",
         "📚 Save your favorite trips for future reference",
         "📊 Check your analytics to see your travel patterns",
         "👤 Keep your profile updated for better recommendations"
@@ -580,8 +609,8 @@ def show_trip_planner():
         st.markdown("""
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 2rem; margin-right: 0.5rem;">🗺️</span>
-                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer</h1>
+                <span style="font-size: 2rem; margin-right: 0.5rem;">ᨒ</span>
+                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer AI</h1>
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
         </div>
@@ -762,9 +791,12 @@ def plan_new_trip():
         with col1:
             destination = st.text_input(
                 "Destination *", 
-                placeholder="e.g., Paris, France",
+                placeholder="e.g., Goa, Amsterdam",
                 help="Enter your travel destination"
             )
+            if destination:
+                destination = destination.strip().title()
+
             
             current_city = st.text_input(
                 "Current City *", 
@@ -779,9 +811,10 @@ def plan_new_trip():
                 min_value=today,
                 help=f"When does your trip start? (Earliest: {today.strftime('%B %d, %Y')})"
             )
+            default_end_date=today + timedelta(days=7)
             end_date = st.date_input(
                 "End Date *", 
-                value=today + timedelta(days=7),
+                value=default_end_date,
                 min_value=today,
                 help=f"When does your trip end? (Earliest: {today.strftime('%B %d, %Y')})"
             )
@@ -792,6 +825,7 @@ def plan_new_trip():
                 currency_options = get_currency_options()
                 
                 # Popular currencies with flags for better UX
+"""
                 popular_currencies_display = [
                     ("INR", "🇮🇳 Indian Rupee (₹)"),
                     ("USD", "🇺🇸 US Dollar ($)"),
@@ -828,7 +862,8 @@ def plan_new_trip():
                     ("LKR", "🇱🇰 Sri Lankan Rupee (₨)"),
                     ("NPR", "🇳🇵 Nepalese Rupee (₨)")
                 ]
-                
+"""
+                popular_currencies_display = currency_mapping                
                 # Create currency options for selectbox
                 currency_choices = [display for code, display in popular_currencies_display]
                 currency_codes = [code for code, display in popular_currencies_display]
@@ -917,12 +952,17 @@ def plan_new_trip():
             if not validate_trip_dates(start_date, end_date):
                 return
             
+            # Calculate trip duration
+            total_days = (end_date - start_date).days + 1
+            nights = total_days - 1
+            st.info(f"⏱ Trip Duration: {total_days} day{'s' if total_days > 1 else ''}, "
+                    f"{nights} night{'s' if nights != 1 else ''}")
+
             if budget <= 0:
                 st.error("❌ Please enter a valid budget")
                 return
             
-            
-            st.success("✅ Form validation passed!")
+            logger.info("✅ Form validation passed!")
             
             # Prepare preferences string
             preferences_str = ", ".join(preferences) if preferences else "General travel"
@@ -946,18 +986,8 @@ def plan_new_trip():
             
             # Generate suggestions
             try:
-                with st.spinner("🤖 AI is planning your perfect trip... This may take a moment."):
-                    suggestions = vertex_ai.generate_trip_suggestions(
-                        destination=destination.strip(),
-                        start_date=start_date.strftime("%Y-%m-%d"),
-                        end_date=end_date.strftime("%Y-%m-%d"),
-                        budget=float(budget),
-                        preferences=preferences_str,
-                        currency=selected_currency,
-                        currency_symbol=currency_symbol,
-                        current_city=current_city.strip(),
-                        itinerary_preference=itinerary_preference
-                    )
+                suggestions = get_suggestions(vertex_ai,destination,start_date,
+                                              end_date,budget,preferences_str,selected_currency,currency_symbol)
                 
                 if not suggestions:
                     st.error("❌ Failed to generate trip suggestions. Please try again.")
@@ -1238,8 +1268,16 @@ def show_my_trips():
     # Show selected trip details in a separate section
     if 'selected_trip' in st.session_state:
         st.markdown("---")
-        st.subheader("Trip Details")
-        show_trip_details(st.session_state.selected_trip)
+        st.markdown(
+        """<h1 style='font-size:40px; color:#333; margin-bottom:0.5rem;'>
+            Trip Details</h1>
+        """,
+        unsafe_allow_html=True
+        )
+        trip = st.session_state.selected_trip
+        print(trip)
+        show_trip_details(trip)
+        generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
         
         if st.button("Close Details"):
             del st.session_state.selected_trip
@@ -1258,7 +1296,16 @@ def show_trip_details(trip_data):
     # Trip overview
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Duration", f"{trip_data['start_date']} to {trip_data['end_date']}")
+        try:
+            start_dt = datetime.strptime(trip_data['start_date'], "%Y-%m-%d")
+            end_dt = datetime.strptime(trip_data['end_date'], "%Y-%m-%d")
+            num_days = (end_dt - start_dt).days + 1
+            num_nights = num_days - 1
+            duration_str = f"{num_days} Days, {num_nights} Nights"
+        except:
+            logger.error(" Duration Not Found")
+            duration_str="Unknown"
+        st.metric("Duration", f"{duration_str}")
     with col2:
         currency_symbol = trip_data.get('currency_symbol', '$')
         st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
@@ -1275,7 +1322,12 @@ def show_trip_details(trip_data):
     
     # AI suggestions
     if suggestions:
-        st.subheader("📋 AI Recommendations")
+        st.markdown(
+        """<h2 style='font-size:32px; color:#333; margin-bottom:0.5rem;'>
+            📋 Wayfarer AI Recommendations</h2>
+        """,
+        unsafe_allow_html=True
+        )
         
         # Itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
