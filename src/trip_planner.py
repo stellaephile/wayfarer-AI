@@ -1,7 +1,8 @@
 import streamlit as st
 import json
 from datetime import datetime, timedelta
-from database import db
+from database_config import get_database
+db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
@@ -354,7 +355,7 @@ def check_auth():
     return True
 
 def show_dashboard():
-    """Show modern user dashboard with sidebar and overview"""
+    """Show modern user dashboard overview (sidebar handled by parent)"""
     # Inject compact CSS only
     inject_compact_css()
     
@@ -365,42 +366,7 @@ def show_dashboard():
     user = st.session_state.user
     user_trips = db.get_user_trips(user['id'])
     
-    # Create sidebar navigation
-    with st.sidebar:
-        # App branding
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem 0; margin-bottom: 2rem;">
-            <h2 style="color: #1f2937; margin: 0; display: flex; align-items: center; justify-content: center;">
-                📍 Wayfarer
-            </h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # User profile
-        st.markdown(f"""
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B82F6, #8B5CF6); 
-                        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-                        margin: 0 auto 0.5rem; color: white; font-size: 1.5rem; font-weight: bold;">
-                {user['name'][0].upper() if user.get('name') else user['username'][0].upper()}
-            </div>
-            <h4 style="margin: 0; color: #1f2937;">{user['name'] or user['username']}</h4>
-            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">{user['email']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Navigation menu
-        st.markdown("### Navigation")
-        nav_options = ["Dashboard", "Plan Trip", "My Trips", "Analytics", "Profile"]
-        selected_nav = st.radio("", nav_options, index=0)
-        
-        # Logout button
-        st.markdown("---")
-        if st.button("🚪 Logout", use_container_width=True, type="secondary"):
-            # Clear session state
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+    # Note: Sidebar is handled by the parent show_trip_planner() function
     
     # Main content area
     # Welcome banner
@@ -799,6 +765,13 @@ def plan_new_trip():
                 placeholder="e.g., Paris, France",
                 help="Enter your travel destination"
             )
+            
+            current_city = st.text_input(
+                "Current City *", 
+                placeholder="e.g., New York, USA",
+                help="Enter your current city or departure location"
+            )
+            
             today = datetime.now().date()
             start_date = st.date_input(
                 "Start Date *", 
@@ -903,6 +876,18 @@ def plan_new_trip():
                 help="What type of accommodation do you prefer?"
             )
         
+        # Itinerary preference selection
+        st.markdown("### 🎯 Itinerary Preference")
+        itinerary_preference = st.radio(
+            "Choose your preferred itinerary style:",
+            [
+                "🌱 SUSTAINABLE ITINERARY: Prioritize eco-friendly options (trains, buses, walking, eco-hotels, local low-impact activities)",
+                "💰 COST-EFFICIENT ITINERARY: Minimize total cost (budget airlines, hostels, free or low-cost activities, street food)",
+                "⚡ TIME-EFFICIENT ITINERARY: Minimize travel time (fastest flights, premium hotels, skip-the-line activities, cabs)"
+            ],
+            help="Select the approach that best matches your travel priorities"
+        )
+        
         # Additional preferences
         additional_preferences = st.text_area(
             "Additional Preferences",
@@ -924,6 +909,10 @@ def plan_new_trip():
                 st.error("❌ Please enter a destination")
                 return
             
+            if not current_city or not current_city.strip():
+                st.error("❌ Please enter your current city")
+                return
+            
             # Validate dates
             if not validate_trip_dates(start_date, end_date):
                 return
@@ -943,6 +932,7 @@ def plan_new_trip():
             # Store form data in session state
             st.session_state.form_data = {
                 'destination': destination.strip(),
+                'current_city': current_city.strip(),
                 'start_date': start_date.strftime("%Y-%m-%d"),
                 'end_date': end_date.strftime("%Y-%m-%d"),
                 'budget': float(budget),
@@ -950,7 +940,8 @@ def plan_new_trip():
                 'currency_symbol': currency_symbol,
                 'preferences': preferences_str,
                 'travel_type': travel_type,
-                'accommodation_type': accommodation_type
+                'accommodation_type': accommodation_type,
+                'itinerary_preference': itinerary_preference
             }
             
             # Generate suggestions
@@ -963,7 +954,9 @@ def plan_new_trip():
                         budget=float(budget),
                         preferences=preferences_str,
                         currency=selected_currency,
-                        currency_symbol=currency_symbol
+                        currency_symbol=currency_symbol,
+                        current_city=current_city.strip(),
+                        itinerary_preference=itinerary_preference
                     )
                 
                 if not suggestions:
@@ -988,7 +981,9 @@ def plan_new_trip():
                     preferences_str,
                     json.dumps(suggestions),
                     selected_currency,
-                    currency_symbol
+                    currency_symbol,
+                    current_city.strip(),
+                    itinerary_preference
                 )
                 
                 if success:

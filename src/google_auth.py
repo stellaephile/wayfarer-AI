@@ -8,7 +8,8 @@ from googleapiclient.discovery import build
 import base64
 import hashlib
 import secrets
-from database import db
+from database_config import get_database
+db = get_database()
 from dotenv import load_dotenv
 
 ## Load environment variables from .env file

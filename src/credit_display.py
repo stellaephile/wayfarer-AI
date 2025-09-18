@@ -5,7 +5,8 @@ Shows credit usage information to users
 
 import streamlit as st
 from datetime import datetime, timedelta
-from database import db
+from database_config import get_database
+db = get_database()
 
 class CreditDisplay:
     """Display credit usage information to users"""

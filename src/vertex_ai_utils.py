@@ -88,16 +88,16 @@ class VertexAITripPlanner:
             raise e
     
     def generate_trip_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> Dict:
+                                budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> Dict:
         """
         Generate AI-powered trip suggestions using Vertex AI
         """
         if not self.is_configured or not self.model:
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol, current_city, itinerary_preference)
         
         try:
             # Create a comprehensive prompt for the AI
-            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
+            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences, currency, currency_symbol, current_city, itinerary_preference)
             
             generation_config = GenerationConfig(
                 max_output_tokens=20000,  # or higher if needed
@@ -133,7 +133,7 @@ class VertexAITripPlanner:
             return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
     
     def _create_trip_planning_prompt(self, destination: str, start_date: str, end_date: str, 
-                                   budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> str:
+                                   budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> str:
         """Create a comprehensive prompt for trip planning"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -143,10 +143,12 @@ class VertexAITripPlanner:
 You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
 
 **TRIP DETAILS**
+- Current City: {current_city if current_city else "Not specified"}
 - Destination: {destination}
 - Dates: {start_date} to {end_date} ({duration_days} days)
 - Budget: {currency_symbol}{budget:,.2f} {currency}
 - Preferences: {preferences}
+- Itinerary Style: {itinerary_preference if itinerary_preference else "Balanced approach"}
 
 **RESPONSE INSTRUCTIONS**
 Respond ONLY with a valid JSON object.
@@ -324,7 +326,7 @@ Only output the JSON. Nothing else.
         return trip_data
     
     def _generate_enhanced_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                          budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$") -> Dict:
+                                          budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> Dict:
         """Generate enhanced mock suggestions with more realistic data"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")

@@ -3,7 +3,8 @@ import json
 from datetime import datetime
 from typing import Dict, List, Optional
 from booking_system import booking_manager
-from database import db
+from database_config import get_database
+db = get_database()
 
 class BookingInterface:
     """Handles the UI for the booking process"""
@@ -357,13 +358,16 @@ class BookingInterface:
             # Update trip status in database
             trip_id = booking_data.get('trip_id')
             if trip_id:
+                # Convert datetime objects to strings for JSON serialization
+                confirmation_serializable = self._make_json_serializable(confirmation)
+                
                 db.update_trip(
                     trip_id, 
                     booking_data.get('user_id'), 
                     status='booked',
                     booking_status='confirmed',
                     booking_id=confirmation.get('booking_id'),
-                    booking_confirmation=json.dumps(confirmation)
+                    booking_confirmation=json.dumps(confirmation_serializable)
                 )
             
             # Clear booking session
@@ -389,6 +393,17 @@ class BookingInterface:
             
         except Exception as e:
             st.error(f"❌ Error processing booking: {str(e)}")
+    
+    def _make_json_serializable(self, obj):
+        """Convert datetime objects to strings for JSON serialization"""
+        if isinstance(obj, dict):
+            return {key: self._make_json_serializable(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_json_serializable(item) for item in obj]
+        elif isinstance(obj, datetime):
+            return obj.isoformat()
+        else:
+            return obj
     
     def _clear_booking_session(self):
         """Clear booking-related session state"""

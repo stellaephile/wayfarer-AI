@@ -5,7 +5,8 @@ Shows credit usage with modern UI components
 
 import streamlit as st
 from datetime import datetime, timedelta
-from database import db
+from database_config import get_database
+db = get_database()
 
 class CreditWidget:
     """Beautiful credit display widget"""
@@ -78,9 +79,15 @@ class CreditWidget:
     def show_credit_sidebar(self, user_id):
         """Show compact credit info in sidebar"""
         try:
+            # Debug: Check if user_id is valid
+            if not user_id:
+                st.sidebar.error("❌ No user ID provided")
+                return
+                
             credit_data = db.get_user_credits(user_id)
             
             if not credit_data:
+                st.sidebar.error("❌ Unable to load credit data")
                 return
             
             st.sidebar.markdown("### 💳 AI Credits")
@@ -113,7 +120,7 @@ class CreditWidget:
                 st.sidebar.error("🚨 Very low credits")
             
         except Exception as e:
-            st.sidebar.error("Credit info unavailable")
+            st.sidebar.error(f"Credit info unavailable: {str(e)}")
     
     def show_credit_history(self, user_id):
         """Show credit transaction history"""
