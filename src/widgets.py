@@ -40,10 +40,7 @@ def get_fun_spinner_messages():
     random.shuffle(messages)
     return messages
 
-import streamlit as st
-import threading
-import time
-from functools import wraps
+
 
 def with_dynamic_spinner(messages=None, delay=1.5, color_pairs=None):
     """
