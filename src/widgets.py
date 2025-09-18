@@ -64,3 +64,35 @@ def with_dynamic_spinner(messages=None, delay=1.5):
 
         return wrapper
     return decorator
+
+from datetime import datetime
+
+def get_day_suffix(day):
+    """Return the day suffix for a given day number."""
+    if 11 <= day <= 13:
+        return 'th'
+    last_digit = day % 10
+    if last_digit == 1:
+        return 'st'
+    elif last_digit == 2:
+        return 'nd'
+    elif last_digit == 3:
+        return 'rd'
+    else:
+        return 'th'
+
+def format_date_pretty(date_input):
+    """
+    Accepts a datetime object or string (YYYY-MM-DD).
+    Returns a pretty formatted date string like '23rd September, 2025'.
+    """
+    if isinstance(date_input, str):
+        # Convert string to datetime
+        date_obj = datetime.strptime(date_input, "%Y-%m-%d")
+    else:
+        date_obj = date_input
+
+    day = date_obj.day
+    suffix = get_day_suffix(day)
+    return f"{day}{suffix} {date_obj.strftime('%B')}, {date_obj.year}"
+

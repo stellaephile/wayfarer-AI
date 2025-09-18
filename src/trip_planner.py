@@ -5,7 +5,7 @@ from database import db
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
-from widgets import with_dynamic_spinner, get_fun_spinner_messages
+from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty
 from currency import currency_mapping,get_currency_options
 
 log_file = os.getenv("TRIP_PLANNER_LOG")
@@ -953,7 +953,7 @@ def show_trip_details(trip_data):
     # Trip overview
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Duration", f"{trip_data['start_date']} to {trip_data['end_date']}")
+        st.metric("Duration", f"{format_date_pretty(trip_data['start_date'])} to {format_date_pretty(trip_data['end_date'])}")
     with col2:
         currency_symbol = trip_data.get('currency_symbol', '$')
         st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")

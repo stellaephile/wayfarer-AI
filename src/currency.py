@@ -1,4 +1,4 @@
-currencies_mapping = [
+currency_mapping = [
                     ("INR", "🇮🇳 Indian Rupee (₹)"),
                     ("USD", "🇺🇸 US Dollar ($)"),
                     ("EUR", "🇪🇺 Euro (€)"),
