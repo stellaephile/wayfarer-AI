@@ -13,6 +13,16 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from datetime import datetime
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
+import os
+
 
 def get_fun_spinner_messages():
     messages = [
@@ -137,15 +147,6 @@ def format_date_pretty(date_input):
 
 
 
-from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
-)
-from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime
-import os
 
 def generate_trip_pdf(trip_data, itinerary, weather_data=None):
     buffer = BytesIO()

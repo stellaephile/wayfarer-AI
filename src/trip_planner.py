@@ -954,8 +954,10 @@ def show_my_trips():
         unsafe_allow_html=True
         )
         trip = st.session_state.selected_trip
+        print(trip)
         show_trip_details(trip)
-        generate_and_display_pdf_options(trip, ai_suggestions, weather_data=None)
+        generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
+        
 
         if st.button("Close Details"):
             del st.session_state.selected_trip
