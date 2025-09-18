@@ -580,8 +580,8 @@ def show_trip_planner():
         st.markdown("""
         <div style="text-align: center; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 2rem; margin-right: 0.5rem;">♒︎</span>
-                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer</h1>
+                <span style="font-size: 2rem; margin-right: 0.5rem;">ᨒ</span>
+                <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b;">Wayfarer AI</h1>
             </div>
             <div style="width: 100%; height: 2px; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 1px;"></div>
         </div>
