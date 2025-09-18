@@ -623,14 +623,21 @@ def plan_new_trip():
         
         # Itinerary preference selection
         st.markdown("#### Itinerary Preference")
+
         itinerary_preference = st.radio(
             "Choose your preferred itinerary style:",
             [
-                "🌱 SUSTAINABLE ITINERARY: Prioritize eco-friendly options (trains, buses, walking, eco-hotels, local low-impact activities)",
-                "💰 COST-EFFICIENT ITINERARY: Minimize total cost (budget airlines, hostels, free or low-cost activities, street food)",
-                "⚡ TIME-EFFICIENT ITINERARY: Minimize travel time (fastest flights, premium hotels, skip-the-line activities, cabs)"
+                "🌱 Sustainable",
+                "⚡ Time-Efficient",
+                "💰 Cost-Efficient"
+                
             ],
-            help="Select the approach that best matches your travel priorities"
+            help=(
+                "🌱 Sustainable: Eco-friendly transport & stays • "
+                "⚡ Time-Efficient: Fastest travel, premium stays, skip-the-line options • "
+                "💰 Cost-Efficient: Budget airlines, hostels, street food"
+                
+            )
         )
         
         # Additional preferences
