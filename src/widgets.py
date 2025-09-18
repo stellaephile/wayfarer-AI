@@ -46,13 +46,40 @@ def get_fun_spinner_messages():
         "🚀 Zooming around the world for ideas...",
         "🎧 Putting together the perfect travel playlist...",
         "🧁 Adding a sweet surprise to your journey...",
+        
+            # subtle sitcom/movie nods
+        "☕ Stopping for a quick coffee before we go...",
+        "📑 Bears, beets… and boarding passes...",
+        "🍻 Meeting the gang before the trip begins...",
+        "⚡ Waiting for a magical bus to arrive...",
+        "🌋 Taking the hobbits on a little detour...",
+        "📦 Shouting ‘Pivot!’ while packing...",
+        "🎶 Playing a familiar theme song while planning...",
+        "🚖 Flagging down a classic yellow cab...",
+        "🕶️ Plotting moves smoother than a heist crew...",
+        "🎢 Treating your itinerary like a FastPass line...",
+            # subtle sitcom / movie nods
+        "☕ Coffee break before we go ...",
+        "🍼 Smooth trip planning — Baby’s Day Out easy...",
+        "🦖 Hoping no T-Rex follows us...",
+        "🌌 Painting your route Pandora blue...",
+        "👑 Packing like winter is coming...",
+        "⚗️ Making sure the chemistry works...",
+        
+        # Bollywood & Indian OTT inspired
+      
+        "🚂 Hoping this ride feels a bit like DDLJ’s train scene...",
+        "🎤 Adding a little ‘All is Well’ to your journey...",
+        "🏞️ Scouting locations straight out of a ZNMD road trip...",
+        "🍲 Finding food that even Munnabhai would approve..."
+      
     ]
     random.shuffle(messages)
     return messages
 
 
 
-def with_dynamic_spinner(messages=None, delay=1.5, color_pairs=None):
+def with_dynamic_spinner(messages=None, delay=1.75, color_pairs=None):
     """
     Decorator that shows rotating messages inside a readable colored box.
     Each text color is paired with a compatible light background.
@@ -201,7 +228,7 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
 
         # --- DAILY ITINERARY ---
         for day_plan in itinerary:
-            day_title = f"Day {day_plan.get('day', '')} - {day_plan.get('day_name', '')} ({format_date_pretty(day_plan.get('date', ''))}"
+            day_title = f"Day {day_plan.get('day', '')} - {day_plan.get('day_name', '')} ({format_date_pretty(day_plan.get('date', ''))})"
             elements.append(Paragraph(day_title, styles["Heading2"]))
 
             activity_data = [["Time/Meal", "Plan"]]

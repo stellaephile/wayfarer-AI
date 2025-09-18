@@ -10,9 +10,10 @@ from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
 from dotenv import load_dotenv
+from input_prompts import planning_prompt
 
 print("Current path:", os.getcwd())
-log_file = "logs/app.log"
+log_file = os.getenv("VERTEX_AI_LOG")
 
 # Configure logging
 logging.basicConfig(
@@ -27,7 +28,8 @@ logging.basicConfig(
 # Optional: Get named logger for your module
 logger = logging.getLogger(__name__)
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+PROMPT_LOG_PATH=os.getenv("PROMPT_LOG")
+RESPONSE_LOG_PATH=os.getenv("RESPONSE_LOG")
 
 def get_config_value(env_var, secret_key, default):
     
@@ -108,18 +110,20 @@ class VertexAITripPlanner:
             response = self.model.generate_content(prompt, generation_config=generation_config)
 
             try:
-                with open("logs/prompts/output.txt", "w", encoding="utf-8") as f:
+                mode = "a" if os.path.exists(PROMPT_LOG_PATH) else "w"
+                with open(PROMPT_LOG_PATH, mode, encoding="utf-8") as f:
                     f.write(prompt)
             except Exception as e:
-                logger.warning(f"Could not write prompt to prompts/output.txt: {e}")
+                logger.warning(f"Could not write prompt to {PROMPT_LOG_PATH}: {e}")
                     
 
             if response and response.text:
                 try:
-                    with open("logs/responses/output.txt", "w", encoding="utf-8") as f:
+                    mode = "a" if os.path.exists(RESPONSE_LOG_PATH) else "w"
+                    with open(RESPONSE_LOG_PATH, "w", encoding="utf-8") as f:
                         f.write(response.text)
                 except Exception as e:
-                    logger.warning(f"Could not write response to reponses/output.txt: {e}")
+                    logger.warning(f"Could not write response to {RESPONSE_LOG_PATH}: {e}")
                         # Parse the AI response
                 return self._parse_ai_response(response.text, destination, start_date, end_date, budget, currency, currency_symbol)
             
@@ -138,121 +142,9 @@ class VertexAITripPlanner:
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
         duration_days = (end_dt - start_dt).days + 1
-        
-        prompt = f"""
-You are a professional travel planner. Create a detailed, realistic, and budget-conscious travel plan in JSON format for the request below.
-
-**TRIP DETAILS**
-- Current City: {current_city if current_city else "Not specified"}
-- Destination: {destination}
-- Dates: {start_date} to {end_date} ({duration_days} days)
-- Budget: {currency_symbol}{budget:,.2f} {currency}
-- Preferences: {preferences}
-- Itinerary Style: {itinerary_preference if itinerary_preference else "Balanced approach"}
-
-**RESPONSE INSTRUCTIONS**
-Respond ONLY with a valid JSON object.
-- Do NOT include markdown, code blocks, or explanations.
-- JSON must be compact and properly formatted.
-- Follow the exact structure and field names below.
-- Ensure all fields are filled with realistic values.
-
-**REQUIRED JSON STRUCTURE**
-
-{{
-  "destination": "{destination}",
-  "duration": "{duration_days} days",
-  "budget": {budget},
-  "budget_breakdown": {{
-    "accommodation": "amount",
-    "food": "amount",
-    "activities": "amount",
-    "transportation": "amount"
-  }},
-  "itinerary": [
-    {{
-      "day": 1,
-      "date": "{start_date}",
-      "day_name": "Day of week",
-      "activities": ["activity 1", "activity 2"],
-      "meals": {{
-        "breakfast": "meal suggestion",
-        "lunch": "meal suggestion",
-        "dinner": "meal suggestion"
-      }}
-    }}
-    // Add more days accordingly
-  ],
-  "accommodations": [
-    {{
-      "name": "Hotel/B&B name",
-      "type": "Hotel/B&B/Airbnb",
-      "price_range": "price per night",
-      "rating": 4.5,
-      "amenities": ["amenity1", "amenity2"],
-      "location": "area",
-      "description": "short description"
-    }}
-    // Include 2-3 options
-  ],
-  "activities": [
-    {{
-      "name": "Activity name",
-      "type": "Sightseeing/Cultural/Adventure",
-      "duration": "time required",
-      "cost": "cost range",
-      "description": "brief overview",
-      "rating": 4.5,
-      "best_time": "best time of day or season"
-    }}
-    // Include 5-8 activities
-  ],
-  "restaurants": [
-    {{
-      "name": "Restaurant name",
-      "cuisine": "type",
-      "price_range": "per person",
-      "rating": 4.3,
-      "specialties": ["dish1", "dish2"],
-      "location": "area",
-      "reservation_required": true
-    }}
-    // Include 3-5 options
-  ],
-  "transportation": [
-    {{
-      "type": "Airport Transfer/Local/Intercity",
-      "option": "e.g. taxi, train",
-      "cost": "range",
-      "duration": "time required",
-      "description": "brief info",
-      "booking_required": true
-    }}
-    // Include key transport modes
-  ],
-  "tips": [
-    "practical tip 1",
-    "practical tip 2",
-    "practical tip 3"
-  ],
-  "weather": {{
-    "temperature": "expected range",
-    "conditions": "weather type",
-    "recommendation": "packing advice"
-  }},
-  "packing_list": [
-    "essential item 1",
-    "essential item 2",
-    "essential item 3"
-  ]
-}}
-
-Only output the JSON. Nothing else.
-"""
-        
-
-        
-        return prompt
+        return planning_prompt([current_city, destination,start_date,end_date,
+                                 duration_days,currency_symbol,budget,currency,
+                                 preferences,itinerary_preference])
     
     def _parse_ai_response(self, response_text: str, destination: str, start_date: str, 
                           end_date: str, budget: float, currency: str = "USD", currency_symbol: str = "$") -> Dict:
