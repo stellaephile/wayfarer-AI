@@ -40,12 +40,29 @@ def get_fun_spinner_messages():
     random.shuffle(messages)
     return messages
 
-def with_dynamic_spinner(messages=None, delay=1.5):
+import streamlit as st
+import threading
+import time
+from functools import wraps
+
+def with_dynamic_spinner(messages=None, delay=1.5, color_pairs=None):
     """
-    Decorator that shows rotating messages while a function runs.
+    Decorator that shows rotating messages inside a readable colored box.
+    Each text color is paired with a compatible light background.
     """
     if messages is None:
-        messages = get_fun_spinner_messages()
+        messages = ["Processing...", "Almost there...", "Hang tight..."]
+
+    # Define text color → readable background mapping
+    if color_pairs is None:
+        color_pairs = [
+            ("#c10404ff", "#ffcccc"),  # red text, light red bg
+            ("#0404c3ff", "#cce5ff"),  # blue text, light blue bg
+            ("#028002FF", "#ccffcc"),  # green text, light green bg
+            ("#ffa600ff", "#ffedcc"),  # orange text, light orange bg
+            ("#B102B1", "#e6ccff"),  # purple text, light purple bg
+            ("#3D3C3CFF", "#f5f5f5")   # dark gray text, light gray bg
+        ]
 
     def decorator(func):
         @wraps(func)
@@ -62,7 +79,23 @@ def with_dynamic_spinner(messages=None, delay=1.5):
             i = 0
             while task_thread.is_alive():
                 message = messages[i % len(messages)]
-                placeholder.info(message)
+                text_color, bg_color = color_pairs[i % len(color_pairs)]
+
+                html = f"""
+                <div style="
+                    background-color:{bg_color};
+                    color:{text_color};
+                    padding: 15px;
+                    border-radius: 12px;
+                    text-align: center;
+                    font-weight: bold;
+                    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+                    transition: background-color 0.3s, color 0.3s;
+                ">
+                    {message}
+                </div>
+                """
+                placeholder.markdown(html, unsafe_allow_html=True)
                 time.sleep(delay)
                 i += 1
 
@@ -72,6 +105,7 @@ def with_dynamic_spinner(messages=None, delay=1.5):
 
         return wrapper
     return decorator
+
 
 from datetime import datetime
 

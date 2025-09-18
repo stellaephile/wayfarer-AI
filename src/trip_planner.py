@@ -530,22 +530,30 @@ def plan_new_trip():
         with col1:
             destination = st.text_input(
                 "Destination *", 
-                placeholder="e.g., Paris, France",
+                placeholder="e.g., Goa, Amsterdam",
                 help="Enter your travel destination"
             )
+            if destination:
+                destination = destination.strip().title()
+
+
             today = datetime.now().date()
+
             start_date = st.date_input(
                 "Start Date *", 
                 value=today,
                 min_value=today,
                 help=f"When does your trip start? (Earliest: {today.strftime('%B %d, %Y')})"
             )
+            default_end_date=today + timedelta(days=7)
             end_date = st.date_input(
                 "End Date *", 
-                value=today + timedelta(days=7),
+                value=default_end_date,
                 min_value=today,
                 help=f"When does your trip end? (Earliest: {today.strftime('%B %d, %Y')})"
             )
+
+
             # Currency and Budget selection - Original layout with flags
             col_budget, col_currency = st.columns([2, 1])
             
@@ -627,6 +635,12 @@ def plan_new_trip():
             if not validate_trip_dates(start_date, end_date):
                 return
             
+            # Calculate trip duration
+            total_days = (end_date - start_date).days + 1
+            nights = total_days - 1
+            st.info(f"⏱ Trip Duration: {total_days} day{'s' if total_days > 1 else ''}, "
+                    f"{nights} night{'s' if nights != 1 else ''}")
+
             if budget <= 0:
                 st.error("❌ Please enter a valid budget")
                 return
@@ -933,7 +947,12 @@ def show_my_trips():
     # Show selected trip details in a separate section
     if 'selected_trip' in st.session_state:
         st.markdown("---")
-        st.subheader("Trip Details")
+        st.markdown(
+        """<h1 style='font-size:40px; color:#333; margin-bottom:0.5rem;'>
+            Trip Details</h1>
+        """,
+        unsafe_allow_html=True
+        )
         trip = st.session_state.selected_trip
         show_trip_details(trip)
         generate_and_display_pdf_options(trip, ai_suggestions, weather_data=None)
@@ -955,7 +974,16 @@ def show_trip_details(trip_data):
     # Trip overview
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Duration", f"{format_date_pretty(trip_data['start_date'])} to {format_date_pretty(trip_data['end_date'])}")
+        try:
+            start_dt = datetime.strptime(trip_data['start_date'], "%Y-%m-%d")
+            end_dt = datetime.strptime(trip_data['end_date'], "%Y-%m-%d")
+            num_days = (end_dt - start_dt).days + 1
+            num_nights = num_days - 1
+            duration_str = f"{num_days} Days, {num_nights} Nights"
+        except:
+            logger.error(" Duration Not Found")
+            duration_str="Unknown"
+        st.metric("Duration", f"{duration_str}")
     with col2:
         currency_symbol = trip_data.get('currency_symbol', '$')
         st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
@@ -972,7 +1000,12 @@ def show_trip_details(trip_data):
     
     # AI suggestions
     if suggestions:
-        st.subheader("📋 AI Recommendations")
+        st.markdown(
+        """<h2 style='font-size:32px; color:#333; margin-bottom:0.5rem;'>
+            📋 Wayfarer AI Recommendations</h2>
+        """,
+        unsafe_allow_html=True
+        )
         
         # Itinerary
         if 'itinerary' in suggestions and suggestions['itinerary']:
