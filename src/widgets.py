@@ -20,6 +20,10 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
 )
 from ics import Calendar, Event
+import pytz
+import requests
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 def get_fun_spinner_messages():
     messages = [
@@ -291,23 +295,64 @@ def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=Non
             data=pdf_bytes,
             file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.pdf",
             mime="application/pdf",
+            type="primary"
         )
     except Exception as e:
         st.error(f"❌ Error generating PDF: {str(e)}")
 
-from ics import Calendar, Event
-from datetime import datetime, timedelta
-from io import BytesIO
-import pytz
+
+
+places_api_key=os.getenv('GOOGLE_PLACES_SECRET')
+
+# Simple cache to avoid duplicate lookups
+place_cache = {}
+
+def get_place_info(query, city=None, delay=0.3):
+    """
+    Fetch place info from Google Places API with caching + delay.
+    Args:
+        query (str): Activity/meal description.
+        city (str): Destination city (to narrow search).
+        delay (float): Seconds to wait between API calls.
+    """
+    search_key = f"{query}|{city}"
+    if search_key in place_cache:
+        return place_cache[search_key]
+
+    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+    params = {
+        "input": f"{query} {city}" if city else query,
+        "inputtype": "textquery",
+        "fields": "formatted_address,name,place_id",
+        "key": places_api_key,
+    }
+
+    try:
+        res = requests.get(url, params=params, timeout=5).json()
+        candidates = res.get("candidates", [])
+        if candidates:
+            place = candidates[0]
+            maps_url = f"https://www.google.com/maps/place/?q=place_id:{place['place_id']}"
+            info = {
+                "name": place["name"],
+                "address": place["formatted_address"],
+                "maps_url": maps_url,
+            }
+            place_cache[search_key] = info
+            time.sleep(delay)  # wait before next API call
+            return info
+    except Exception as e:
+        print(f"⚠️ Error fetching place info for {query}: {e}")
+
+    # fallback
+    place_cache[search_key] = None
+    return None
+
 
 def generate_trip_ics(trip_data, itinerary=None, weather_data=None, tz_name="Asia/Kolkata"):
     """
     Generate an .ics file buffer from AI trip_data JSON with meals + activities.
-    
-    Args:
-        trip_data (dict): Trip JSON with itinerary.
-        itinerary (list): Optional itinerary override.
-        tz_name (str): Timezone (default Asia/Kolkata).
+    Adds Google Maps links for activities.
     """
     calendar = Calendar()
     destination = trip_data.get("destination", "Trip")
@@ -340,7 +385,15 @@ def generate_trip_ics(trip_data, itinerary=None, weather_data=None, tz_name="Asi
                 event.begin = tz.localize(base_date + timedelta(hours=meal_times[meal.lower()]))
                 event.end = event.begin + timedelta(hours=1)
                 event.description = desc
-                event.location = destination
+
+                # Add place info if possible
+                place = get_place_info(desc, destination)
+                if place:
+                    event.location = place["address"]
+                    event.url = place["maps_url"]
+                else:
+                    event.location = destination
+
                 calendar.events.add(event)
 
         # Place activities between meals
@@ -351,7 +404,15 @@ def generate_trip_ics(trip_data, itinerary=None, weather_data=None, tz_name="Asi
             event.begin = tz.localize(base_date + timedelta(hours=start_hour + (idx-1)*3))
             event.end = event.begin + timedelta(hours=2)
             event.description = act
-            event.location = destination
+
+            # Add place info if possible
+            place = get_place_info(act, destination)
+            if place:
+                event.location = place["address"]
+                event.url = place["maps_url"]
+            else:
+                event.location = destination
+
             calendar.events.add(event)
 
     # Export calendar to memory
@@ -376,6 +437,7 @@ def generate_and_display_ics_options(trip_data, ai_suggestions, weather_data=Non
             label="📅 Download as Calendar (.ics)",
             data=ics_buffer,
             file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.ics",
+            type="primary",
             mime="text/calendar",
         )
     except Exception as e:

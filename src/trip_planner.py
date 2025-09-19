@@ -993,9 +993,14 @@ def show_my_trips():
         )
         trip = st.session_state.selected_trip
         #print(trip)
+        exp1,exp2,exp3 = st.columns([1,1,1])
+        with exp1:
+            generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
+        with exp3:
+            generate_and_display_ics_options(trip, trip['ai_suggestions'], weather_data=None)
+        st.markdown("---")
         show_trip_details(trip)
-        generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
-        generate_and_display_ics_options(trip, trip['ai_suggestions'], weather_data=None)
+
 
         if st.button("Close Details"):
             del st.session_state.selected_trip
