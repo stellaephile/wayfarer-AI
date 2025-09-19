@@ -2,7 +2,7 @@ import streamlit as st
 import json
 from datetime import datetime
 from vertex_ai_utils import VertexAITripPlanner
-from database_config import get_database
+from cloud_database_config import get_database
 db = get_database()
 
 class TripModificationChat:

@@ -1,6 +1,7 @@
 import streamlit as st
 from css_styles import inject_css
-
+from dotenv import load_dotenv
+load_dotenv()
 # Configure page FIRST - before any other Streamlit commands
 st.set_page_config(
     page_title="Wayfarer AI",

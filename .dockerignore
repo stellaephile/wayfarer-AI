@@ -63,7 +63,7 @@ logs/
 *.sqlite3
 
 # Credentials
-credentials/
+#credentials/
 *.json
 *.pem
 *.key

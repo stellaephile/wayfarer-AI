@@ -1,7 +1,7 @@
 import streamlit as st
 import json,logging,os
 from datetime import datetime, timedelta
-from database_config import get_database
+from cloud_database_config import get_database
 db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
@@ -9,7 +9,8 @@ from credit_widget import credit_widget
 from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty,generate_and_display_pdf_options
 from currency import currency_mapping,get_currency_options
 
-log_file = os.getenv("TRIP_PLANNER_LOG")
+log_file = os.getenv("TRIP_PLANNER_LOG","./logs/trip-planner-logs.log")
+
 
 # Configure logging
 logging.basicConfig(

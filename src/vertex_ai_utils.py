@@ -10,10 +10,11 @@ from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
 from dotenv import load_dotenv
+load_dotenv()
 from input_prompts import planning_prompt
 
 print("Current path:", os.getcwd())
-log_file = os.getenv("VERTEX_AI_LOG")
+log_file = os.getenv("VERTEX_AI_LOG","./logs/vertex_ai.log")
 
 # Configure logging
 logging.basicConfig(
@@ -28,8 +29,8 @@ logging.basicConfig(
 # Optional: Get named logger for your module
 logger = logging.getLogger(__name__)
 
-PROMPT_LOG_PATH=os.getenv("PROMPT_LOG")
-RESPONSE_LOG_PATH=os.getenv("RESPONSE_LOG")
+PROMPT_LOG_PATH=os.getenv("PROMPT_LOG",'./logs/prompts.txt')
+RESPONSE_LOG_PATH=os.getenv("RESPONSE_LOG",'./logs/responses.txt')
 
 def get_config_value(env_var, secret_key, default):
     

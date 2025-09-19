@@ -5,7 +5,7 @@ Shows credit usage with modern UI components
 
 import streamlit as st
 from datetime import datetime, timedelta
-from database_config import get_database
+from cloud_database_config import get_database
 db = get_database()
 
 class CreditWidget:
