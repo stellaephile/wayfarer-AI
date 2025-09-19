@@ -3,7 +3,7 @@
 import streamlit as st
 import time,os,json
 import threading
-import random
+import random,urllib.parse
 from functools import wraps
 from io import BytesIO
 from reportlab.platypus import (
@@ -295,29 +295,34 @@ def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=Non
     except Exception as e:
         st.error(f"❌ Error generating PDF: {str(e)}")
 
+from ics import Calendar, Event
+from datetime import datetime, timedelta
+from io import BytesIO
+import pytz
 
-
-
-def generate_trip_ics(trip_data, itinerary, weather_data=None):
+def generate_trip_ics(trip_data, itinerary=None, weather_data=None, tz_name="Asia/Kolkata"):
     """
-    Generate an .ics file buffer from AI trip_data JSON.
-
+    Generate an .ics file buffer from AI trip_data JSON with meals + activities.
+    
     Args:
-        trip_data (dict): AI generated trip JSON with 'itinerary'.
-        itinerary (list): List of daily plans.
-        weather_data (dict, optional): Weather info per day.
-
-    Returns:
-        BytesIO: In-memory .ics file buffer.
+        trip_data (dict): Trip JSON with itinerary.
+        itinerary (list): Optional itinerary override.
+        tz_name (str): Timezone (default Asia/Kolkata).
     """
     calendar = Calendar()
     destination = trip_data.get("destination", "Trip")
+    itinerary = itinerary or trip_data.get("itinerary", [])
+
+    # Timezone object
+    tz = pytz.timezone(tz_name)
+
+    # Define meal anchor times
+    meal_times = {"breakfast": 8, "lunch": 13, "dinner": 19}
 
     for day_plan in itinerary:
         date_str = day_plan.get("date")
         activities = day_plan.get("activities", [])
         meals = day_plan.get("meals", {})
-        planned = day_plan.get("planned_activities", [])
 
         if not date_str:
             continue
@@ -327,45 +332,29 @@ def generate_trip_ics(trip_data, itinerary, weather_data=None):
         except Exception:
             continue
 
-        # Add activities
-        for idx, act in enumerate(activities, start=1):
-            event = Event()
-            event.name = act if len(act) < 60 else act[:57] + "…"
-            event.begin = base_date + timedelta(hours=9 + idx*2)
-            event.end = event.begin + timedelta(hours=2)
-            event.description = act
-            if weather_data and date_str in weather_data:
-                event.description += f"\n\n🌤 Weather: {weather_data[date_str]}"
-            event.location = destination
-            calendar.events.add(event)
-
-        # Add meals
-        meal_times = {"breakfast": 8, "lunch": 13, "dinner": 19}
+        # Add meals as fixed events
         for meal, desc in meals.items():
             if meal.lower() in meal_times:
                 event = Event()
-                event.name = meal.capitalize()
-                event.begin = base_date + timedelta(hours=meal_times[meal.lower()])
+                event.name = f"{meal.capitalize()}"
+                event.begin = tz.localize(base_date + timedelta(hours=meal_times[meal.lower()]))
                 event.end = event.begin + timedelta(hours=1)
                 event.description = desc
                 event.location = destination
                 calendar.events.add(event)
 
-        # Add planned activities (if structured separately)
-        for idx, plan in enumerate(planned, start=1):
-            title = plan.get("title", "Planned Activity")
-            desc = plan.get("description", "")
-            loc = plan.get("location", destination)
-
+        # Place activities between meals
+        start_hour = 9
+        for idx, act in enumerate(activities, start=1):
             event = Event()
-            event.name = title if len(title) < 60 else title[:57] + "…"
-            event.begin = base_date + timedelta(hours=15 + idx)  # default afternoon slot
+            event.name = act if len(act) < 60 else act[:57] + "…"
+            event.begin = tz.localize(base_date + timedelta(hours=start_hour + (idx-1)*3))
             event.end = event.begin + timedelta(hours=2)
-            event.description = desc
-            event.location = loc
+            event.description = act
+            event.location = destination
             calendar.events.add(event)
 
-    # Return as in-memory file
+    # Export calendar to memory
     buffer = BytesIO()
     buffer.write(calendar.serialize().encode("utf-8"))
     buffer.seek(0)
