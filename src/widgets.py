@@ -12,17 +12,14 @@ from reportlab.platypus import (
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from datetime import datetime
+from datetime import datetime,timedelta
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
 )
-from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime
-import os
-
+from ics import Calendar, Event
 
 def get_fun_spinner_messages():
     messages = [
@@ -79,7 +76,7 @@ def get_fun_spinner_messages():
 
 
 
-def with_dynamic_spinner(messages=None, delay=1.75, color_pairs=None):
+def with_dynamic_spinner(messages=None, delay=2, color_pairs=None):
     """
     Decorator that shows rotating messages inside a readable colored box.
     Each text color is paired with a compatible light background.
@@ -290,11 +287,108 @@ def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=Non
         pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=None)
 
         st.download_button(
-            label="📥 Download Itinerary PDF",
+            label="📥 Download as PDF",
             data=pdf_bytes,
             file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.pdf",
             mime="application/pdf",
         )
     except Exception as e:
         st.error(f"❌ Error generating PDF: {str(e)}")
+
+
+
+
+def generate_trip_ics(trip_data, itinerary, weather_data=None):
+    """
+    Generate an .ics file buffer from AI trip_data JSON.
+
+    Args:
+        trip_data (dict): AI generated trip JSON with 'itinerary'.
+        itinerary (list): List of daily plans.
+        weather_data (dict, optional): Weather info per day.
+
+    Returns:
+        BytesIO: In-memory .ics file buffer.
+    """
+    calendar = Calendar()
+    destination = trip_data.get("destination", "Trip")
+
+    for day_plan in itinerary:
+        date_str = day_plan.get("date")
+        activities = day_plan.get("activities", [])
+        meals = day_plan.get("meals", {})
+        planned = day_plan.get("planned_activities", [])
+
+        if not date_str:
+            continue
+
+        try:
+            base_date = datetime.strptime(date_str, "%Y-%m-%d")
+        except Exception:
+            continue
+
+        # Add activities
+        for idx, act in enumerate(activities, start=1):
+            event = Event()
+            event.name = act if len(act) < 60 else act[:57] + "…"
+            event.begin = base_date + timedelta(hours=9 + idx*2)
+            event.end = event.begin + timedelta(hours=2)
+            event.description = act
+            if weather_data and date_str in weather_data:
+                event.description += f"\n\n🌤 Weather: {weather_data[date_str]}"
+            event.location = destination
+            calendar.events.add(event)
+
+        # Add meals
+        meal_times = {"breakfast": 8, "lunch": 13, "dinner": 19}
+        for meal, desc in meals.items():
+            if meal.lower() in meal_times:
+                event = Event()
+                event.name = meal.capitalize()
+                event.begin = base_date + timedelta(hours=meal_times[meal.lower()])
+                event.end = event.begin + timedelta(hours=1)
+                event.description = desc
+                event.location = destination
+                calendar.events.add(event)
+
+        # Add planned activities (if structured separately)
+        for idx, plan in enumerate(planned, start=1):
+            title = plan.get("title", "Planned Activity")
+            desc = plan.get("description", "")
+            loc = plan.get("location", destination)
+
+            event = Event()
+            event.name = title if len(title) < 60 else title[:57] + "…"
+            event.begin = base_date + timedelta(hours=15 + idx)  # default afternoon slot
+            event.end = event.begin + timedelta(hours=2)
+            event.description = desc
+            event.location = loc
+            calendar.events.add(event)
+
+    # Return as in-memory file
+    buffer = BytesIO()
+    buffer.write(calendar.serialize().encode("utf-8"))
+    buffer.seek(0)
+    return buffer
+
+
+def generate_and_display_ics_options(trip_data, ai_suggestions, weather_data=None):
+    try:
+        if isinstance(ai_suggestions, str):
+            ai_suggestions = json.loads(ai_suggestions)
+
+        itinerary = ai_suggestions.get("itinerary", []) if ai_suggestions else []
+        if not itinerary:
+            itinerary = trip_data.get("itinerary", [])
+
+        ics_buffer = generate_trip_ics(trip_data, itinerary, weather_data)
+
+        st.download_button(
+            label="📅 Download as Calendar (.ics)",
+            data=ics_buffer,
+            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.ics",
+            mime="text/calendar",
+        )
+    except Exception as e:
+        st.error(f"❌ Error generating .ics file: {str(e)}")
 

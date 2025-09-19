@@ -1,0 +1,6 @@
+2025-09-19 22:12:50,207 - INFO - Using credential path: credentials/vertexAI.json
+2025-09-19 22:12:50,207 - INFO - Path to credentials exists!
+2025-09-19 22:12:50,273 - INFO - Vertex AI initialized successfully with model: gemini-2.5-pro
+2025-09-19 22:15:42,213 - INFO - Using credential path: credentials/vertexAI.json
+2025-09-19 22:15:42,214 - INFO - Path to credentials exists!
+2025-09-19 22:15:42,293 - INFO - Vertex AI initialized successfully with model: gemini-2.5-pro
