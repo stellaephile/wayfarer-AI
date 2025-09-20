@@ -895,7 +895,7 @@ def show_my_trips():
                 col_view, col_book, col_complete, col_delete = st.columns(4)
                 
                 with col_view:
-                    if st.button("👁️ View", key=f"view_{trip['id']}", use_container_width=True, type="primary"):
+                    if st.button("View", key=f"view_{trip['id']}", use_container_width=True, type="primary"):
                         st.session_state.selected_trip = trip
                         st.rerun()
                 
@@ -917,17 +917,17 @@ def show_my_trips():
                     # Determine button state and styling
                     if booking_status == 'confirmed':
                         # Trip is already booked - show disabled button
-                        st.button("✅ Booked", key=f"book_{trip['id']}", use_container_width=True, disabled=True, 
+                        st.button("Booked", key=f"book_{trip['id']}", use_container_width=True, disabled=True, 
                                 help="This trip has already been booked", type="secondary")
                         
                     elif booking_status == 'pending':
                         # Booking is pending - show disabled button
-                        st.button("⏳ Pending", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
+                        st.button("Pending", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
                                 help="Booking is pending confirmation", type="secondary")
                         
                     elif ai_suggestions and trip['status'] != 'booked':
                         # Trip can be booked - show active book button
-                        if st.button("🧳 Book", key=f"book_{trip['id']}", use_container_width=True, type="primary"):
+                        if st.button("Book", key=f"book_{trip['id']}", use_container_width=True, type="primary"):
                             # Prepare trip data for booking
                             trip_data = {
                                 'trip_id': trip['id'],
@@ -948,18 +948,18 @@ def show_my_trips():
                             st.rerun()
                     else:
                         # No AI suggestions or other conditions - show disabled button
-                        st.button("🧳 Book", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
+                        st.button("Book", key=f"book_{trip['id']}", use_container_width=True, disabled=True,
                                 help="No booking options available for this trip", type="secondary")
                 
                 with col_complete:
                     # Complete trip functionality
                     if trip['status'] == 'completed':
                         # Trip is already completed - show disabled button
-                        st.button("✅ Completed", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
+                        st.button("Completed", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
                                 help="This trip has already been completed", type="secondary")
                     elif trip['status'] in ['planned', 'active']:
                         # Trip can be completed - show active button
-                        if st.button("🏁 Complete", key=f"complete_{trip['id']}", use_container_width=True, type="secondary"):
+                        if st.button("Complete", key=f"complete_{trip['id']}", use_container_width=True, type="secondary"):
                             # Update trip status directly
                             success, message = db.update_trip(trip['id'], user_id, status='completed')
                             if success:
@@ -969,11 +969,11 @@ def show_my_trips():
                                 st.error(f"Error completing trip: {message}")
                     else:
                         # Other status - show disabled button
-                        st.button("🏁 Complete", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
+                        st.button("Complete", key=f"complete_{trip['id']}", use_container_width=True, disabled=True,
                                 help="Cannot complete this trip", type="secondary")
                 
                 with col_delete:
-                    if st.button("🗑️ Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
+                    if st.button("Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
                         success, message = db.delete_trip(trip['id'], user_id)
                         if success:
                             st.success("Trip deleted successfully!")
@@ -1235,7 +1235,7 @@ def show_analytics():
         st.metric("Total Trips", stats['trip_count'])
     with col2:
         # For stats, we'll show USD as default since it's a summary
-        st.metric("Total Budget", f"{format_budget("",stats['total_budget'])}")
+        st.metric("Total Budget", f"{format_budget('',stats['total_budget'])}")
     with col3:
         st.metric("Favorite Destination", stats['popular_destination'])
 

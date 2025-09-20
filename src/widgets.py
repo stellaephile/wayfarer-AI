@@ -172,9 +172,9 @@ def format_date_pretty(date_input,type=1):
     day = date_obj.day
     suffix = get_day_suffix(day)
     if type==1:
-        return f"{day}{suffix} {date_obj.strftime("%B")}, {date_obj.year}"
+        return f"({day}{suffix} {date_obj.strftime('%B')}, {date_obj.year})"
     if type==2:
-        return f"{day}{suffix} {date_obj.strftime("%b")}, {date_obj.year}"
+        return f"({day}{suffix} {date_obj.strftime('%b')}, {date_obj.year})"
 
 
 
