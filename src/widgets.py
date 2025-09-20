@@ -158,7 +158,7 @@ def get_day_suffix(day):
     else:
         return 'th'
 
-def format_date_pretty(date_input):
+def format_date_pretty(date_input,type=1):
     """
     Accepts a datetime object or string (YYYY-MM-DD).
     Returns a pretty formatted date string like '23rd September, 2025'.
@@ -171,7 +171,10 @@ def format_date_pretty(date_input):
 
     day = date_obj.day
     suffix = get_day_suffix(day)
-    return f"{day}{suffix} {date_obj.strftime('%B')}, {date_obj.year}"
+    if type==1:
+        return f"{day}{suffix} {date_obj.strftime("%B")}, {date_obj.year}"
+    if type==2:
+        return f"{day}{suffix} {date_obj.strftime("%b")}, {date_obj.year}"
 
 
 

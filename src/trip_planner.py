@@ -879,7 +879,7 @@ def show_my_trips():
                             {trip['destination']}
                         </h3>
                         <div style="margin-bottom: 0.5rem; color: #6B7280; font-size: 0.9rem;">
-                            📅 {format_date_pretty(trip['start_date'])} - {format_date_pretty(trip['end_date'])}
+                            📅 {format_date_pretty(trip['start_date'],2)} - {format_date_pretty(trip['end_date'],2)}
                         </div>
                         <div style="margin-bottom: 1rem; color: #6B7280; font-size: 0.9rem;">
                             💰 {trip.get('currency_symbol', '$')}{trip['budget']:,.0f}
