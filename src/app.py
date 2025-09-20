@@ -65,7 +65,7 @@ def main():
         with col2:
             st.markdown("""
             <div class="auth-header">
-                <h1>ᨒ Wayfarer</h1>
+                <h1>ᨒ Wayfarer AI</h1>
                 <p>Reimagine Travel with AI</p>
             </div>
             """, unsafe_allow_html=True)
