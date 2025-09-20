@@ -1,86 +1,81 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import os
+import base64
+
 def inject_css():
     """Inject custom CSS for Wayfarer styling"""
-    st.markdown("""
+    st.markdown(f"""
 <style>
 /* Root variables */
-:root {
+:root {{
     --wayfarer-blue: #00A4D4;
     --wayfarer-blue-dark: #008bb5;
     --wayfarer-gray: #f8f9fa;
     --wayfarer-text: #293132;
     --wayfarer-muted: #6b7280;
-}
+}}
 
 /* Reset Streamlit UI elements */
-#MainMenu, footer, header {visibility: hidden;}
+#MainMenu, footer, header {{visibility: hidden;}}
 
 /* Main app container */
-.main .block-container {
+.main .block-container {{
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
     padding-left: 1rem !important;
     padding-right: 1rem !important;
     max-width: 100% !important;
-}
-
-/* Fullscreen auth page */
-.auth-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
-    padding: 1rem;
-}
+}}
 
 /* Auth container */
-.auth-container {
-    background: #fff;
+.auth-container {{
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
     padding: 2.5rem 2rem;
     max-width: 420px;
     width: 100%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
-}
-.auth-header {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}}
+.auth-header {{
                     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
                     padding: 0rem;
                     border-radius: 12px;
                     text-align: center;
                     margin-bottom: 1rem;
-                }
-.auth-header h1 {
+                }}
+.auth-header h1 {{
                     color: white;
                     margin: 0;
                     font-size: 2rem;
                     font-family: 'Space Grotesk', sans-serif;
-                }
- .auth-header p {
+                }}
+ .auth-header p {{
                     color: rgba(255,255,255,0.9);
                     margin: 0rem 0 0 0;
                     font-size: 1rem;
-                }
+                }}
 
 /* Inputs */
-.stTextInput input {
+.stTextInput input {{
     border-radius: 8px !important;
     border: 1.5px solid #e5e7eb !important;
     padding: 0.75rem !important;
     font-size: 1rem !important;
-}
-.stTextInput input:focus {
+}}
+.stTextInput input:focus {{
     border-color: var(--wayfarer-blue) !important;
     box-shadow: 0 0 0 3px rgba(0,164,212,0.2) !important;
-}
+}}
 
 /* All buttons - force consistent sizing */
-.stButton button {
+.stButton button {{
     padding: 0.8rem 1.2rem !important;
     width: 100% !important;
     border-radius: 10px !important;
@@ -93,22 +88,22 @@ def inject_css():
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
-}
+}}
 
 /* Enabled buttons - custom styling */
-.stButton button:not(:disabled) {
+.stButton button:not(:disabled) {{
     background: var(--wayfarer-blue) !important;
     color: white !important;
     transition: all 0.25s ease !important;
-}
+}}
 
-.stButton button:not(:disabled):hover {
+.stButton button:not(:disabled):hover {{
     background: var(--wayfarer-blue-dark) !important;
     transform: translateY(-2px) !important;
-}
+}}
 
 /* Disabled buttons - force same size and styling */
-.stButton button:disabled {
+.stButton button:disabled {{
     height: 2.5rem !important;
     min-height: 2.5rem !important;
     max-height: 2.5rem !important;
@@ -121,29 +116,29 @@ def inject_css():
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
-}
+}}
 
 /* Divider */
-.divider {
+.divider {{
     margin: 1.5rem 0;
     text-align: center;
     position: relative;
     color: var(--wayfarer-muted);
     font-size: 0.9rem;
-}
-.divider::before, .divider::after {
+}}
+.divider::before, .divider::after {{
     content: '';
     position: absolute;
     top: 50%;
     width: 40%;
     height: 1px;
     background: #e5e7eb;
-}
-.divider::before { left: 0; }
-.divider::after { right: 0; }
+}}
+.divider::before {{ left: 0; }}
+.divider::after {{ right: 0; }}
 
 /* Google button */
-.google-btn {
+.google-btn {{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -158,22 +153,22 @@ def inject_css():
     transition: all 0.2s ease;
     text-decoration: none;
     font-size: 0.95rem;
-}
-.google-btn:hover {
+}}
+.google-btn:hover {{
     border-color: #d1d5db;
     background: #f9fafb;
-}
-.google-icon {
+}}
+.google-icon {{
     width: 20px;
     height: 20px;
     margin-right: 8px;
-}
-.wayfarer-header {
+}}
+.wayfarer-header {{
     text-align: center;
     margin-bottom: 2rem;
-}
+}}
 
-.wayfarer-icon {
+.wayfarer-icon {{
     background: var(--wayfarer-blue);
     width: 70px;
     height: 70px;
@@ -185,29 +180,29 @@ def inject_css():
     font-size: 28px;
     color: white;
     box-shadow: 0 4px 12px rgba(0,164,212,0.3);
-}
+}}
 
-.wayfarer-title {
+.wayfarer-title {{
     font-size: 2rem;
     font-weight: 700;
     color: var(--wayfarer-text);
     margin: 0.5rem 0 0 0;
-}
+}}
 
-.wayfarer-subtitle {
+.wayfarer-subtitle {{
     font-size: 1rem;
     color: var(--wayfarer-muted);
     margin-top: 0.3rem;
-}
-.gradient-bg {
+}}
+.gradient-bg {{
     background: linear-gradient(135deg, #00A4D4 0%, #008bb5 100%);
     padding: 2rem 1rem;
     border-radius: 16px;
     color: white;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
+}}
 
-.gradient-bg .wayfarer-icon {
+.gradient-bg .wayfarer-icon {{
     background: rgba(255, 255, 255, 0.15);
     width: 70px;
     height: 70px;
@@ -218,20 +213,20 @@ def inject_css():
     margin: 0 auto 1rem;
     font-size: 28px;
     color: white;
-}
+}}
 
-.gradient-bg .wayfarer-title {
+.gradient-bg .wayfarer-title {{
     font-size: 2rem;
     font-weight: 700;
     margin: 0.5rem 0 0 0;
     color: white;
-}
+}}
 
-.gradient-bg .wayfarer-subtitle {
+.gradient-bg .wayfarer-subtitle {{
     font-size: 1rem;
     color: rgba(255,255,255,0.8);
     margin-top: 0.3rem;
-}
+}}
 
 
     
