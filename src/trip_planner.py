@@ -516,7 +516,7 @@ def plan_new_trip():
         
         with col3:
             if st.button("👁️ View in My Trips", type="secondary"):
-                st.session_state.page = "my_trips"
+                st.session_state.navigation_target = "📚 My Trips"
                 st.rerun()
         
         with col4:
