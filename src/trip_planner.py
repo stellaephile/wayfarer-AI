@@ -171,6 +171,7 @@ def show_dashboard():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
+        note = "Plan a trip now!" if len(user_trips) == 0 else "Good Going"
         st.markdown(f"""
         <div style="
             background: white;
@@ -185,7 +186,7 @@ def show_dashboard():
                 {len(user_trips)}
             </h3>
             <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total Trips</p>
-            <p style="margin: 0.5rem 0 0 0; color: #10b981; font-size: 0.8rem;">+2 from last month</p>
+            <p style="margin: 0.5rem 0 0 0; color: #10b981; font-size: 0.8rem;">{note}</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -243,7 +244,7 @@ def show_dashboard():
         ">
             <div style="position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem;">💰</div>
             <h3 style="margin: 0 0 0.5rem 0; color: #1f2937; font-size: 2rem; font-weight: bold;">
-                {currency_symbol}{total_budget:,.0f}
+                {format_budget(currency_symbol,total_budget)}
             </h3>
             <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">Total Budget</p>
             <p style="margin: 0.5rem 0 0 0; color: #3b82f6; font-size: 0.8rem;">This year</p>
@@ -1234,7 +1235,7 @@ def show_analytics():
         st.metric("Total Trips", stats['trip_count'])
     with col2:
         # For stats, we'll show USD as default since it's a summary
-        st.metric("Total Budget", f"${stats['total_budget']:,.2f}")
+        st.metric("Total Budget", f"{format_budget("",stats['total_budget'])}")
     with col3:
         st.metric("Favorite Destination", stats['popular_destination'])
 
