@@ -6,7 +6,6 @@ Shows credit usage with modern UI components
 import streamlit as st
 from datetime import datetime, timedelta
 from database_config import get_database
-db = get_database()
 
 class CreditWidget:
     """Beautiful credit display widget"""
@@ -17,6 +16,7 @@ class CreditWidget:
     def show_credit_card(self, user_id):
         """Show credit information in a beautiful card format"""
         try:
+            db = get_database()
             credit_data = db.get_user_credits(user_id)
             
             if not credit_data:
@@ -84,6 +84,7 @@ class CreditWidget:
                 st.sidebar.error("❌ No user ID provided")
                 return
                 
+            db = get_database()
             credit_data = db.get_user_credits(user_id)
             
             if not credit_data:
@@ -125,6 +126,7 @@ class CreditWidget:
     def show_credit_history(self, user_id):
         """Show credit transaction history"""
         try:
+            db = get_database()
             transactions = db.get_credit_transactions(user_id, limit=20)
             
             if not transactions:
@@ -164,6 +166,7 @@ class CreditWidget:
         """Show credit usage breakdown by trip"""
         try:
             # Get trips with credit usage
+            db = get_database()
             trips = db.get_user_trips(user_id)
             
             if not trips:
@@ -207,6 +210,7 @@ class CreditWidget:
     def show_upgrade_prompt(self, user_id):
         """Show upgrade prompt when credits are low"""
         try:
+            db = get_database()
             credit_data = db.get_user_credits(user_id)
             
             if not credit_data or credit_data['credits_remaining'] > 100:

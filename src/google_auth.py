@@ -9,7 +9,6 @@ import base64
 import hashlib
 import secrets
 from database_config import get_database
-db = get_database()
 from dotenv import load_dotenv
 
 ## Load environment variables from .env file
@@ -156,6 +155,7 @@ class GoogleAuth:
         google_id = google_user_info['id']
         
         # Check if user already exists
+        db = get_database()
         existing_user = db.get_user_by_email(email)
         if existing_user:
             # If user exists, check if it's already a Google user
@@ -164,6 +164,7 @@ class GoogleAuth:
             else:
                 # User exists but with different login method - link Google account
                 try:
+                    db = get_database()
                     conn = db.get_connection()
                     cursor = conn.cursor()
                     cursor.execute("""
@@ -175,6 +176,7 @@ class GoogleAuth:
                     conn.commit()
                     conn.close()
                     
+                    db = get_database()
                     return db.get_user_by_email(email)
                 except Exception as e:
                     st.error("Authentication failed. Please try again.")
@@ -182,6 +184,7 @@ class GoogleAuth:
         
         # Create new user with Google info
         username = self._generate_username_from_email(email)
+        db = get_database()
         success, message = db.create_google_user(
             username=username,
             email=email,

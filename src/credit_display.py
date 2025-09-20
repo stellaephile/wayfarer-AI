@@ -6,7 +6,6 @@ Shows credit usage information to users
 import streamlit as st
 from datetime import datetime, timedelta
 from database_config import get_database
-db = get_database()
 
 class CreditDisplay:
     """Display credit usage information to users"""
@@ -17,6 +16,7 @@ class CreditDisplay:
     def show_credit_summary(self, user_id):
         """Show credit summary in sidebar or main area"""
         try:
+            db = get_database()
             credit_data = db.get_user_credit_summary(user_id)
             
             if not credit_data:
@@ -55,7 +55,9 @@ class CreditDisplay:
         st.title("💰 Credit Usage Analytics")
         
         try:
+            db = get_database()
             credit_data = db.get_user_credit_summary(user_id)
+            db = get_database()
             usage_history = db.get_credit_usage_history(user_id, limit=100)
             
             if not credit_data:
@@ -149,6 +151,7 @@ class CreditDisplay:
         try:
             if trip_id:
                 # Get usage for specific trip
+                db = get_database()
                 usage_history = db.get_credit_usage_history(user_id, limit=1000)
                 trip_usage = [u for u in usage_history if u.get('trip_destination')]
                 
@@ -172,7 +175,8 @@ class CreditDisplay:
                     st.info("No credit usage recorded for this trip")
             else:
                 # General breakdown
-                credit_data = db.get_user_credit_summary(user_id)
+                db = get_database()
+            credit_data = db.get_user_credit_summary(user_id)
                 recent_usage = credit_data.get('recent_usage_by_type', [])
                 
                 st.subheader("💰 Credit Breakdown")
@@ -212,6 +216,7 @@ class CreditDisplay:
         st.title("👥 Admin - Credit Usage Summary")
         
         try:
+            db = get_database()
             all_users_credits = db.get_all_users_credit_summary()
             
             if not all_users_credits:

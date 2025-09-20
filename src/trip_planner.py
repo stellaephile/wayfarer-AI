@@ -2,7 +2,6 @@ import streamlit as st
 import json,logging,os
 from datetime import datetime, timedelta
 from database_config import get_database
-db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
@@ -143,6 +142,7 @@ def show_dashboard():
         return
     
     user = st.session_state.user
+    db = get_database()
     user_trips = db.get_user_trips(user['id'])
     
     # Note: Sidebar is handled by the parent show_trip_planner() function
@@ -720,6 +720,7 @@ def plan_new_trip():
             
             # Save trip to database
             try:
+                db = get_database()
                 success, message = db.create_trip(
                     st.session_state.user['id'],
                     destination.strip(),
@@ -779,6 +780,7 @@ def show_my_trips():
         return
     
     user_id = st.session_state.user['id']
+    db = get_database()
     trips = db.get_user_trips(user_id)
     
     if not trips:
@@ -961,6 +963,7 @@ def show_my_trips():
                         # Trip can be completed - show active button
                         if st.button("Complete", key=f"complete_{trip['id']}", use_container_width=True, type="secondary"):
                             # Update trip status directly
+                            db = get_database()
                             success, message = db.update_trip(trip['id'], user_id, status='completed')
                             if success:
                                 st.success(f"🎉 Trip to {trip['destination']} marked as completed!")
@@ -974,6 +977,7 @@ def show_my_trips():
                 
                 with col_delete:
                     if st.button("Delete", key=f"delete_{trip['id']}", use_container_width=True, type="secondary"):
+                        db = get_database()
                         success, message = db.delete_trip(trip['id'], user_id)
                         if success:
                             st.success("Trip deleted successfully!")
@@ -1227,6 +1231,7 @@ def show_analytics():
         return
     
     user_id = st.session_state.user['id']
+    db = get_database()
     stats = db.get_user_stats(user_id)
     
     # Key metrics
@@ -1363,6 +1368,7 @@ def show_profile():
                     
                     # Update profile in database
                     try:
+                        db = get_database()
                         success, message = db.update_user_profile(user['id'], **update_data)
                         
                         if success:

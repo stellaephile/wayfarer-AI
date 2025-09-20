@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Dict, List, Optional
 from booking_system import booking_manager
 from database_config import get_database
-db = get_database()
 
 class BookingInterface:
     """Handles the UI for the booking process"""
@@ -361,6 +360,7 @@ class BookingInterface:
                 # Convert datetime objects to strings for JSON serialization
                 confirmation_serializable = self._make_json_serializable(confirmation)
                 
+                db = get_database()
                 db.update_trip(
                     trip_id, 
                     booking_data.get('user_id'), 

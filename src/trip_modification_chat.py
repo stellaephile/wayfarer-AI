@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from vertex_ai_utils import VertexAITripPlanner
 from database_config import get_database
-db = get_database()
 
 class TripModificationChat:
     def __init__(self):
@@ -20,6 +19,7 @@ class TripModificationChat:
             st.session_state[f'pending_changes_{trip_id}'] = []
         
         # Load existing chat history
+        db = get_database()
         chat_history = db.get_chat_history(trip_id, user_id)
         if f'chat_history_{trip_id}' not in st.session_state:
             st.session_state[f'chat_history_{trip_id}'] = chat_history
@@ -193,6 +193,7 @@ class TripModificationChat:
         """Handle user message and generate AI response"""
         
         # Save user message to database
+        db = get_database()
         db.save_chat_interaction(trip_id, user_id, 'user', message)
         
         # Add to session state
@@ -217,6 +218,7 @@ class TripModificationChat:
             credits_used = self.vertex_ai.calculate_chat_credits(message, len(ai_response))
             
             # Save AI response to database
+            db = get_database()
             db.save_chat_interaction(trip_id, user_id, 'ai', message, ai_response, credits_used)
             
             # Add to session state
@@ -228,6 +230,7 @@ class TripModificationChat:
             })
             
             # Track credits
+            db = get_database()
             db.add_credit_transaction(
                 user_id, trip_id, 'usage', credits_used, 
                 f"Chat interaction: {message[:50]}..."
@@ -238,6 +241,7 @@ class TripModificationChat:
             st.error(error_response)
             
             # Save error response
+            db = get_database()
             db.save_chat_interaction(trip_id, user_id, 'ai', message, error_response)
             st.session_state[f'chat_history_{trip_id}'].append({
                 'message_type': 'ai',
@@ -309,6 +313,7 @@ class TripModificationChat:
                 
                 if updated_trip_data:
                     # Save the modification
+                    db = get_database()
                     db.save_trip_modification(
                         trip_id, user_id, "chat_based_update", 
                         current_trip_data, updated_trip_data, 
@@ -316,6 +321,7 @@ class TripModificationChat:
                     )
                     
                     # Update the trip in database
+                    db = get_database()
                     success, message = db.update_trip(
                         trip_id, user_id, 
                         ai_suggestions=json.dumps(updated_trip_data)
@@ -694,6 +700,7 @@ Return ONLY the updated JSON object with the same structure as the current trip 
         """Display credit usage information"""
         st.subheader("💳 Credit Usage")
         
+        db = get_database()
         credits_info = db.get_user_credits(user_id)
         
         st.metric(
@@ -707,7 +714,9 @@ Return ONLY the updated JSON object with the same structure as the current trip 
     
     def get_modification_summary(self, trip_id, user_id):
         """Get a summary of modifications made to a trip"""
+        db = get_database()
         modifications = db.get_trip_modifications(trip_id, user_id)
+        db = get_database()
         chat_history = db.get_chat_history(trip_id, user_id)
         
         if not modifications and not chat_history:

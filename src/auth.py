@@ -1,7 +1,6 @@
 import streamlit as st
 import re,time
 from database_config import get_database
-db = get_database()
 from google_auth import show_google_signin_button, handle_google_callback
 
 def validate_email(email):
@@ -63,6 +62,7 @@ def login_page():
             
             with st.spinner("Authenticating..."):
                 time.sleep(1)  # Simulate API call
+                db = get_database()
                 user = db.authenticate_user(username, password)
                 if user:
                     st.session_state.user = user
@@ -143,6 +143,7 @@ def signup_page():
             # Create user
             with st.spinner("Creating your account..."):
                 time.sleep(1)  # Simulate API call
+                db = get_database()
                 success, message = db.create_user(username, email, password)
                 if success:
                     st.success("Account created successfully! Please login.")

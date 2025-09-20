@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from vertex_ai_utils import VertexAITripPlanner
 from database_config import get_database
-db = get_database()
 
 class ChatInterface:
     def __init__(self):
@@ -17,6 +16,7 @@ class ChatInterface:
             st.session_state[f'chat_history_{trip_id}'] = []
         
         # Load existing chat history from database
+        db = get_database()
         chat_history = db.get_chat_history(trip_id, user_id)
         if chat_history and not st.session_state[f'chat_history_{trip_id}']:
             st.session_state[f'chat_history_{trip_id}'] = chat_history
@@ -82,6 +82,7 @@ class ChatInterface:
         """Handle user message and generate AI response"""
         
         # Save user message to database
+        db = get_database()
         db.save_chat_interaction(trip_id, user_id, 'user', message)
         
         # Add to session state
@@ -98,6 +99,7 @@ class ChatInterface:
                 ai_response = self._generate_refinement_response(message, current_trip_data)
             
             # Save AI response to database
+            db = get_database()
             db.save_chat_interaction(trip_id, user_id, 'ai', message, ai_response)
             
             # Add to session state
@@ -113,6 +115,7 @@ class ChatInterface:
             st.error(error_response)
             
             # Save error response
+            db = get_database()
             db.save_chat_interaction(trip_id, user_id, 'ai', message, error_response)
             st.session_state[f'chat_history_{trip_id}'].append({
                 'message_type': 'ai',
@@ -215,6 +218,7 @@ Provide a helpful response that addresses the user's request and offers specific
     
     def get_chat_summary(self, trip_id, user_id):
         """Get a summary of chat interactions for a trip"""
+        db = get_database()
         chat_history = db.get_chat_history(trip_id, user_id)
         
         if not chat_history:
