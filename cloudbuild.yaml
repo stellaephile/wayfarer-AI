@@ -2,7 +2,7 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'Dockerfile.prod', '-t', 'gcr.io/$PROJECT_ID/wayfarer-app:$COMMIT_SHA', '.']
+    args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/wayfarer-app:$COMMIT_SHA', '.']
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
@@ -34,7 +34,7 @@ steps:
     - '--set-secrets'
     - 'MYSQL_PASSWORD=mysql-password:latest'
     - '--add-cloudsql-instances'
-    - 'trip-planner-demo-471815:us-central1:wayfarer-postgresdb'
+    - 'trip-planner-demo-471815:us-central1:wayfarer-mysqldb'
 
 # Store images in Google Container Registry
 images:
