@@ -18,3 +18,4 @@ vertexai>=1.71.1
 google>= 3.0.0
 dotenv>=0.9.9
 mysql-connector-python>=8.0.0
+babel

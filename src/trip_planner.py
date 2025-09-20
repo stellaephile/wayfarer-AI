@@ -7,7 +7,7 @@ from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
 from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty,generate_and_display_pdf_options, generate_and_display_ics_options
-from currency import currency_mapping,get_currency_options
+from currency import currency_mapping,get_currency_options,format_budget
 
 log_file = os.getenv("TRIP_PLANNER_LOG")
 
@@ -882,7 +882,7 @@ def show_my_trips():
                             📅 {format_date_pretty(trip['start_date'],2)} - {format_date_pretty(trip['end_date'],2)}
                         </div>
                         <div style="margin-bottom: 1rem; color: #6B7280; font-size: 0.9rem;">
-                            💰 {trip.get('currency_symbol', '$')}{trip['budget']:,.0f}
+                            💰 {format_budget(trip.get('currency_symbol', '₹'),trip['budget'] )}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1031,7 +1031,7 @@ def show_trip_details(trip_data):
         st.metric("Duration", f"{duration_str}")
     with col2:
         currency_symbol = trip_data.get('currency_symbol', '$')
-        st.metric("Budget", f"{currency_symbol}{trip_data['budget']:,.2f}")
+        st.metric("Budget", f"{format_budget(currency_symbol,trip_data['budget'])}")
     with col3:
         status = trip_data['status'].title()
         booking_status = trip_data.get('booking_status', 'not_booked')
