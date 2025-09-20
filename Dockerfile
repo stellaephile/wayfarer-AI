@@ -22,7 +22,7 @@ RUN pip freeze
 # Copy application code
 COPY src/ ./src/ 
 COPY .streamlit/ ./.streamlit/
-COPY credentials/ ./credentials/
+#COPY credentials/ ./credentials/
 COPY misc/ ./misc/
 
 # Create directory for database and logs
