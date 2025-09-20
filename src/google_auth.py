@@ -225,7 +225,6 @@ def show_google_signin_button():
         "🔐 Sign in with Google", 
         auth_url, 
         use_container_width=True,
-        type="primary",
         help="Click the button above to sign in with Google. You'll be redirected to Google's authentication page."
     )
 

@@ -35,9 +35,15 @@ def login_page():
     if handle_google_callback():
         return
     
-    
-    st.markdown("### 🔐 Welcome Back!")
-    st.markdown("Sign in to access your personalized trip planner")
+    st.markdown(
+    """
+    <div style="text-align: center;">
+        <h4>Welcome Back!</h4>
+        <p>Sign in to access your personalized trip planner</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
     
     with st.form("login_form", clear_on_submit=False):
         username = st.text_input("Username or Email", placeholder="Enter your username or email")
@@ -45,7 +51,7 @@ def login_page():
         
         col1, col2 = st.columns([1, 1])
         with col1:
-            submit_button = st.form_submit_button("Login", use_container_width=True)
+            submit_button = st.form_submit_button("Login", use_container_width=True,type="primary")
         
         with col2:
             #st.markdown("### Or continue with")
