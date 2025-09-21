@@ -20,3 +20,4 @@ dotenv
 reportlab
 cloud-sql-python-connector
 PyMySQL
+SQLAlchemy
