@@ -339,7 +339,13 @@ class MySQLDatabaseManager:
             return True, "Trip updated successfully"
         except Exception as e:
             st.error(f"Error updating trip: {str(e)}")
-            return False, f"Error updating trip: {str(e)}"       
+            return False, f"Error updating trip: {str(e)}"   
+
+    def get_user_trips(self, user_id):
+        cursor = self.conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM trips WHERE user_id = %s", (user_id,))
+        trips = cursor.fetchall()
+        return trips    
 
 
 # ---------------- Global DB Instance ---------------- #
