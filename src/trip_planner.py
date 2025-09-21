@@ -734,14 +734,17 @@ def plan_new_trip():
                     trip_id = message
                     # Calculate and track credits used
                     credits_used = calculate_credits_used(suggestions)
-                    db.update_trip_credits(trip_id, credits_used)
-                    db.add_credit_transaction(
-                        st.session_state.user['id'],
-                        trip_id,
-                        'usage',
-                        credits_used,
-                        f"AI trip generation for {destination}"
-                    )
+                    try:
+                        db.update_trip_credits(trip_id, credits_used)
+                        db.add_credit_transaction(
+                            st.session_state.user['id'],
+                            trip_id,
+                            'usage',
+                            credits_used,
+                            f"AI trip generation for {destination}"
+                        )
+                    except as e:
+                        pass
                     
                     st.session_state.current_trip = suggestions
                     st.session_state.trip_id = trip_id
