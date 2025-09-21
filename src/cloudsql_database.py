@@ -1,5 +1,6 @@
 from google.cloud.sql.connector import Connector
 import sqlalchemy
+from sqlalchemy.exc import IntegrityError
 import bcrypt
 import streamlit as st
 from datetime import datetime
@@ -129,21 +130,33 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
 
-    def create_user(self, username, email, password, name=None):
-        """Create a new user"""
-        try:
-            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            query = """
-                INSERT INTO users (username, email, password_hash, name, login_method)
-                VALUES (:username, :email, :password_hash, :name, 'email')
+        def create_user(self, username, email, password_hash, name=None, login_method="email"):
             """
-            with self.get_connection() as conn:
-                result = conn.execute(sqlalchemy.text(query), {"username": username, "email": email, "password_hash": password_hash, "name": name})
-                user_id = result.lastrowid
-                self.initialize_user_credits(user_id)
-                return True, f"User created successfully with ID: {user_id}"
-        except Exception as e:
-            return False, f"Error creating user: {str(e)}"
+            Create a new user in the database.
+            Prevents duplicate users by catching IntegrityError (duplicate email).
+            """
+            try:
+                with self.get_connection() as conn:
+                    conn.execute(sqlalchemy.text("""
+                        INSERT INTO users (username, email, password_hash, name, login_method)
+                        VALUES (:username, :email, :password_hash, :name, :login_method)
+                    """), {
+                        "username": username,
+                        "email": email,
+                        "password_hash": password_hash,
+                        "name": name,
+                        "login_method": login_method
+                    })
+                    conn.commit()
+
+                return True, "✅ User created successfully"
+
+            except IntegrityError:
+                # Duplicate email (or unique constraint violation)
+                return False, "⚠️ A user with this email already exists. Please log in instead."
+
+            except Exception as e:
+                return False, f"❌ Error creating user: {str(e)}"
 
     # ---------------- Trips ---------------- #
     def create_trip(

@@ -144,7 +144,10 @@ def signup_page():
                     st.session_state.show_login = True
                     st.rerun()
                 else:
-                    st.error(message)
+                    if "already exists" in message:
+                        st.warning(message)   # Friendly message for duplicate user
+                    else:
+                        st.error(message)     # Only real errors show as error
     
     # Google Sign In Button
     #st.markdown("---")
