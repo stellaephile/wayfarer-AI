@@ -1,51 +1,225 @@
-import streamlit as st
+import streamlit as st 
 import json
 import os
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+import vertexai
+from vertexai.generative_models import GenerativeModel, Part
+from vertexai.preview.generative_models import GenerationConfig
+from google.cloud import aiplatform
+from google.oauth2 import service_account
+import logging
+from dotenv import load_dotenv
+load_dotenv()
+from input_prompts import planning_prompt
 
+print("Current path:", os.getcwd())
+log_file = os.getenv("VERTEX_AI_LOG")
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(log_file),           # Log to file
+        logging.StreamHandler()                  # Also print to terminal
+    ]
+)
+
+# Optional: Get named logger for your module
+logger = logging.getLogger(__name__)
+
+PROMPT_LOG_PATH=os.getenv("PROMPT_LOG")
+RESPONSE_LOG_PATH=os.getenv("RESPONSE_LOG")
+
+def get_config_value(env_var, secret_key, default):
+    
+    try:
+        return os.getenv(env_var, st.secrets.get(secret_key, default))
+    except:
+        return os.getenv(env_var, default)
+    
 class VertexAITripPlanner:
     def __init__(self):
         # Load configuration from environment or secrets with fallback
-        try:
-            self.project_id = os.getenv("VERTEX_AI_PROJECT_ID", st.secrets.get("VERTEX_AI_PROJECT_ID", "your-project-id"))
-        except:
-            self.project_id = os.getenv("VERTEX_AI_PROJECT_ID", "your-project-id")
-        
-        try:
-            self.location = os.getenv("VERTEX_AI_LOCATION", st.secrets.get("VERTEX_AI_LOCATION", "us-central1"))
-        except:
-            self.location = os.getenv("VERTEX_AI_LOCATION", "us-central1")
-        
-        try:
-            self.model_name = os.getenv("VERTEX_AI_MODEL", st.secrets.get("VERTEX_AI_MODEL", "gemini-pro"))
-        except:
-            self.model_name = os.getenv("VERTEX_AI_MODEL", "gemini-pro")
+
+        self.project_id = get_config_value("VERTEX_AI_PROJECT_ID", "VERTEX_AI_PROJECT_ID", "your-project-id")
+        self.location = get_config_value("VERTEX_AI_LOCATION", "VERTEX_AI_LOCATION", "us-central1")
+        self.model_name = get_config_value("VERTEX_AI_MODEL", "VERTEX_AI_MODEL", "gemini-pro")
         
         # Check if we have valid configuration
         self.is_configured = self.project_id != "your-project-id"
         
         if not self.is_configured:
             st.warning("⚠️ Vertex AI not configured. Using demo mode with mock data.")
+            self.model = None
+        else:
+            try:
+                # Initialize Vertex AI
+                self._initialize_vertex_ai()
+                self.model = GenerativeModel(self.model_name,generation_config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 1024
+                })
+                logger.info(f"Vertex AI initialized successfully with model: {self.model_name}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Vertex AI: {str(e)}")
+                st.error(f"❌ Failed to initialize Vertex AI: {str(e)}")
+                self.is_configured = False
+                self.model = None
+    
+    def _initialize_vertex_ai(self):
+        """Initialize Vertex AI with proper authentication"""
+        try:
+            # Try to get credentials from service account file
+            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            logger.info(f"Using credential path: {credentials_path if credentials_path else 'Default credentials'}")
+            if credentials_path and os.path.exists(credentials_path):
+                logger.info("Path to credentials exists!")
+                credentials = service_account.Credentials.from_service_account_file(credentials_path)
+                vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
+            else:
+                logger.error("Path to credentials NOT found!")
+                # Try to use default credentials
+                vertexai.init(project=self.project_id, location=self.location)
+            
+            # Initialize AI Platform
+            aiplatform.init(project=self.project_id, location=self.location)
+            
+        except Exception as e:
+            logger.error(f"Error initializing Vertex AI: {str(e)}")
+            raise e
     
     def generate_trip_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                budget: float, preferences: str) -> Dict:
+                                budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> Dict:
         """
         Generate AI-powered trip suggestions using Vertex AI
         """
-        if not self.is_configured:
-            return self._generate_mock_suggestions(destination, start_date, end_date, budget, preferences)
+        if not self.is_configured or not self.model:
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol, current_city, itinerary_preference)
         
         try:
-            # TODO: Implement actual Vertex AI call here
-            # For now, return enhanced mock data
-            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            # Create a comprehensive prompt for the AI
+            prompt = self._create_trip_planning_prompt(destination, start_date, end_date, budget, preferences, currency, currency_symbol, current_city, itinerary_preference)
+            
+            generation_config = GenerationConfig(
+                max_output_tokens=20000,  # or higher if needed
+                temperature=0.7,
+                top_p=0.95,
+            )
+            # Generate response using Vertex AI
+            response = self.model.generate_content(prompt, generation_config=generation_config)
+
+            try:
+                mode = "a" if os.path.exists(PROMPT_LOG_PATH) else "w"
+                with open(PROMPT_LOG_PATH, mode, encoding="utf-8") as f:
+                    f.write(prompt)
+            except Exception as e:
+                logger.warning(f"Could not write prompt to {PROMPT_LOG_PATH}: {e}")
+                    
+
+            if response and response.text:
+                try:
+                    mode = "a" if os.path.exists(RESPONSE_LOG_PATH) else "w"
+                    with open(RESPONSE_LOG_PATH, "w", encoding="utf-8") as f:
+                        f.write(response.text)
+                except Exception as e:
+                    logger.warning(f"Could not write response to {RESPONSE_LOG_PATH}: {e}")
+                        # Parse the AI response
+                return self._parse_ai_response(response.text, destination, start_date, end_date, budget, currency, currency_symbol)
+            
+            else:
+                logger.warning("Empty response from Vertex AI, falling back to mock data")
+                return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
+                
         except Exception as e:
-            st.error(f"Error generating trip suggestions: {str(e)}")
-            return self._generate_mock_suggestions(destination, start_date, end_date, budget, preferences)
+            logger.error(f"Error generating trip suggestions with Vertex AI: {str(e)}")
+            st.warning(f"⚠️ AI generation failed: {str(e)}. Using enhanced mock data.")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, preferences, currency, currency_symbol)
+    
+    def _create_trip_planning_prompt(self, destination: str, start_date: str, end_date: str, 
+                                   budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> str:
+        """Create a comprehensive prompt for trip planning"""
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        duration_days = (end_dt - start_dt).days + 1
+        return planning_prompt([current_city, destination,start_date,end_date,
+                                 duration_days,currency_symbol,budget,currency,
+                                 preferences,itinerary_preference])
+    
+    def _parse_ai_response(self, response_text: str, destination: str, start_date: str, 
+                          end_date: str, budget: float, currency: str = "USD", currency_symbol: str = "$") -> Dict:
+        """Parse the AI response and return structured data"""
+        try:
+            # Clean the response text
+            cleaned_text = response_text.strip()
+            
+            # Try to extract JSON from the response
+            if cleaned_text.startswith('```json'):
+                cleaned_text = cleaned_text[7:]
+            if cleaned_text.endswith('```'):
+                cleaned_text = cleaned_text[:-3]
+            
+            # Parse JSON
+            trip_data = json.loads(cleaned_text)
+            
+            # Validate and enhance the response
+            return self._validate_and_enhance_response(trip_data, destination, start_date, end_date, budget, currency, currency_symbol)
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse AI response as JSON: {str(e)}")
+            logger.error(f"Response text: {response_text[:500]}...")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed", currency, currency_symbol)
+        except Exception as e:
+            logger.error(f"Error parsing AI response: {str(e)}")
+            return self._generate_enhanced_mock_suggestions(destination, start_date, end_date, budget, "AI parsing failed", currency, currency_symbol)
+    
+    def _validate_and_enhance_response(self, trip_data: Dict, destination: str, start_date: str, 
+                                     end_date: str, budget: float, currency: str = "USD", currency_symbol: str = "$") -> Dict:
+        """Validate and enhance the AI response"""
+        # Ensure required fields exist
+        if 'destination' not in trip_data:
+            trip_data['destination'] = destination
+        
+        if 'budget' not in trip_data:
+            trip_data['budget'] = budget
+        
+        # Ensure currency information exists
+        if 'currency' not in trip_data:
+            trip_data['currency'] = currency
+        if 'currency_symbol' not in trip_data:
+            trip_data['currency_symbol'] = currency_symbol
+        
+        # Ensure itinerary is properly formatted
+        if 'itinerary' not in trip_data or not isinstance(trip_data['itinerary'], list):
+            trip_data['itinerary'] = self._generate_enhanced_itinerary(destination, start_date, end_date, "general")
+        
+        # Ensure other sections exist
+        if 'accommodations' not in trip_data:
+            trip_data['accommodations'] = []
+        
+        if 'activities' not in trip_data:
+            trip_data['activities'] = []
+        
+        if 'restaurants' not in trip_data:
+            trip_data['restaurants'] = []
+        
+        if 'transportation' not in trip_data:
+            trip_data['transportation'] = []
+        
+        if 'tips' not in trip_data:
+            trip_data['tips'] = []
+        
+        if 'weather' not in trip_data:
+            trip_data['weather'] = {}
+        
+        if 'packing_list' not in trip_data:
+            trip_data['packing_list'] = []
+        
+        return trip_data
     
     def _generate_enhanced_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                          budget: float, preferences: str) -> Dict:
+                                          budget: float, preferences: str, currency: str = "USD", currency_symbol: str = "$", current_city: str = "", itinerary_preference: str = "") -> Dict:
         """Generate enhanced mock suggestions with more realistic data"""
         start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -61,17 +235,19 @@ class VertexAITripPlanner:
             "destination": destination,
             "duration": f"{duration_days} days",
             "budget": budget,
+            "currency": currency,
+            "currency_symbol": currency_symbol,
             "budget_breakdown": {
-                "accommodation": accommodation_budget,
-                "food": food_budget,
-                "activities": activities_budget,
-                "transportation": transport_budget
+                "accommodation": f"{currency_symbol}{accommodation_budget:,.2f}",
+                "food": f"{currency_symbol}{food_budget:,.2f}",
+                "activities": f"{currency_symbol}{activities_budget:,.2f}",
+                "transportation": f"{currency_symbol}{transport_budget:,.2f}"
             },
             "itinerary": self._generate_enhanced_itinerary(destination, start_date, end_date, preferences),
-            "accommodations": self._generate_enhanced_accommodations(destination, budget, duration_days),
-            "activities": self._generate_enhanced_activities(destination, preferences, activities_budget),
-            "restaurants": self._generate_enhanced_restaurants(destination, food_budget, duration_days),
-            "transportation": self._generate_enhanced_transportation(destination, transport_budget),
+            "accommodations": self._generate_enhanced_accommodations(destination, budget, duration_days, currency_symbol),
+            "activities": self._generate_enhanced_activities(destination, preferences, activities_budget, currency_symbol),
+            "restaurants": self._generate_enhanced_restaurants(destination, food_budget, duration_days, currency_symbol),
+            "transportation": self._generate_enhanced_transportation(destination, transport_budget, currency_symbol),
             "tips": self._generate_enhanced_tips(destination, preferences),
             "weather": self._generate_weather_info(destination, start_date),
             "packing_list": self._generate_packing_list(destination, preferences, duration_days)
@@ -132,19 +308,19 @@ class VertexAITripPlanner:
             "dinner": f"Recommended dinner venue"
         }
     
-    def _generate_enhanced_accommodations(self, destination: str, budget: float, duration_days: int) -> List[Dict]:
+    def _generate_enhanced_accommodations(self, destination: str, budget: float, duration_days: int, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced accommodation suggestions"""
         budget_per_night = budget * 0.4 / duration_days if duration_days > 0 else budget * 0.4
         
         if budget_per_night < 50:
             budget_level = "budget"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         elif budget_per_night < 150:
             budget_level = "mid-range"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         else:
             budget_level = "luxury"
-            price_range = f"${budget_per_night * 0.8:.0f} - ${budget_per_night * 1.2:.0f}"
+            price_range = f"{currency_symbol}{budget_per_night * 0.8:.0f} - {currency_symbol}{budget_per_night * 1.2:.0f}"
         
         accommodations = [
             {
@@ -169,14 +345,14 @@ class VertexAITripPlanner:
         
         return accommodations
     
-    def _generate_enhanced_activities(self, destination: str, preferences: str, budget: float) -> List[Dict]:
+    def _generate_enhanced_activities(self, destination: str, preferences: str, budget: float, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced activity suggestions"""
         activities = [
             {
                 "name": f"Explore {destination} Historic Center",
                 "type": "Sightseeing",
                 "duration": "Half Day",
-                "cost": "Free - $20",
+                "cost": f"Free - {currency_symbol}20",
                 "description": "Walk through the historic district and visit key landmarks",
                 "rating": 4.5,
                 "best_time": "Morning"
@@ -185,7 +361,7 @@ class VertexAITripPlanner:
                 "name": f"{destination} Local Market Tour",
                 "type": "Cultural",
                 "duration": "2-3 hours",
-                "cost": "$15-30",
+                "cost": f"{currency_symbol}15-30",
                 "description": "Experience local culture and taste traditional foods",
                 "rating": 4.3,
                 "best_time": "Afternoon"
@@ -198,7 +374,7 @@ class VertexAITripPlanner:
                 "name": f"{destination} Adventure Tour",
                 "type": "Adventure",
                 "duration": "Full Day",
-                "cost": "$50-100",
+                "cost": f"{currency_symbol}50-100",
                 "description": "Exciting outdoor activities and adventure sports",
                 "rating": 4.7,
                 "best_time": "All Day"
@@ -209,7 +385,7 @@ class VertexAITripPlanner:
                 "name": f"{destination} Museum Pass",
                 "type": "Cultural",
                 "duration": "Full Day",
-                "cost": "$25-40",
+                "cost": f"{currency_symbol}25-40",
                 "description": "Access to multiple museums and cultural sites",
                 "rating": 4.4,
                 "best_time": "All Day"
@@ -217,7 +393,7 @@ class VertexAITripPlanner:
         
         return activities
     
-    def _generate_enhanced_restaurants(self, destination: str, budget: float, duration_days: int) -> List[Dict]:
+    def _generate_enhanced_restaurants(self, destination: str, budget: float, duration_days: int, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced restaurant suggestions"""
         budget_per_meal = budget / (duration_days * 3) if duration_days > 0 else budget / 3
         
@@ -225,7 +401,7 @@ class VertexAITripPlanner:
             {
                 "name": f"Local Traditional Restaurant",
                 "cuisine": "Local Traditional",
-                "price_range": f"${budget_per_meal * 0.8:.0f}-{budget_per_meal * 1.2:.0f} per person",
+                "price_range": f"{currency_symbol}{budget_per_meal * 0.8:.0f}-{budget_per_meal * 1.2:.0f} per person",
                 "rating": 4.3,
                 "specialties": ["Traditional dishes", "Local ingredients", "Authentic flavors"],
                 "location": f"Central {destination}",
@@ -234,7 +410,7 @@ class VertexAITripPlanner:
             {
                 "name": f"{destination} Street Food Market",
                 "cuisine": "Street Food",
-                "price_range": f"${budget_per_meal * 0.3:.0f}-{budget_per_meal * 0.7:.0f} per person",
+                "price_range": f"{currency_symbol}{budget_per_meal * 0.3:.0f}-{budget_per_meal * 0.7:.0f} per person",
                 "rating": 4.5,
                 "specialties": ["Authentic local flavors", "Quick bites", "Local specialties"],
                 "location": f"Historic {destination}",
@@ -244,13 +420,13 @@ class VertexAITripPlanner:
         
         return restaurants
     
-    def _generate_enhanced_transportation(self, destination: str, budget: float) -> List[Dict]:
+    def _generate_enhanced_transportation(self, destination: str, budget: float, currency_symbol: str = "$") -> List[Dict]:
         """Generate enhanced transportation suggestions"""
         return [
             {
                 "type": "Airport Transfer",
                 "option": "Taxi/Uber",
-                "cost": "$20-40",
+                "cost": f"{currency_symbol}20-40",
                 "duration": "30-45 minutes",
                 "description": "Convenient door-to-door service",
                 "booking_required": False
@@ -258,7 +434,7 @@ class VertexAITripPlanner:
             {
                 "type": "Local Transport",
                 "option": "Public Transport Pass",
-                "cost": "$10-20 per day",
+                "cost": f"{currency_symbol}10-20 per day",
                 "duration": "Unlimited daily use",
                 "description": "Cost-effective way to explore the city",
                 "booking_required": False
@@ -266,7 +442,7 @@ class VertexAITripPlanner:
             {
                 "type": "Intercity Travel",
                 "option": "Train/Bus",
-                "cost": "$15-50",
+                "cost": f"{currency_symbol}15-50",
                 "duration": "1-3 hours",
                 "description": "Comfortable travel between cities",
                 "booking_required": True
@@ -319,60 +495,139 @@ class VertexAITripPlanner:
         
         return essentials
     
-    def _generate_mock_suggestions(self, destination: str, start_date: str, end_date: str, 
-                                 budget: float, preferences: str) -> Dict:
-        """Fallback mock suggestions for demo purposes"""
-        return {
-            "destination": destination,
-            "duration": f"{start_date} to {end_date}",
-            "budget": budget,
-            "itinerary": [
-                {
-                    "day": 1,
-                    "date": start_date,
-                    "activities": ["Arrive at destination", "Check into accommodation", "Explore local area"]
-                }
-            ],
-            "accommodations": [
-                {
-                    "name": f"Demo Hotel in {destination}",
-                    "type": "Hotel",
-                    "price_range": f"${budget * 0.3:.0f} - ${budget * 0.5:.0f} per night",
-                    "rating": 4.0,
-                    "amenities": ["WiFi", "Breakfast"]
-                }
-            ],
-            "activities": [
-                {
-                    "name": f"Explore {destination}",
-                    "type": "Sightseeing",
-                    "duration": "Half Day",
-                    "cost": "Free - $20",
-                    "description": "Walk through the city and visit landmarks"
-                }
-            ],
-            "restaurants": [
-                {
-                    "name": f"Local Restaurant in {destination}",
-                    "cuisine": "Local",
-                    "price_range": "$10-25 per person",
-                    "rating": 4.0,
-                    "specialties": ["Traditional dishes"]
-                }
-            ],
-            "transportation": [
-                {
-                    "type": "Local Transport",
-                    "option": "Public Transport",
-                    "cost": "$10-20 per day",
-                    "duration": "Unlimited daily use"
-                }
-            ],
-            "tips": [
-                f"Enjoy your trip to {destination}!",
-                "Check local customs and dress codes"
-            ]
-        }
+    def generate_chat_response(self, user_message: str, trip_context: Dict, user_id: int = None, trip_id: int = None) -> str:
+        """Generate AI response for trip refinement chat"""
+        if not self.is_configured or not self.model:
+            return self._generate_fallback_chat_response(user_message, trip_context)
+        
+        try:
+            # Create a context-aware prompt for chat
+            prompt = self._create_chat_prompt(user_message, trip_context)
+            
+            generation_config = GenerationConfig(
+                max_output_tokens=2048,  # Increased from 1024
+                temperature=0.7,
+                top_p=0.95,
+            )
+            
+            # Generate response using Vertex AI
+            response = self.model.generate_content(prompt, generation_config=generation_config)
+            
+            if response and response.text:
+                return response.text.strip()
+            else:
+                return self._generate_fallback_chat_response(user_message, trip_context)
+                
+        except Exception as e:
+            logger.error(f"Error generating chat response: {str(e)}")
+            return self._generate_fallback_chat_response(user_message, trip_context)
+    
+    def _create_chat_prompt(self, user_message: str, trip_context: Dict) -> str:
+        """Create a context-aware prompt for chat interactions"""
+        destination = trip_context.get('destination', 'Unknown')
+        budget = trip_context.get('budget', 0)
+        currency_symbol = trip_context.get('currency_symbol', '$')
+        duration = trip_context.get('duration', 'Unknown')
+        preferences = trip_context.get('preferences', 'General travel')
+        
+        # Get current itinerary summary
+        itinerary_summary = ""
+        if 'itinerary' in trip_context and trip_context['itinerary']:
+            itinerary_summary = "Current itinerary includes: "
+            for day in trip_context['itinerary'][:3]:  # Show first 3 days
+                if isinstance(day, dict) and 'activities' in day:
+                    itinerary_summary += f"Day {day.get('day', 'N/A')}: {', '.join(day['activities'][:2])}; "
+        
+        # Get current activities summary
+        activities_summary = ""
+        if 'activities' in trip_context and trip_context['activities']:
+            activities_summary = "Current activities: "
+            for activity in trip_context['activities'][:3]:  # Show first 3 activities
+                if isinstance(activity, dict):
+                    activities_summary += f"{activity.get('name', 'Activity')}, "
+        
+        prompt = f"""
+You are an expert travel planner helping to refine a trip plan. Be conversational, helpful, and specific.
+
+CURRENT TRIP CONTEXT:
+- Destination: {destination}
+- Budget: {currency_symbol}{budget:,.2f}
+- Duration: {duration}
+- Preferences: {preferences}
+- {itinerary_summary}
+- {activities_summary}
+
+USER REQUEST: "{user_message}"
+
+INSTRUCTIONS:
+1. Respond in a conversational, helpful tone
+2. Be specific about what changes you can make
+3. If the request is about budget, provide specific cost adjustments and alternatives
+4. If about activities, suggest specific alternatives with details
+5. If about accommodations, recommend specific types or areas with reasons
+6. If about food, suggest specific restaurants or experiences
+7. Provide detailed, actionable suggestions (3-4 sentences minimum)
+8. Always end with a question to encourage further refinement
+9. If the user wants to finalize changes, explain what will be updated
+10. Be encouraging and show enthusiasm for their travel plans
+
+RESPONSE FORMAT:
+Provide a helpful, detailed response that addresses the user's request and offers specific suggestions for improvement. Make sure to give complete information and be thorough in your recommendations.
+"""
+        
+        return prompt
+    
+    def _generate_fallback_chat_response(self, user_message: str, trip_context: Dict) -> str:
+        """Generate fallback response when AI is not available"""
+        message_lower = user_message.lower()
+        
+        if any(word in message_lower for word in ['budget', 'cheaper', 'expensive', 'cost', 'money']):
+            return "I can help you adjust the budget! I can suggest more budget-friendly accommodations, free activities, or local dining options. What specific budget changes would you like to make?"
+        
+        elif any(word in message_lower for word in ['adventure', 'adventurous', 'exciting', 'thrilling']):
+            return "Great! I can add more adventurous activities like hiking, water sports, or extreme experiences. What type of adventure activities interest you most?"
+        
+        elif any(word in message_lower for word in ['culture', 'cultural', 'museum', 'historical']):
+            return "I'd love to add more cultural experiences! I can include museum visits, historical sites, local festivals, or cultural workshops. What cultural aspects interest you?"
+        
+        elif any(word in message_lower for word in ['relax', 'relaxing', 'spa', 'peaceful']):
+            return "I can make your trip more relaxing by adding spa visits, beach time, or quiet retreats. Would you like me to focus on wellness activities?"
+        
+        elif any(word in message_lower for word in ['food', 'restaurant', 'dining', 'cuisine']):
+            return "I can enhance your food experience with local restaurants, food tours, cooking classes, or street food adventures. What type of culinary experience interests you?"
+        
+        elif any(word in message_lower for word in ['finalize', 'final', 'done', 'complete', 'update']):
+            return "Perfect! I can help you finalize these changes. What specific modifications would you like me to apply to your trip plan?"
+        
+        else:
+            return "I understand you'd like to refine your trip! I can help adjust the budget, activities, accommodations, or dining options. What specific changes would you like to make?"
+    
+    def calculate_chat_credits(self, user_message: str, response_length: int = 0) -> int:
+        """Calculate credits used for chat interaction"""
+        # Base credits for chat interaction
+        base_credits = 1
+        
+        # Additional credits based on message complexity
+        additional_credits = 0
+        
+        # Check for complex requests
+        if any(word in user_message.lower() for word in ['budget', 'cost', 'money', 'expensive', 'cheaper']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['itinerary', 'schedule', 'activities', 'plan']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['accommodation', 'hotel', 'stay', 'lodging']):
+            additional_credits += 1
+        
+        if any(word in user_message.lower() for word in ['restaurant', 'food', 'dining', 'cuisine']):
+            additional_credits += 1
+        
+        # Credits based on response length
+        if response_length > 200:
+            additional_credits += 1
+        
+        return base_credits + additional_credits
 
 # Initialize the trip planner
 trip_planner = VertexAITripPlanner()

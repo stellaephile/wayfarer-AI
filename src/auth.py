@@ -1,6 +1,7 @@
 import streamlit as st
-import re
-from database import db
+import re,time
+from cloudsql_database_config import get_database
+db = get_database()
 from google_auth import show_google_signin_button, handle_google_callback
 
 def validate_email(email):
@@ -26,51 +27,68 @@ def validate_username(username):
         return False, "Username can only contain letters, numbers, and underscores"
     return True, ""
 
+
+
 def login_page():
     """Display login page with enhanced UI and Google OAuth"""
-    st.markdown("### 🔐 Welcome Back!")
-    st.markdown("Sign in to access your personalized trip planner")
-    
     # Handle Google OAuth callback
     if handle_google_callback():
         return
     
-    with st.form("login_form"):
-        username = st.text_input("Username", placeholder="Enter your username")
+    
+    st.markdown("### 🔐 Welcome Back!")
+    st.markdown("Sign in to access your personalized trip planner")
+    
+    with st.form("login_form", clear_on_submit=False):
+        username = st.text_input("Username or Email", placeholder="Enter your username or email")
         password = st.text_input("Password", type="password", placeholder="Enter your password")
-        submit_button = st.form_submit_button("Login", use_container_width=True)
         
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            submit_button = st.form_submit_button("Login", use_container_width=True)
+        
+        with col2:
+            #st.markdown("### Or continue with")
+            show_google_signin_button()
         if submit_button:
             if not username or not password:
                 st.error("Please fill in all fields")
                 return
             
             with st.spinner("Authenticating..."):
+                time.sleep(1)  # Simulate API call
                 user = db.authenticate_user(username, password)
                 if user:
                     st.session_state.user = user
                     st.session_state.logged_in = True
                     st.session_state.login_method = 'email'
                     st.success(f"Welcome back, {user['username']}!")
+                    time.sleep(1)
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
+
     
-    # Google Sign-in section
-    st.markdown("---")
-    st.markdown("### Or sign in with")
-    show_google_signin_button()
+    # Google Sign In Button
+    
+    
+    
+    
+    if st.button("Don't have an account? Sign Up", use_container_width=True, key="show_signup"):
+        st.session_state.show_login = False
+        st.rerun()
+    
 
 def signup_page():
     """Display signup page with enhanced validation and Google OAuth"""
-    st.markdown("### 📝 Create Your Account")
-    st.markdown("Join thousands of travelers planning amazing trips with AI")
-    
-    # Handle Google OAuth callback
+    """Display signup form"""
     if handle_google_callback():
         return
     
-    with st.form("signup_form"):
+    st.markdown("### 📝 Create Your Account")
+    st.markdown("Join thousands of travelers planning amazing trips with AI")
+    
+    with st.form("signup_form", clear_on_submit=False):
         col1, col2 = st.columns(2)
         
         with col1:
@@ -81,20 +99,19 @@ def signup_page():
             password = st.text_input("Password", type="password", placeholder="Create a password")
             confirm_password = st.text_input("Confirm Password", type="password", placeholder="Confirm your password")
         
-        # Terms and conditions
-        agree_terms = st.checkbox("I agree to the Terms of Service and Privacy Policy")
+        #agree_terms = st.checkbox("I agree to the Terms of Service and Privacy Policy")
         
         submit_button = st.form_submit_button("Create Account", use_container_width=True)
-        
+        show_google_signin_button
         if submit_button:
             # Validation
             if not all([username, email, password, confirm_password]):
                 st.error("Please fill in all fields")
                 return
             
-            if not agree_terms:
-                st.error("Please agree to the Terms of Service and Privacy Policy")
-                return
+            #if not agree_terms:
+            #    st.error("Please agree to the Terms of Service and Privacy Policy")
+            #    return
             
             # Validate username
             is_valid_username, username_error = validate_username(username)
@@ -119,18 +136,41 @@ def signup_page():
             
             # Create user
             with st.spinner("Creating your account..."):
+                time.sleep(1)  # Simulate API call
                 success, message = db.create_user(username, email, password)
                 if success:
+                # Initialize user credits
+                    try:
+                        user = db.get_user_by_email(email)
+                        if user and 'id' in user:
+                            db.initialize_user_credits(user['id'])
+                        else:
+                            st.info("Unable to add user credits")
+                    except Exception as e:
+                        st.info(f"Unable to add user credits: {str(e)}")
+
+
                     st.success("Account created successfully! Please login.")
+                    time.sleep(2)
                     st.session_state.show_login = True
                     st.rerun()
                 else:
-                    st.error(message)
+                    if "already exists" in message:
+                        st.warning(message)   # Friendly message for duplicate user
+                    else:
+                        st.error(message)     # Only real errors show as error
     
-    # Google Sign-up section
-    st.markdown("---")
-    st.markdown("### Or sign up with")
-    show_google_signin_button()
+    # Google Sign In Button
+    #st.markdown("---")
+    #st.markdown("### Or continue with")
+    
+    
+    
+    #st.markdown("---")
+    if st.button("Already have an account? Log In", use_container_width=True):
+        st.session_state.show_login = True
+        st.rerun()
+    
 
 def logout():
     """Logout user and clear session"""
@@ -139,40 +179,6 @@ def logout():
             del st.session_state[key]
     st.rerun()
 
-def show_auth_pages():
-    """Show authentication pages with enhanced UI and Google OAuth"""
-    if 'show_login' not in st.session_state:
-        st.session_state.show_login = True
-    
-    # Sidebar for switching between login and signup
-    with st.sidebar:
-        st.markdown("### 🗺️ AI Trip Planner")
-        st.markdown("---")
-        
-        # Feature highlights
-        st.markdown("**✨ Features:**")
-        st.markdown("• AI-powered trip planning")
-        st.markdown("• Personalized recommendations")
-        st.markdown("• Budget optimization")
-        st.markdown("• Save and manage trips")
-        st.markdown("• Google sign-in support")
-        
-        st.markdown("---")
-        
-        if st.session_state.show_login:
-            if st.button("Don't have an account? Sign Up", use_container_width=True):
-                st.session_state.show_login = False
-                st.rerun()
-        else:
-            if st.button("Already have an account? Login", use_container_width=True):
-                st.session_state.show_login = True
-                st.rerun()
-    
-    # Main content
-    if st.session_state.show_login:
-        login_page()
-    else:
-        signup_page()
 
 def check_auth():
     """Check if user is authenticated"""

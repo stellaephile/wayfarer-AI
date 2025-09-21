@@ -1,65 +1,61 @@
 import streamlit as st
+from css_styles import inject_css
 
 # Configure page FIRST - before any other Streamlit commands
 st.set_page_config(
-    page_title="AI Trip Planner",
-    page_icon="🗺️",
+    page_title="Wayfarer AI",
+    page_icon="ᨒ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Now import other modules
-from auth import show_auth_pages, check_auth
+from auth import  check_auth,login_page,signup_page
 from trip_planner import show_trip_planner
 
 def main():
-    """Main application entry point"""
+    inject_css()
     
-    # Custom CSS for better styling
-    st.markdown("""
-    <style>
-    .main-header {
-        font-size: 3rem;
-        color: #1f77b4;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .welcome-message {
-        font-size: 1.2rem;
-        color: #666;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .stButton > button {
-        background-color: #1f77b4;
-        color: white;
-        border-radius: 0.5rem;
-        border: none;
-        padding: 0.5rem 1rem;
-        font-weight: bold;
-    }
-    .stButton > button:hover {
-        background-color: #0d5a8a;
-        color: white;
-    }
-    .metric-card {
-        background-color: #f0f2f6;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        border-left: 4px solid #1f77b4;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    if 'show_login' not in st.session_state:
+        st.session_state.show_login = True
     
-    # Check if user is authenticated
-    if not check_auth():
-        # Show authentication pages
-        st.markdown('<h1 class="main-header">🗺️ AI Trip Planner</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="welcome-message">Plan your perfect trip with AI-powered suggestions</p>', unsafe_allow_html=True)
-        show_auth_pages()
-    else:
-        # Show main application
+    
+    # Check authentication
+    if check_auth():
+        st.session_state.show_login = False
         show_trip_planner()
+        
+    else:
+        
+        col1,col2,col3 =st.columns([1,2,1])
+        # Gradient Header
+        
+        # Auth page container
+        with col2:
+            st.markdown("""
+            <div class="auth-header">
+                <h1>ᨒ Wayfarer</h1>
+                <p>Reimagine Travel with AI</p>
+            </div>
+    """, unsafe_allow_html=True)
+            with st.container():
+                #st.markdown(
+                #    """
+                #    <div style="background:white; padding:2rem; border-radius:12px;
+                #                box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                #    """,
+                #    unsafe_allow_html=True
+                #)
+
+                # Show login or signup page based on session state
+                if st.session_state.get('show_login', True):
+                    # Show login page with option to switch to signup
+                    login_page()
+                else:
+                    # Show signup page with option to switch to login
+                    signup_page()
+                
+                
 
 if __name__ == "__main__":
     main()

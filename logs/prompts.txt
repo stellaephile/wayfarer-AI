@@ -1,0 +1,220 @@
+```json
+{
+    "destination": "Indore",
+    "duration": "3 days",
+    "budget": 20000.0,
+    "budget_breakdown": {
+        "accommodation": 7000.0,
+        "food": 5000.0,
+        "activities": 3000.0,
+        "transportation": 5000.0
+    },
+    "itinerary": [
+        {
+            "day": 1,
+            "date": "2025-09-21",
+            "day_name": "Sunday",
+            "activities": [
+                "Arrive in Indore, transfer to the hotel and check-in.",
+                "Settle in and dedicate the afternoon to work preparations or a preliminary meeting.",
+                "Evening visit to Sarafa Bazaar, the night street food market, for a unique culinary experience."
+            ],
+            "meals": {
+                "breakfast": "At the hotel or a local cafe upon arrival.",
+                "lunch": "A working lunch at the hotel's restaurant or a nearby cafe like Cafe Palette.",
+                "dinner": "Street food exploration at Sarafa Bazaar (try Bhutte ka Kees, Garadu, and Jalebi)."
+            }
+        },
+        {
+            "day": 2,
+            "date": "2025-09-22",
+            "day_name": "Monday",
+            "activities": [
+                "Morning and afternoon dedicated to scheduled work and business meetings.",
+                "Late afternoon break. Optional: A quick visit to the Khajrana Ganesh Temple.",
+                "Evening exploration of Chappan Dukan (56 Shops) for snacks and a lively atmosphere."
+            ],
+            "meals": {
+                "breakfast": "Complimentary at the hotel.",
+                "lunch": "Business lunch at a restaurant like The Creative Kitchen or a location convenient for your meetings.",
+                "dinner": "Snacks and light dinner at Chappan Dukan (try Johnny Hot Dog, various chaats)."
+            }
+        },
+        {
+            "day": 3,
+            "date": "2025-09-23",
+            "day_name": "Tuesday",
+            "activities": [
+                "Morning sightseeing: Visit the historic Rajwada Palace and the nearby Kanch Mandir (Glass Temple).",
+                "Return to the hotel, pack, and check-out.",
+                "Proceed to the airport or railway station for departure."
+            ],
+            "meals": {
+                "breakfast": "At the hotel.",
+                "lunch": "Enjoy a traditional Malwi thali at Shreemaya Celebrity before heading for your departure.",
+                "dinner": "Not applicable (departure)."
+            }
+        }
+    ],
+    "accommodations": [
+        {
+            "name": "Effotel by Sayaji Indore",
+            "type": "Hotel",
+            "price_range": "₹3500 - ₹4500 per night",
+            "rating": 4.4,
+            "amenities": ["Free WiFi", "Restaurant", "Fitness Center", "Business Center"],
+            "location": "Vijay Nagar",
+            "description": "A modern business hotel offering great value and services. Located in a prime commercial area, making it convenient for work."
+        },
+        {
+            "name": "Lemon Tree Hotel, Indore",
+            "type": "Hotel",
+            "price_range": "₹3000 - ₹4000 per night",
+            "rating": 4.3,
+            "amenities": ["Free WiFi", "Rooftop Restaurant", "Swimming Pool", "Work Desk in rooms"],
+            "location": "South Tukoganj",
+            "description": "A reliable and cheerful hotel chain located close to the city center. Known for its efficient service and business-friendly amenities."
+        },
+        {
+            "name": "Fairfield by Marriott Indore",
+            "type": "Hotel",
+            "price_range": "₹4000 - ₹5500 per night",
+            "rating": 4.5,
+            "amenities": ["Free WiFi", "24-hour front desk", "Fitness Center", "Meeting facilities"],
+            "location": "Vijay Nagar",
+            "description": "Offers a comfortable and seamless stay for business travelers with well-appointed rooms and professional service."
+        }
+    ],
+    "activities": [
+        {
+            "name": "Sarafa Bazaar",
+            "type": "Cultural/Food",
+            "duration": "2-3 hours",
+            "cost": "₹300 - ₹600 per person",
+            "description": "A jewelry market by day that transforms into a bustling street food paradise at night. A must-visit for food lovers.",
+            "rating": 4.6,
+            "best_time": "Evening (after 8 PM)"
+        },
+        {
+            "name": "Rajwada Palace",
+            "type": "Sightseeing/Historical",
+            "duration": "1-1.5 hours",
+            "cost": "₹25 for Indians, ₹200 for Foreigners",
+            "description": "A seven-storied historic palace of the Holkar dynasty, showcasing a blend of Maratha, Mughal, and French architectural styles.",
+            "rating": 4.2,
+            "best_time": "Morning or late afternoon"
+        },
+        {
+            "name": "Chappan Dukan (56 Shops)",
+            "type": "Food/Local Experience",
+            "duration": "1-2 hours",
+            "cost": "₹200 - ₹500 per person",
+            "description": "A famous street with 56 shops serving a wide variety of snacks, sweets, and beverages. Lively atmosphere in the evening.",
+            "rating": 4.4,
+            "best_time": "Evening"
+        },
+        {
+            "name": "Kanch Mandir (Glass Temple)",
+            "type": "Cultural/Religious",
+            "duration": "30-45 minutes",
+            "cost": "Free",
+            "description": "A unique Jain temple where the walls, ceiling, and floor are entirely covered in glass mosaics and mirrors.",
+            "rating": 4.3,
+            "best_time": "Morning"
+        },
+        {
+            "name": "Khajrana Ganesh Temple",
+            "type": "Religious",
+            "duration": "1 hour",
+            "cost": "Free (donations welcome)",
+            "description": "A highly revered temple dedicated to Lord Ganesha, known for its serene and spiritual ambiance.",
+            "rating": 4.7,
+            "best_time": "Morning or Evening"
+        }
+    ],
+    "restaurants": [
+        {
+            "name": "Shreemaya Celebrity",
+            "cuisine": "Indian Thali",
+            "price_range": "₹400 - ₹600 per person",
+            "rating": 4.3,
+            "specialties": ["Vegetarian Thali", "Malwi Cuisine"],
+            "location": "RNT Marg",
+            "reservation_required": false
+        },
+        {
+            "name": "The Creative Kitchen - Radisson Blu",
+            "cuisine": "Multi-cuisine",
+            "price_range": "₹1500 - ₹2500 per person",
+            "rating": 4.5,
+            "specialties": ["Buffet Spread", "Continental Dishes", "Sunday Brunch"],
+            "location": "Vijay Nagar",
+            "reservation_required": true
+        },
+        {
+            "name": "Nafees Restaurant",
+            "cuisine": "Mughlai/North Indian",
+            "price_range": "₹600 - ₹900 per person",
+            "rating": 4.2,
+            "specialties": ["Biryani", "Kebabs", "Mutton Rogan Josh"],
+            "location": "Old Palasia",
+            "reservation_required": false
+        },
+        {
+            "name": "Johnny Hot Dog",
+            "cuisine": "Street Food/Fast Food",
+            "price_range": "₹100 - ₹200 per person",
+            "rating": 4.5,
+            "specialties": ["Mutton Hot Dog", "Veg Hot Dog", "Benjo"],
+            "location": "Chappan Dukan",
+            "reservation_required": false
+        }
+    ],
+    "transportation": [
+        {
+            "type": "Airport Transfer",
+            "option": "Ride-sharing Apps (Uber/Ola)",
+            "cost": "₹300 - ₹500",
+            "duration": "30-45 minutes",
+            "description": "Convenient and readily available from Devi Ahilya Bai Holkar Airport (IDR) to the city center.",
+            "booking_required": false
+        },
+        {
+            "type": "Local",
+            "option": "Auto-rickshaw",
+            "cost": "₹50 - ₹200 per trip",
+            "duration": "Varies",
+            "description": "Ideal for short distances. It's best to use app-based services (Ola Auto) or negotiate the fare beforehand.",
+            "booking_required": false
+        },
+        {
+            "type": "Local",
+            "option": "Ride-sharing Apps (Uber/Ola)",
+            "cost": "₹100 - ₹400 per trip",
+            "duration": "Varies",
+            "description": "The most convenient way for a business traveler to get around the city comfortably and efficiently.",
+            "booking_required": false
+        }
+    ],
+    "tips": [
+        "Indore is known as India's cleanest city; please help maintain its cleanliness by using dustbins.",
+        "For business meetings, restaurants in hotels like Radisson Blu or Sayaji are excellent choices.",
+        "Carry cash for street food vendors at Sarafa and Chappan Dukan, although many now accept UPI payments.",
+        "Since your trip includes a weekday, plan your sightseeing around your work schedule to avoid traffic during peak hours (9-11 AM and 5-8 PM)."
+    ],
+    "weather": {
+        "temperature": "22°C - 30°C",
+        "conditions": "Pleasant with a chance of light post-monsoon showers. Generally humid.",
+        "recommendation": "Pack light cotton clothing, business casuals, an umbrella or a light raincoat, and comfortable footwear."
+    },
+    "packing_list": [
+        "Business attire for meetings",
+        "Casual outfits for evenings",
+        "Portable charger/power bank",
+        "Umbrella or waterproof jacket",
+        "Comfortable walking shoes",
+        "Any necessary work documents and laptop",
+        "Personal identification and travel documents"
+    ]
+}
+```
