@@ -103,25 +103,34 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"Error initializing database: {str(e)}")
             raise
+    
+    # Hash password for signup
+    def hash_password(self, password: str) -> str:
+        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    # Verify password on login
+    def verify_password(self, password: str, hashed: str) -> bool:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    
+
 
     # ---------------- Authentication ---------------- #
     def authenticate_user(self, username_or_email: str, password: str):
         """Authenticate user by username/email + password"""
         try:
-            if "@" in username_or_email:
-                query = "SELECT * FROM users WHERE email=:input AND is_active=1"
-            else:
-                query = "SELECT * FROM users WHERE username=:input AND is_active=1"
+            query = "SELECT * FROM users WHERE email=:input AND is_active=1" if "@" in username_or_email \
+                    else "SELECT * FROM users WHERE username=:input AND is_active=1"
 
             with self.get_connection() as conn:
                 user = conn.execute(sqlalchemy.text(query), {"input": username_or_email}).mappings().first()
-                if user and user['password_hash'] and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+                if user and user['password_hash'] and self.verify_password(password, user['password_hash']):
                     self.update_last_login(user['id'])
                     return dict(user)
-                return None
+            return None
         except Exception as e:
             st.error(f"Authentication error: {str(e)}")
             return None
+
 
     def update_last_login(self, user_id):
         try:
@@ -130,12 +139,10 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
 
-    def create_user(self, username, email, password_hash, name=None, login_method="email"):
-        """
-        Create a new user in the database.
-        Prevents duplicate users by catching IntegrityError (duplicate email).
-        """
+    def create_user(self, username, email, password, name=None, login_method="email"):
+        """Create a new user safely with hashed password"""
         try:
+            hashed_pw = self.hash_password(password)
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text("""
                     INSERT INTO users (username, email, password_hash, name, login_method)
@@ -143,20 +150,17 @@ class MySQLDatabaseManager:
                 """), {
                     "username": username,
                     "email": email,
-                    "password_hash": password_hash,
+                    "password_hash": hashed_pw,
                     "name": name,
                     "login_method": login_method
                 })
                 conn.commit()
-
             return True, "✅ User created successfully"
-
         except IntegrityError:
-            # Duplicate email (or unique constraint violation)
             return False, "⚠️ A user with this email already exists. Please log in instead."
-
         except Exception as e:
             return False, f"❌ Error creating user: {str(e)}"
+
 
     # ---------------- Trips ---------------- #
     def create_trip(
