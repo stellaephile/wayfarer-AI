@@ -6,8 +6,8 @@ from datetime import datetime
 import os
 import json
 from contextlib import contextmanager
-from dotenv import load_dotenv
-load_dotenv()
+
+
 class MySQLDatabaseManager:
     def __init__(self):
         # DB settings from env vars (Cloud Run / Secret Manager)
@@ -215,7 +215,7 @@ class MySQLDatabaseManager:
             st.error(f"Error adding credit transaction: {str(e)}")
 
     def get_user_credits(self, user_id):
-        """Get user's credit information"""
+        """Get user's credit information safely"""
         try:
             with self.get_connection() as conn:
                 # Get total credits used in trips
@@ -244,11 +244,15 @@ class MySQLDatabaseManager:
                 total_credits_row = total_credits_result.fetchone()
                 total_credits = int(total_credits_row[0]) if total_credits_row and total_credits_row[0] is not None else 1000
 
+                # Avoid division by zero
+                avg_credits_per_trip = (total_used / total_trips) if total_trips > 0 else 0
+
                 return {
                     'total_credits': total_credits,
                     'credits_used': total_used,
                     'credits_remaining': total_credits - total_used,
-                    'total_trips': total_trips
+                    'total_trips': total_trips,
+                    'avg_credits_per_trip': avg_credits_per_trip
                 }
 
         except Exception as e:
@@ -257,8 +261,10 @@ class MySQLDatabaseManager:
                 'total_credits': 1000,
                 'credits_used': 0,
                 'credits_remaining': 1000,
-                'total_trips': 0
+                'total_trips': 0,
+                'avg_credits_per_trip': 0
             }
+
         
     def get_user_stats(self, user_id):
         """Get user statistics"""
@@ -308,7 +314,7 @@ class MySQLDatabaseManager:
             }
         
     def update_trip(self, trip_id, user_id, **kwargs):
-        """Update a trip with dynamic fields"""
+        """Update a trip with dynamic fields and return updated trip dict"""
         allowed_fields = [
             "destination", "start_date", "end_date", "budget",
             "preferences", "ai_suggestions", "status",
@@ -337,16 +343,52 @@ class MySQLDatabaseManager:
         try:
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text(query), params)
-            return True, "Trip updated successfully"
+
+                # fetch updated row
+                updated = conn.execute(
+                    sqlalchemy.text("SELECT * FROM trips WHERE id = :trip_id AND user_id = :user_id"),
+                    {"trip_id": trip_id, "user_id": user_id}
+                ).mappings().first()
+
+                if updated:
+                    trip = dict(updated)
+                    for field in ["preferences", "ai_suggestions"]:
+                        if trip.get(field):
+                            try:
+                                trip[field] = json.loads(trip[field])
+                            except json.JSONDecodeError:
+                                pass
+                    return True, trip
+                return False, "Trip not found"
         except Exception as e:
             st.error(f"Error updating trip: {str(e)}")
-            return False, f"Error updating trip: {str(e)}"   
+            return False, f"Error updating trip: {str(e)}"
+
 
     def get_user_trips(self, user_id):
-        cursor = self.conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM trips WHERE user_id = %s", (user_id,))
-        trips = cursor.fetchall()
-        return trips    
+        """Get all trips for a user with JSON fields deserialized"""
+        try:
+            with self.get_connection() as conn:
+                result = conn.execute(
+                    sqlalchemy.text("SELECT * FROM trips WHERE user_id = :uid"),
+                    {"uid": user_id}
+                )
+                trips = []
+                for row in result.mappings().all():
+                    trip = dict(row)
+                    # Deserialize JSON fields if they exist
+                    for field in ["preferences", "ai_suggestions"]:
+                        if trip.get(field):
+                            try:
+                                trip[field] = json.loads(trip[field])
+                            except json.JSONDecodeError:
+                                pass
+                    trips.append(trip)
+            return trips
+        except Exception as e:
+            st.error(f"Error fetching trips: {str(e)}")
+            return []
+
 
 
 # ---------------- Global DB Instance ---------------- #

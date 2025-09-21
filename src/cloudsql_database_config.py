@@ -1,12 +1,14 @@
 import os
 import streamlit as st
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_database_config():
     """Get database configuration from Streamlit secrets (local) or env vars (Cloud Run)"""
 
     # --- Local dev: use st.secrets.toml ---
     try:
-        if hasattr(st, 'secrets') and 'MYSQL_USER' in st.secrets:
+        if hasattr(st, 'secrets') and 'POSTGRES_USER' in st.secrets:
             return {
                 "connection_name": st.secrets["CLOUDSQL_CONNECTION_NAME"],
                 "database": st.secrets["POSTGRES_DB"],

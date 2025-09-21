@@ -107,8 +107,11 @@ class CreditWidget:
                     value=credit_data['credits_remaining']
                 )
             
-            # Progress bar
-            progress = credit_data['credits_used'] / credit_data['total_credits']
+            if credit_data['total_credits'] > 0:
+                progress = credit_data['credits_used'] / credit_data['total_credits']
+            else:
+                progress = 0  # no credits available yet
+
             st.sidebar.progress(progress)
             
             # Status indicator
