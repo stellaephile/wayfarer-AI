@@ -106,11 +106,11 @@ class MySQLDatabaseManager:
     
     # Hash password for signup
     def hash_password(self, password: str) -> str:
-        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
+        return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
     # Verify password on login
     def verify_password(self, password: str, hashed: str) -> bool:
-        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     
 
 
@@ -141,6 +141,9 @@ class MySQLDatabaseManager:
 
     def create_user(self, username, email, password_hash, name=None, login_method="email"):
         try:
+            password_hash=self.hash_password(password_hash)
+            if password_hash:
+                st.info(f"Password Hashed:{password_hash}")
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text("""
                     INSERT INTO users (username, email, password_hash, name, login_method)
