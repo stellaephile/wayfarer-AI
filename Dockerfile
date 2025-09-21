@@ -25,6 +25,7 @@ RUN pip freeze
 COPY src/ ./src/
 COPY .streamlit/ ./.streamlit/
 COPY misc/ ./misc/
+COPY credentials/ ./credentials/
 
 # Create directories
 RUN mkdir -p /app/data ./logs
