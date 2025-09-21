@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 import base64
 import hashlib
 import secrets
-from database_config import get_database
+from cloudsql_database_config import get_database
 db = get_database()
 from dotenv import load_dotenv
 

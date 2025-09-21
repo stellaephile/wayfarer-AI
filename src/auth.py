@@ -1,6 +1,6 @@
 import streamlit as st
 import re,time
-from database_config import get_database
+from cloudsql_database_config import get_database
 db = get_database()
 from google_auth import show_google_signin_button, handle_google_callback
 

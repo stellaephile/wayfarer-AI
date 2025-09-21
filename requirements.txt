@@ -17,5 +17,5 @@ langchain-google-vertexai
 vertexai
 google
 dotenv
-mysql-connector-python
 reportlab
+cloud-sql-python-connector

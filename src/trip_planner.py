@@ -1,7 +1,7 @@
 import streamlit as st
 import json,logging,os
 from datetime import datetime, timedelta
-from database_config import get_database
+from cloudsql_database_config import get_database
 db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header

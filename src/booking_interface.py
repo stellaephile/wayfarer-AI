@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from typing import Dict, List, Optional
 from booking_system import booking_manager
-from database_config import get_database
+from cloudsql_database_config import get_database
 db = get_database()
 
 class BookingInterface:
