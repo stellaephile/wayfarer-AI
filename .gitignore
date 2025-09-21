@@ -58,7 +58,7 @@ Thumbs.db
 #logs/
 
 # Credentials
-#credentials/
+credentials/
 #*.json
 #.env
 
