@@ -140,7 +140,6 @@ def signup_page():
                 success, message = db.create_user(username, email, password)
                 if success:
                 # Initialize user credits
-                    db.initialize_user_credits(db.get_user_by_email(email)['id'])
                     st.success("Account created successfully! Please login.")
                     time.sleep(2)
                     st.session_state.show_login = True

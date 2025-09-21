@@ -116,20 +116,21 @@ class MySQLDatabaseManager:
 
     # ---------------- Authentication ---------------- #
     def authenticate_user(self, username_or_email: str, password: str):
-        """Authenticate user by username/email + password"""
+        """Authenticate user by username/email + raw password (temporary, no hashing)"""
         try:
             query = "SELECT * FROM users WHERE email=:input AND is_active=1" if "@" in username_or_email \
                     else "SELECT * FROM users WHERE username=:input AND is_active=1"
 
             with self.get_connection() as conn:
                 user = conn.execute(sqlalchemy.text(query), {"input": username_or_email}).mappings().first()
-                if user and user['password_hash'] and self.verify_password(password, user['password_hash']):
+                if user and user['password_hash'] == password:  # compare raw password
                     self.update_last_login(user['id'])
                     return dict(user)
             return None
         except Exception as e:
             st.error(f"Authentication error: {str(e)}")
             return None
+
 
 
     def update_last_login(self, user_id):
@@ -141,7 +142,7 @@ class MySQLDatabaseManager:
 
     def create_user(self, username, email, password_hash, name=None, login_method="email"):
         try:
-            password_hash=self.hash_password(password_hash)
+            #password_hash=self.hash_password(password_hash)
             if password_hash:
                 st.info(f"Password Hashed:{password_hash}")
             with self.get_connection() as conn:
@@ -175,7 +176,12 @@ class MySQLDatabaseManager:
         except Exception as e:
             return False, f"❌ Error creating user: {str(e)}"
 
-
+    def get_user_by_email(self, email: str):
+        cursor = self.conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result
 
     # ---------------- Trips ---------------- #
     def create_trip(
