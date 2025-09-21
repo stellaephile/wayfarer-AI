@@ -127,11 +127,7 @@ def logout():
     st.success("✅ Successfully logged out!")
     st.rerun()
 
-def check_auth():
-    """Check if user is authenticated"""
-    if 'logged_in' not in st.session_state or not st.session_state.logged_in:
-        return False
-    return True
+
 
 def show_dashboard():
     """Show modern user dashboard overview (sidebar handled by parent)"""
