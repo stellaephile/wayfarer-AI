@@ -5,9 +5,9 @@ import bcrypt
 import streamlit as st
 from datetime import datetime
 import os
-import json
 from contextlib import contextmanager
-
+import json
+from datetime import datetime, date
 
 class MySQLDatabaseManager:
     def __init__(self):
@@ -326,56 +326,49 @@ class MySQLDatabaseManager:
                 'popular_destination': "None"
             }
         
+    def _make_json_serializable(self, obj):
+        """Convert datetime/date objects to JSON-safe strings"""
+        if isinstance(obj, dict):
+            return {key: self._make_json_serializable(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_json_serializable(item) for item in obj]
+        elif isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        else:
+            return obj
+
     def update_trip(self, trip_id, user_id, **kwargs):
-        """Update a trip with dynamic fields and return updated trip dict"""
-        allowed_fields = [
-            "destination", "start_date", "end_date", "budget",
-            "preferences", "ai_suggestions", "status",
-            "booking_status", "booking_id", "booking_confirmation",
-            "current_city", "itinerary_preference"
-        ]
-        update_fields = []
-        params = {"trip_id": trip_id, "user_id": user_id}
-
-        for key, value in kwargs.items():
-            if key in allowed_fields:
-                if key in ["preferences", "ai_suggestions"]:
-                    value = json.dumps(value) if value else None
-                update_fields.append(f"{key} = :{key}")
-                params[key] = value
-
-        if not update_fields:
-            return False, "No valid fields to update"
-
-        query = f"""
-            UPDATE trips
-            SET {', '.join(update_fields)}
-            WHERE id = :trip_id AND user_id = :user_id
         """
-
+        Update trip record with flexible fields.
+        Automatically makes JSON fields serializable.
+        """
         try:
-            with self.get_connection() as conn:
-                conn.execute(sqlalchemy.text(query), params)
+            cursor = self.conn.cursor()
 
-                # fetch updated row
-                updated = conn.execute(
-                    sqlalchemy.text("SELECT * FROM trips WHERE id = :trip_id AND user_id = :user_id"),
-                    {"trip_id": trip_id, "user_id": user_id}
-                ).mappings().first()
+            fields = []
+            values = []
 
-                if updated:
-                    trip = dict(updated)
-                    for field in ["preferences", "ai_suggestions"]:
-                        if trip.get(field):
-                            try:
-                                trip[field] = json.loads(trip[field])
-                            except json.JSONDecodeError:
-                                pass
-                    return True, trip
-                return False, "Trip not found"
+            for key, value in kwargs.items():
+                if key == "booking_confirmation" and value is not None:
+                    # Ensure JSON-serializable
+                    value = json.dumps(self._make_json_serializable(value))
+                fields.append(f"{key} = %s")
+                values.append(value)
+
+            values.extend([trip_id, user_id])
+
+            sql = f"""
+                UPDATE trips
+                SET {", ".join(fields)}
+                WHERE trip_id = %s AND user_id = %s
+            """
+            cursor.execute(sql, tuple(values))
+            self.conn.commit()
+            cursor.close()
+            return True
         except Exception as e:
-            st.error(f"Error updating trip: {str(e)}")
-            return False, f"Error updating trip: {str(e)}"
+            print(f"❌ Error updating trip: {e}")
+            return False
 
 
     def get_user_trips(self, user_id):
