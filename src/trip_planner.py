@@ -743,7 +743,7 @@ def plan_new_trip():
                             credits_used,
                             f"AI trip generation for {destination}"
                         )
-                    except as e:
+                    except:
                         pass
                     
                     st.session_state.current_trip = suggestions
