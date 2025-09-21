@@ -140,6 +140,16 @@ def signup_page():
                 success, message = db.create_user(username, email, password)
                 if success:
                 # Initialize user credits
+                    try:
+                        user = db.get_user_by_email(email)
+                        if user and 'id' in user:
+                            db.initialize_user_credits(user['id'])
+                        else:
+                            st.info("Unable to add user credits")
+                    except Exception as e:
+                        st.info(f"Unable to add user credits: {str(e)}")
+
+
                     st.success("Account created successfully! Please login.")
                     time.sleep(2)
                     st.session_state.show_login = True

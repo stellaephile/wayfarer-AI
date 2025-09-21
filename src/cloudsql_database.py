@@ -164,10 +164,6 @@ class MySQLDatabaseManager:
                     {"email": email}
                 ).scalar()
 
-            # Assign initial credits
-            if user_id:
-                self.initialize_user_credits(user_id)
-
             return True, "✅ User created successfully"
 
         except IntegrityError:
