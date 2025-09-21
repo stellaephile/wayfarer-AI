@@ -37,4 +37,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/_stcore/health || exit 1
 
 # Run the Streamlit app, bound to Cloud Run's $PORT
-CMD ["sh", "-c", "streamlit run src/app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
+CMD ["sh", "-c", "streamlit run src/app.py --server.port=${PORT:-8501} --server.address=0.0.0.0"]
