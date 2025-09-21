@@ -19,3 +19,4 @@ google
 dotenv
 reportlab
 cloud-sql-python-connector
+PyMySQL
