@@ -14,15 +14,16 @@ Wayfarer AI is an intelligent trip planning platform that leverages Google GenAI
 - **Team Name:** [Your Team Name Here]
 - **Team Members:**  
   - [Sonal Ganvir](https://github.com/sonalgan)  
-  - [Add more team members here with GitHub links]
+  - [Bhupendra Choudhary](https://github.com/Bhupendrachaudhary2001)
+  - [Pratik Dongre](https://github.com/cosmic-ash)
 
 ---
 
 ## ✨ Features
 
-- **Google OAuth & Email Login:** Secure authentication for a personalized experience.
 - **Trip Preferences Form:** Collects user preferences (destination, dates, budget, travel type, interests, accommodation, etc.).
 - **AI-Powered Itinerary Generation:** Uses Vertex AI to create sustainable, time-efficient, or cost-efficient travel plans.
+- **Google OAuth & Email Login:** Secure authentication for a personalized experience.
 - **Iterative Planning:** Users can modify preferences and regenerate itineraries until satisfied.
 - **Export Options:** Download itineraries as PDF or add to calendar (.ics).
 - **Real-Time Booking Integration:** View and book flights/hotels via EaseMyTrip; bookings reflected in your itinerary.
@@ -93,7 +94,7 @@ misc/
 
 ## 📄 License
 
-[MIT License]()
+[MIT License](LICENSE)
 
 ---
 
