@@ -42,6 +42,6 @@ def validate_mysql_config():
 def get_database():
     """Factory function to get MySQLDatabaseManager instance"""
     validate_mysql_config()
-    from mysql_database import db
+    from cloudsql_database import db
     return db
 

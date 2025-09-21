@@ -34,7 +34,7 @@ EXPOSE 8501
 
 # Optional: Healthcheck on $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:$PORT/_stcore/health || exit 1
+    CMD curl -f https://wayfarer-ai-backend-111720869272.us-central1.run.app:$PORT/_stcore/health || exit 1
 
 # Run the Streamlit app, bound to Cloud Run's $PORT
 CMD ["sh", "-c", "streamlit run src/app.py --server.port=${PORT:-8501} --server.address=0.0.0.0"]
