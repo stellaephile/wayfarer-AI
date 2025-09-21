@@ -30,10 +30,11 @@ RUN mkdir -p /app/data ./logs
 
 # Expose the Cloud Run port (8080 by convention)
 EXPOSE 8080
+EXPOSE 8501
 
 # Optional: Healthcheck on $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/_stcore/health || exit 1
 
 # Run the Streamlit app, bound to Cloud Run's $PORT
-CMD ["streamlit", "run", "src/app.py", "--server.port=$PORT", "--server.address=0.0.0.0"]
+CMD ["sh", "-c", "streamlit run src/app.py --server.port=${PORT:-8080} --server.address=0.0.0.0"]
