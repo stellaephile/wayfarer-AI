@@ -139,10 +139,8 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
 
-    def create_user(self, username, email, password, name=None, login_method="email"):
-        """Create a new user safely with hashed password"""
+    def create_user(self, username, email, password_hash, name=None, login_method="email"):
         try:
-            hashed_pw = self.hash_password(password)
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text("""
                     INSERT INTO users (username, email, password_hash, name, login_method)
@@ -150,16 +148,30 @@ class MySQLDatabaseManager:
                 """), {
                     "username": username,
                     "email": email,
-                    "password_hash": hashed_pw,
+                    "password_hash": password_hash,
                     "name": name,
                     "login_method": login_method
                 })
                 conn.commit()
+
+                # Get the newly created user ID
+                user_id = conn.execute(
+                    sqlalchemy.text("SELECT id FROM users WHERE email=:email"),
+                    {"email": email}
+                ).scalar()
+
+            # Assign initial credits
+            if user_id:
+                self.initialize_user_credits(user_id)
+
             return True, "✅ User created successfully"
+
         except IntegrityError:
             return False, "⚠️ A user with this email already exists. Please log in instead."
+
         except Exception as e:
             return False, f"❌ Error creating user: {str(e)}"
+
 
 
     # ---------------- Trips ---------------- #
@@ -211,8 +223,14 @@ class MySQLDatabaseManager:
 
     # ---------------- Credits ---------------- #
     def initialize_user_credits(self, user_id):
-        """Give new user initial credits"""
-        self.add_credit_transaction(user_id, None, "welcome_bonus", 1000, "Welcome bonus 1000 credits")
+        self.add_credit_transaction(
+            user_id=user_id,
+            trip_id=None,
+            transaction_type="welcome_bonus",
+            credits_amount=1000,
+            description="Welcome bonus 1000 credits"
+        )
+
 
     def add_credit_transaction(self, user_id, trip_id, transaction_type, credits_amount, description):
         try:
@@ -261,8 +279,11 @@ class MySQLDatabaseManager:
                 total_credits_row = total_credits_result.fetchone()
                 total_credits = int(total_credits_row[0]) if total_credits_row and total_credits_row[0] is not None else 1000
 
+
                 # Avoid division by zero
-                avg_credits_per_trip = (total_used / total_trips) if total_trips > 0 else 0
+                
+                avg_credits_per_trip = total_used / total_trips if total_trips else 0
+
 
                 return {
                     'total_credits': total_credits,

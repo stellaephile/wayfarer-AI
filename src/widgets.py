@@ -5,13 +5,7 @@ import time,os,json
 import threading
 import random
 from functools import wraps
-from io import BytesIO
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
+
 from datetime import datetime
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
@@ -19,9 +13,8 @@ from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
 )
-from reportlab.lib.styles import getSampleStyleSheet
-from datetime import datetime
-import os
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import re
 
 
 def get_fun_spinner_messages():
@@ -199,13 +192,16 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
         start_date_str = itinerary[0].get("date", "")
         end_date_str = itinerary[-1].get("date", "")
 
-        # Logo
+        # Logo (optional, must exist inside container)
         logo = os.getenv("LOGO_IMG")
-        if logo and os.path.exists(logo):
-            elements.append(Spacer(1, 120))
-            img = Image(logo, width=200, height=200)
-            img.hAlign = "CENTER"
-            elements.append(img)
+        if logo:
+            try:
+                img = Image(logo, width=200, height=200)
+                img.hAlign = "CENTER"
+                elements.append(Spacer(1, 120))
+                elements.append(img)
+            except Exception:
+                pass  # skip if logo file is missing
 
         elements.append(Spacer(1, 60))
         elements.append(Paragraph(f"<b>{destination} Itinerary</b>", styles["Title"]))
@@ -233,11 +229,9 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
 
             activity_data = [["Time/Meal", "Plan"]]
 
-            # Wrap activities in Paragraphs
             for act in day_plan.get("activities", []):
                 activity_data.append(["Activity", Paragraph(act, styles["Normal"])])
 
-            # Wrap meals in Paragraphs
             for meal, desc in day_plan.get("meals", {}).items():
                 activity_data.append([meal.capitalize(), Paragraph(desc, styles["Normal"])])
 
@@ -249,11 +243,10 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
                 ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),  # keep text aligned top
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
             ]))
             elements.append(table)
             elements.append(Spacer(1, 20))
-
 
         # --- BUDGET BREAKDOWN ---
         if "budget_breakdown" in trip_data:
@@ -271,30 +264,35 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
     return pdf
 
 
-
-
 def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=None):
     try:
         # ai_suggestions can be JSON string or dict
         if isinstance(ai_suggestions, str):
             ai_suggestions = json.loads(ai_suggestions)
-        
+
         # ✅ Pull itinerary from ai_suggestions
         itinerary = ai_suggestions.get("itinerary", []) if ai_suggestions else []
-        
-        # If itinerary is missing, fall back
+
+        # Fallback to trip_data itinerary
         if not itinerary:
             itinerary = trip_data.get("itinerary", [])
-        
-        # Now pass itinerary into PDF generator
-        pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=None)
+
+        # Generate PDF bytes
+        pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=weather_data)
+
+        # Sanitize filename (remove spaces/special chars)
+        destination = trip_data.get('destination', 'trip')
+        safe_destination = re.sub(r'[^a-zA-Z0-9_-]', '_', destination)
+        file_name = f"trip_itinerary_{safe_destination}.pdf"
 
         st.download_button(
             label="📥 Download Itinerary PDF",
             data=pdf_bytes,
-            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.pdf",
+            file_name=file_name,
             mime="application/pdf",
         )
+
     except Exception as e:
         st.error(f"❌ Error generating PDF: {str(e)}")
+
 
