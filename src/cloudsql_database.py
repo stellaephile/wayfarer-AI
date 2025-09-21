@@ -181,26 +181,26 @@ class MySQLDatabaseManager:
 
     # ---------------- Trips ---------------- #
     def create_trip(
-        self,
-        user_id,
-        destination,
-        start_date=None,
-        end_date=None,
-        budget=None,
-        preferences=None,
-        ai_suggestions=None,
-        currency='USD',
-        currency_symbol='$',
-        current_city=None,
-        itinerary_preference=None
-    ):
-        """Create a new trip in Cloud SQL"""
+    self,
+    user_id,
+    destination,
+    start_date=None,
+    end_date=None,
+    budget=None,
+    preferences=None,
+    ai_suggestions=None,
+    currency='USD',
+    currency_symbol='$',
+    current_city=None,
+    itinerary_preference=None
+):
+        """Create a new trip in Cloud SQL and return the trip ID"""
         try:
             preferences_json = json.dumps(preferences) if preferences else None
             ai_suggestions_json = json.dumps(ai_suggestions) if ai_suggestions else None
 
             with self.get_connection() as conn:
-                conn.execute(sqlalchemy.text("""
+                result = conn.execute(sqlalchemy.text("""
                     INSERT INTO trips
                     (user_id, destination, current_city, start_date, end_date, budget, preferences, itinerary_preference, ai_suggestions, currency, currency_symbol)
                     VALUES
@@ -218,12 +218,14 @@ class MySQLDatabaseManager:
                     "currency": currency,
                     "currency_symbol": currency_symbol
                 })
+                conn.commit()  # Ensure the trip is saved
+                trip_id = result.lastrowid  # Get the new trip's ID
 
-            return True, "Trip created successfully"
+            return True, trip_id
 
         except Exception as e:
-            st.error(f"Error creating trip: {str(e)}")
-            return False, f"Error creating trip: {str(e)}"
+            st.error(f"❌ Error creating trip: {str(e)}")
+            return False, None
 
 
     # ---------------- Credits ---------------- #
@@ -251,6 +253,7 @@ class MySQLDatabaseManager:
                     "credits_amount": credits_amount,
                     "description": description
                 })
+                conn.commit()
         except Exception as e:
             st.error(f"Error adding credit transaction: {str(e)}")
 

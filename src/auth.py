@@ -145,9 +145,10 @@ def signup_page():
                         if user and 'id' in user:
                             db.initialize_user_credits(user['id'])
                         else:
-                            st.info("Unable to add user credits")
+                            pass
+                            #st.info("Unable to add user credits")
                     except Exception as e:
-                        st.info(f"Unable to add user credits: {str(e)}")
+                        pass
 
 
                     st.success("Account created successfully! Please login.")
