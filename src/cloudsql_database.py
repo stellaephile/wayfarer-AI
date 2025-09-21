@@ -6,7 +6,8 @@ from datetime import datetime
 import os
 import json
 from contextlib import contextmanager
-
+from dotenv import load_dotenv
+load_dotenv()
 class MySQLDatabaseManager:
     def __init__(self):
         # DB settings from env vars (Cloud Run / Secret Manager)
