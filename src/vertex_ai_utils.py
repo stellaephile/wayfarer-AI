@@ -10,6 +10,7 @@ from google.cloud import aiplatform
 from google.oauth2 import service_account
 import logging
 from dotenv import load_dotenv
+load_dotenv()
 from input_prompts import planning_prompt
 
 print("Current path:", os.getcwd())
