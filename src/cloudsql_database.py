@@ -130,33 +130,33 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"Error updating last login: {str(e)}")
 
-        def create_user(self, username, email, password_hash, name=None, login_method="email"):
-            """
-            Create a new user in the database.
-            Prevents duplicate users by catching IntegrityError (duplicate email).
-            """
-            try:
-                with self.get_connection() as conn:
-                    conn.execute(sqlalchemy.text("""
-                        INSERT INTO users (username, email, password_hash, name, login_method)
-                        VALUES (:username, :email, :password_hash, :name, :login_method)
-                    """), {
-                        "username": username,
-                        "email": email,
-                        "password_hash": password_hash,
-                        "name": name,
-                        "login_method": login_method
-                    })
-                    conn.commit()
+    def create_user(self, username, email, password_hash, name=None, login_method="email"):
+        """
+        Create a new user in the database.
+        Prevents duplicate users by catching IntegrityError (duplicate email).
+        """
+        try:
+            with self.get_connection() as conn:
+                conn.execute(sqlalchemy.text("""
+                    INSERT INTO users (username, email, password_hash, name, login_method)
+                    VALUES (:username, :email, :password_hash, :name, :login_method)
+                """), {
+                    "username": username,
+                    "email": email,
+                    "password_hash": password_hash,
+                    "name": name,
+                    "login_method": login_method
+                })
+                conn.commit()
 
-                return True, "✅ User created successfully"
+            return True, "✅ User created successfully"
 
-            except IntegrityError:
-                # Duplicate email (or unique constraint violation)
-                return False, "⚠️ A user with this email already exists. Please log in instead."
+        except IntegrityError:
+            # Duplicate email (or unique constraint violation)
+            return False, "⚠️ A user with this email already exists. Please log in instead."
 
-            except Exception as e:
-                return False, f"❌ Error creating user: {str(e)}"
+        except Exception as e:
+            return False, f"❌ Error creating user: {str(e)}"
 
     # ---------------- Trips ---------------- #
     def create_trip(
