@@ -731,7 +731,7 @@ def plan_new_trip():
                 
                 if success:
                     # Extract trip_id from message
-                    trip_id = int(message.split("ID: ")[1])
+                    trip_id = message
                     
                     # Calculate and track credits used
                     credits_used = calculate_credits_used(suggestions)
