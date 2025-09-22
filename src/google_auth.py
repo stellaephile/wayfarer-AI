@@ -174,14 +174,14 @@ def handle_google_callback():
         st.query_params.clear()
         return False
 
-    if "code" not in params:
-        st.info("Click the Google sign-in button to continue.")
-        return False
+    #if "code" not in params:
+    #    st.info("Click the Google sign-in button to continue.")
+    #    return False
 
     # Validate state
-    if "state" not in params or params["state"] != st.session_state.get("oauth_state"):
-        st.error("OAuth state mismatch. Please try signing in again.")
-        return False
+    #if "state" not in params or params["state"] != st.session_state.get("oauth_state"):
+    #    st.error("OAuth state mismatch. Please try signing in again.")
+    #    return False
 
     try:
         user_info = auth.exchange_code_for_userinfo(params["code"])
