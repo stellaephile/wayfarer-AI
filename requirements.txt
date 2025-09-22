@@ -3,7 +3,6 @@ google-cloud-aiplatform
 google-cloud-aiplatform[langchain]
 pandas
 numpy
-bcrypt
 python-dotenv
 streamlit-authenticator
 plotly
@@ -22,3 +21,5 @@ cloud-sql-python-connector
 #PyMySQL
 SQLAlchemy
 psycopg2-binary
+pg8000
+bcrypt
