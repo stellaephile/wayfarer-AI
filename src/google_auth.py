@@ -54,6 +54,7 @@ class GoogleAuth:
         self.client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
         self.redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501")
         self.is_configured = bool(self.client_id and self.client_secret)
+        self.scopes = SCOPES
         if not self.is_configured:
             st.warning("⚠️ Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.")
 
@@ -72,7 +73,7 @@ class GoogleAuth:
                     "redirect_uris": [self.redirect_uri]
                 }
             },
-            scopes=self.SCOPES
+            scopes=self.scopes
         )
         flow.redirect_uri = self.redirect_uri
 
