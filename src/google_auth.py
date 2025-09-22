@@ -75,19 +75,20 @@ class GoogleAuth:
         )
         flow.redirect_uri = self.redirect_uri
 
-        # Secure random state
-        state = secrets.token_urlsafe(32)
-        st.session_state.oauth_state = state
+        # Fetch token using the authorization code
+        flow.fetch_token(code=code)
 
-        # ✅ NEW API: set query params
-        st.query_params["oauth_state"] = state
+        # Get access token from the Flow credentials
+        credentials = flow.credentials
+        access_token = credentials.token
 
-        auth_url, _ = flow.authorization_url(
-            access_type="offline",
-            include_granted_scopes="true",
-            state=state
+        # Fetch user info from Google
+        user_info_response = requests.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
         )
-        return auth_url
+        user_info_response.raise_for_status()
+        return user_info_response.json()
 
     def exchange_code_for_userinfo(self, code):
         """Exchange authorization code for user info"""
@@ -160,47 +161,55 @@ def show_google_signin_button():
 
 
 def handle_google_callback():
-    """Handle OAuth callback and log in user"""
+    """Handle OAuth callback and log in user using Flow with server_metadata_url"""
     auth = GoogleAuth()
     if not auth.is_configured:
         return False
 
-    params = st.query_params  # ✅ New API returns dict[str, str]
+    params = st.query_params  # ✅ Streamlit new API
 
-    # OAuth error
+    # Check for OAuth errors
     if "error" in params:
         st.error(f"Google OAuth error: {params.get('error', 'Unknown error')}")
         st.query_params.clear()
         return False
 
     code = params.get("code")
-    if not code:
-        st.info("Click the Google sign-in button to continue.")
-        return False
+    #if not code:
+    #    st.info("Click the Google sign-in button to continue.")
+    #    return False
 
     # Optional state check
-    # state = params.get("state")
-    # if state != st.session_state.get("oauth_state"):
-    #     st.error("OAuth state mismatch. Please try signing in again.")
-    #     return False
+    state = params.get("state")
+    if state != st.session_state.get("oauth_state"):
+        st.error("OAuth state mismatch. Please try signing in again.")
+        return False
 
     try:
+        # Exchange code for user info
         user_info = auth.exchange_code_for_userinfo(code)
         user = auth.create_or_get_user(user_info)
+
         if user:
+            # Store user in session state
             st.session_state.user = user
             st.session_state.logged_in = True
             st.session_state.login_method = "google"
-            st.query_params.clear()  # ✅ Clear params after login
+
+            # Clear query params and oauth state
+            st.query_params.clear()
             st.session_state.pop("oauth_state", None)
+
             st.success(f"Welcome, {user['name']}!")
             st.rerun()
         else:
             st.error("Failed to log in user.")
             return False
+
     except Exception as e:
         st.error(f"Authentication failed: {e}")
         return False
+
 
 
 # Initialize Google Auth
