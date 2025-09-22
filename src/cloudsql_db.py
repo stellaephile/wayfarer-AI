@@ -451,43 +451,48 @@ class MySQLDatabaseManager:
 
 
 
-    # Update trip record (SQLAlchemy + JSON-safe)
+    def _make_json_serializable(self, obj):
+        """Convert datetime/date objects to JSON-safe strings"""
+        if isinstance(obj, dict):
+            return {key: self._make_json_serializable(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_json_serializable(item) for item in obj]
+        elif isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        else:
+            return obj
+
     def update_trip(self, trip_id, user_id, **kwargs):
         """
         Update trip record with flexible fields.
         Automatically makes JSON fields serializable.
-        Returns True if successful, False otherwise.
         """
         try:
-            if not kwargs:
-                return False
+            cursor = self.conn.cursor()
 
             fields = []
-            params = {}
+            values = []
 
             for key, value in kwargs.items():
-                # Make JSON fields serializable if needed
-                if key in ["preferences", "ai_suggestions", "booking_confirmation"] and value is not None:
+                if key == "booking_confirmation" and value is not None:
+                    # Ensure JSON-serializable
                     value = json.dumps(self._make_json_serializable(value))
-                fields.append(f"{key} = :{key}")
-                params[key] = value
+                fields.append(f"{key} = %s")
+                values.append(value)
 
-            params.update({"trip_id": trip_id, "user_id": user_id})
+            values.extend([trip_id, user_id])
 
             sql = f"""
                 UPDATE trips
-                SET {', '.join(fields)}
-                WHERE id = :trip_id AND user_id = :user_id
+                SET {", ".join(fields)}
+                WHERE trip_id = %s AND user_id = %s
             """
-
-            with self.get_connection() as conn:
-                conn.execute(sqlalchemy.text(sql), params)
-                conn.commit()
-
+            cursor.execute(sql, tuple(values))
+            self.conn.commit()
+            cursor.close()
             return True
-
         except Exception as e:
-            st.error(f"❌ Error updating trip: {str(e)}")
+            print(f"❌ Error updating trip: {e}")
             return False
         
     def create_google_user(self, username, email, name, google_id, picture, verified_email):
