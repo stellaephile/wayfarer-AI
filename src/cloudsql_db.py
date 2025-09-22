@@ -31,10 +31,16 @@ class MySQLDatabaseManager:
         self.user = os.getenv("POSTGRES_USER", "trip_planner")
         self.password = os.getenv("MYSQL_PASSWORD", "")
 
-        self.connector = Connector()
+        
 
         # SQLAlchemy engine using Cloud SQL Python Connector
-        self.engine = sqlalchemy.create_engine(
+        if(os.getenv('GOOGLE_REDIRECT_URI')=='https://localhost:8501'):
+            self.engine = sqlalchemy.create_engine(
+                            f"mysql+pymysql://{self.user}:{self.password}@35.225.222.139/{self.database}"
+                            )
+        else:
+            self.connector = Connector()
+            self.engine = sqlalchemy.create_engine(
             "mysql+pymysql://",
             creator=self.getconn,
             pool_size=5,
@@ -42,6 +48,10 @@ class MySQLDatabaseManager:
             pool_timeout=30,
             pool_recycle=1800
         )
+
+        
+
+
 
         # Test connection
         try:
@@ -211,7 +221,7 @@ class MySQLDatabaseManager:
                 if user_row:
                     user = dict(user_row)
                     # Verify password using bcrypt
-                    if password and user.get('password_hash'):
+                    if password and user.get('password_hash') and password==user.get('password_hash'):
                         self.update_last_login(user['id'])
                         return user
             return None
@@ -257,7 +267,6 @@ class MySQLDatabaseManager:
                 (user_id, destination, current_city, start_date, end_date, budget, preferences, itinerary_preference, ai_suggestions, currency, currency_symbol)
                 VALUES
                 (:user_id, :destination, :current_city, :start_date, :end_date, :budget, :preferences, :itinerary_preference, :ai_suggestions, :currency, :currency_symbol)
-                RETURNING id
             """)
 
             with self.get_connection() as conn:
@@ -275,7 +284,7 @@ class MySQLDatabaseManager:
                     "currency_symbol": currency_symbol
                 })
                 conn.commit()
-                trip_id = result.scalar()
+                trip_id = result.lastrowid
 
             return True, trip_id
 
@@ -440,19 +449,6 @@ class MySQLDatabaseManager:
 
     # ---------------- Refactored / Missing Functions ---------------- #
 
-    # Get user by email (SQLAlchemy version)
-    def get_user_by_email(self, email: str):
-        """Fetch a user by email"""
-        try:
-            with self.get_connection() as conn:
-                result = conn.execute(
-                    sqlalchemy.text("SELECT * FROM users WHERE email = :email"),
-                    {"email": email}
-                ).mappings().first()
-                return dict(result) if result else None
-        except Exception as e:
-            st.error(f"Error fetching user by email: {str(e)}")
-            return None
 
 
     # Update trip record (SQLAlchemy + JSON-safe)
