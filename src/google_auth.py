@@ -82,7 +82,9 @@ class GoogleAuth:
         st.session_state.oauth_state = state
 
 
-        st.set_query_params(oauth_state=state)
+       # Set or update query parameters
+        st.query_params = {"oauth_state": state}
+
 
         auth_url, _ = flow.authorization_url(
             access_type="offline",
