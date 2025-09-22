@@ -23,7 +23,7 @@ if not logger.handlers:
     logger.addHandler(ch)
 
 # ---------------- Database Manager ---------------- #
-class PostgresDatabaseManager:
+class MySQLDatabaseManager:
     def __init__(self):
         # DB settings from env vars
         self.connection_name = os.getenv("CLOUDSQL_CONNECTION_NAME")  # project:region:instance
@@ -35,7 +35,7 @@ class PostgresDatabaseManager:
 
         # SQLAlchemy engine using Cloud SQL Python Connector
         self.engine = sqlalchemy.create_engine(
-            "postgresql+pg8000://",
+            "mysql+pymysql://",
             creator=self.getconn,
             pool_size=5,
             max_overflow=2,
@@ -59,7 +59,7 @@ class PostgresDatabaseManager:
         """Return a new Cloud SQL connection"""
         return self.connector.connect(
             self.connection_name,
-            "pg8000",
+            "pymysql",  # MySQL driver
             user=self.user,
             password=self.password,
             db=self.database
@@ -78,7 +78,7 @@ class PostgresDatabaseManager:
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text("""
                     CREATE TABLE IF NOT EXISTS users (
-                        id SERIAL PRIMARY KEY,
+                        id INT AUTO_INCREMENT PRIMARY KEY,
                         username VARCHAR(255) UNIQUE NOT NULL,
                         email VARCHAR(255) UNIQUE NOT NULL,
                         password_hash TEXT,
@@ -95,7 +95,7 @@ class PostgresDatabaseManager:
 
                 conn.execute(sqlalchemy.text("""
                     CREATE TABLE IF NOT EXISTS trips (
-                        id SERIAL PRIMARY KEY,
+                        id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                         destination VARCHAR(255) NOT NULL,
                         start_date DATE,
@@ -117,7 +117,7 @@ class PostgresDatabaseManager:
 
                 conn.execute(sqlalchemy.text("""
                     CREATE TABLE IF NOT EXISTS credit_transactions (
-                        id SERIAL PRIMARY KEY,
+                        id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                         trip_id INT REFERENCES trips(id) ON DELETE SET NULL,
                         transaction_type VARCHAR(100) NOT NULL,
@@ -532,4 +532,4 @@ class PostgresDatabaseManager:
             st.error(f"Error adding credit transaction: {str(e)}")
 
 # ---------------- Global DB Instance ---------------- #
-db = PostgresDatabaseManager()
+db = MySQLDatabaseManager()

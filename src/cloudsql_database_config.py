@@ -42,8 +42,8 @@ def validate_postgres_config():
     return True
 
 def get_database():
-    """Factory function to get PostgresDatabaseManager instance"""
+    """Factory function to get MySQLDatabaseManager instance"""
     validate_postgres_config()
-    from cloudsql_database import db
+    from cloudsql_db import db
     return db
 

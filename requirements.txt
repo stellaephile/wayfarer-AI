@@ -18,8 +18,8 @@ google
 dotenv
 reportlab
 cloud-sql-python-connector
-#PyMySQL
+PyMySQL
 SQLAlchemy
-psycopg2-binary
-pg8000
+#psycopg2-binary
+#pg8000
 bcrypt
