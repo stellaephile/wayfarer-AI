@@ -493,6 +493,26 @@ class MySQLDatabaseManager:
         except Exception as e:
             st.error(f"❌ Error updating trip: {str(e)}")
             return False
+        
+    def create_google_user(self, username, email, name, google_id, picture, verified_email):
+        try:
+            query = sqlalchemy.text("""
+                INSERT INTO users (username, email, name, google_id, picture, verified_email, login_method)
+                VALUES (:username, :email, :name, :google_id, :picture, :verified_email, 'google')
+            """)
+            with self.get_connection() as conn:
+                conn.execute(query, {
+                    "username": username,
+                    "email": email,
+                    "name": name,
+                    "google_id": google_id,
+                    "picture": picture,
+                    "verified_email": verified_email
+                })
+                conn.commit()
+            return True, "User created successfully"
+        except Exception as e:
+            return False, str(e)
 
 
 

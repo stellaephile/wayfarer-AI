@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 import base64
 import hashlib
 import secrets
+import sqlalchemy
 from cloudsql_database_config import get_database
 db = get_database()
 from dotenv import load_dotenv
@@ -97,7 +98,8 @@ class GoogleAuth:
         try:
             # Verify state parameter (silent validation)
             if 'state' in authorization_response:
-                stored_state = st.session_state.get('oauth_state')
+                if 'oauth_state' in st.session_state:
+                    stored_state = st.session_state['oauth_state']
                 received_state = authorization_response['state']
                 
                 if stored_state and stored_state != received_state:
@@ -164,16 +166,20 @@ class GoogleAuth:
             else:
                 # User exists but with different login method - link Google account
                 try:
-                    conn = db.get_connection()
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        UPDATE users 
-                        SET google_id = ?, picture = ?, verified_email = ?, login_method = 'google'
-                        WHERE email = ?
-                    """, (google_id, google_user_info.get('picture', ''), 
-                          google_user_info.get('verified_email', False), email))
-                    conn.commit()
-                    conn.close()
+                    with db.get_connection() as conn:
+                        conn.execute(
+                            sqlalchemy.text("""
+                                UPDATE users 
+                                SET google_id = :google_id, picture = :picture, verified_email = :verified_email, login_method = 'google'
+                                WHERE email = :email
+                            """),
+                            {
+                                "google_id": google_id,
+                                "picture": google_user_info.get('picture', ''),
+                                "verified_email": google_user_info.get('verified_email', False),
+                                "email": email
+                            }
+                        )
                     
                     return db.get_user_by_email(email)
                 except Exception as e:
