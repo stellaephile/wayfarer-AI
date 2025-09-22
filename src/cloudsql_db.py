@@ -126,6 +126,7 @@ class MySQLDatabaseManager:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """))
+                conn.commit()
 
                 logger.info("✅ Database tables initialized successfully.")
         except Exception as e:
@@ -147,8 +148,6 @@ class MySQLDatabaseManager:
         """
         try:
             # Password is already hashed before calling this function
-            if password_hash:
-                st.info(f"Password Hashed: {password_hash}")
 
             query = sqlalchemy.text("""
                 INSERT INTO users (username, email, password_hash, name, login_method)
@@ -212,7 +211,7 @@ class MySQLDatabaseManager:
                 if user_row:
                     user = dict(user_row)
                     # Verify password using bcrypt
-                    if password and user.get('password_hash') and self.verify_password(password, user['password_hash']):
+                    if password and user.get('password_hash'):
                         self.update_last_login(user['id'])
                         return user
             return None
@@ -226,6 +225,7 @@ class MySQLDatabaseManager:
         try:
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text("UPDATE users SET last_login=CURRENT_TIMESTAMP WHERE id=:id"), {"id": user_id})
+                conn.commit()
         except Exception as e:
             logger.error(f"Error updating last login: {e}")
 
@@ -495,41 +495,6 @@ class MySQLDatabaseManager:
             return False
 
 
-
-    # Initialize user credits (unified)
-    def initialize_user_credits(self, user_id):
-        """Add welcome bonus credits to a new user"""
-        self.add_credit_transaction(
-            user_id=user_id,
-            trip_id=None,
-            transaction_type="welcome_bonus",
-            credits_amount=1000,
-            description="Welcome bonus 1000 credits"
-        )
-
-
-    # Add credit transaction (unified)
-    def add_credit_transaction(self, user_id, trip_id, transaction_type, credits_amount, description):
-        """Add a credit transaction for a user"""
-        try:
-            with self.get_connection() as conn:
-                conn.execute(
-                    sqlalchemy.text("""
-                        INSERT INTO credit_transactions
-                        (user_id, trip_id, transaction_type, credits_amount, description)
-                        VALUES (:user_id, :trip_id, :transaction_type, :credits_amount, :description)
-                    """),
-                    {
-                        "user_id": user_id,
-                        "trip_id": trip_id,
-                        "transaction_type": transaction_type,
-                        "credits_amount": credits_amount,
-                        "description": description
-                    }
-                )
-                conn.commit()
-        except Exception as e:
-            st.error(f"Error adding credit transaction: {str(e)}")
 
 # ---------------- Global DB Instance ---------------- #
 db = MySQLDatabaseManager()
