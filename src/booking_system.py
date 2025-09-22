@@ -15,11 +15,12 @@ class EaseMyTripBookingSystem:
     def __init__(self):
         self.base_url = "https://api.easemytrip.com/v1"  # Replace with actual EaseMyTrip API URL
         try:
-            self.api_key = st.secrets.get("EASEMYTRIP_API_KEY", "demo_key")  # Store in Streamlit secrets
-        except:
             self.api_key = os.getenv("EASEMYTRIP_API_KEY", "demo_key") 
+              # Store in Streamlit secrets
+        except:
+            #self.api_key = st.secrets.get("EASEMYTRIP_API_KEY", "demo_key")
             pass
-        
+
         self.headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
