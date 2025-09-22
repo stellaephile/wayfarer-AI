@@ -33,11 +33,11 @@ def validate_mysql_config():
     if not config["connection_name"]:
         raise ValueError("CLOUDSQL_CONNECTION_NAME is not configured")
     if not config["user"]:
-        raise ValueError("MYSQL_USER is not configured")
+        raise ValueError("POSTGRES_USER is not configured")
     if not config["password"]:
         raise ValueError("MYSQL_PASSWORD is not configured")
     if not config["database"]:
-        raise ValueError("MYSQL_DATABASE is not configured")
+        raise ValueError("POSTGRES_DB is not configured")
 
     return True
 

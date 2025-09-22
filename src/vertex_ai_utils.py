@@ -79,6 +79,7 @@ class VertexAITripPlanner:
                     vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
                     aiplatform.init(project=self.project_id, location=self.location, credentials=credentials)
                 except json.JSONDecodeError:
+                    pass
                     logger.error("GOOGLE_APPLICATION_CREDENTIALS is set but not valid JSON.")
             else:
                 logger.info("Falling back to default Cloud Run service account credentials")

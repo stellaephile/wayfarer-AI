@@ -13,9 +13,10 @@ class MySQLDatabaseManager:
     def __init__(self):
         # DB settings from env vars (Cloud Run / Secret Manager)
         self.connection_name = os.getenv("CLOUDSQL_CONNECTION_NAME")  # e.g., project:region:instance
-        self.database = os.getenv("MYSQL_DATABASE", "trip_planner")
-        self.user = os.getenv("MYSQL_USER", "root")
+        self.database = os.getenv("POSTGRES_DB", "trip_planner")
+        self.user = os.getenv("POSTGRES_USER", "root")
         self.password = os.getenv("MYSQL_PASSWORD", "")
+        
         self.connector = Connector()
 
         # SQLAlchemy engine using Cloud SQL Python Connector
