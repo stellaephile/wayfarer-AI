@@ -8,37 +8,56 @@ import os
 from contextlib import contextmanager
 import json
 from datetime import datetime, date
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
-class MySQLDatabaseManager:
+
+class PostgresDatabaseManager:
     def __init__(self):
         # DB settings from env vars (Cloud Run / Secret Manager)
         self.connection_name = os.getenv("CLOUDSQL_CONNECTION_NAME")  # e.g., project:region:instance
         self.database = os.getenv("POSTGRES_DB", "trip_planner")
         self.user = os.getenv("POSTGRES_USER", "root")
         self.password = os.getenv("MYSQL_PASSWORD", "")
-        
+
         self.connector = Connector()
 
         # SQLAlchemy engine using Cloud SQL Python Connector
         self.engine = sqlalchemy.create_engine(
-            "mysql+pymysql://",
+            "postgresql+pg8000://",
             creator=self.getconn,
-            pool_recycle=300,
-            pool_pre_ping=True
+            pool_size=5,
+            max_overflow=2,
+            pool_timeout=30,
+            pool_recycle=1800
         )
 
-        self.init_database()
+        # Test connection
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(sqlalchemy.text("SELECT 1"))
+            logger.info("PostgreSQL connection established successfully.")
+        except Exception as e:
+            logger.error(f"Error connecting to PostgreSQL: {e}")
+            raise e
 
     def getconn(self):
         """Return a new Cloud SQL connection"""
         return self.connector.connect(
             self.connection_name,
-            "pymysql",
+            "pg8000",  # PostgreSQL driver for Cloud SQL Connector
             user=self.user,
             password=self.password,
             db=self.database
         )
-
+    
     @contextmanager
     def get_connection(self):
         """Context manager for SQLAlchemy connection"""
@@ -51,19 +70,19 @@ class MySQLDatabaseManager:
             with self.get_connection() as conn:
                 conn.execute(sqlalchemy.text('''
                     CREATE TABLE IF NOT EXISTS users (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        username VARCHAR(255) UNIQUE NOT NULL,
-                        email VARCHAR(255) UNIQUE NOT NULL,
-                        password_hash TEXT,
-                        name VARCHAR(255),
-                        google_id VARCHAR(255) UNIQUE,
-                        picture TEXT,
-                        verified_email BOOLEAN DEFAULT FALSE,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        last_login TIMESTAMP NULL,
-                        is_active BOOLEAN DEFAULT TRUE,
-                        login_method VARCHAR(50) DEFAULT 'email'
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(255) UNIQUE NOT NULL,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    password_hash TEXT,
+                    name VARCHAR(255),
+                    google_id VARCHAR(255) UNIQUE,
+                    picture TEXT,
+                    verified_email BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP NULL,
+                    is_active BOOLEAN DEFAULT TRUE,
+                    login_method VARCHAR(50) DEFAULT 'email'
+                );
                 '''))
                 conn.execute(sqlalchemy.text('''
                     CREATE TABLE IF NOT EXISTS trips (
@@ -451,4 +470,4 @@ class MySQLDatabaseManager:
 
 
 # ---------------- Global DB Instance ---------------- #
-db = MySQLDatabaseManager()
+db = PostgresDatabaseManager()

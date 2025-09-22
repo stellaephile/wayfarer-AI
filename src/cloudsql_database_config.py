@@ -1,11 +1,11 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
+
 load_dotenv()
 
 def get_database_config():
     """Get database configuration from Streamlit secrets (local) or env vars (Cloud Run)"""
-
     # --- Local dev: use st.secrets.toml ---
     try:
         if hasattr(st, 'secrets') and 'POSTGRES_USER' in st.secrets:
@@ -13,7 +13,7 @@ def get_database_config():
                 "connection_name": st.secrets["CLOUDSQL_CONNECTION_NAME"],
                 "database": st.secrets["POSTGRES_DB"],
                 "user": st.secrets["POSTGRES_USER"],
-                "password": st.secrets["MYSQL_PASSWORD"],
+                "password": st.secrets["MYSQL_PASSWORD"],  # Can rename to POSTGRES_PASSWORD if needed
             }
     except Exception:
         pass
@@ -21,12 +21,12 @@ def get_database_config():
     # --- Cloud Run: fallback to env vars ---
     return {
         "connection_name": os.getenv("CLOUDSQL_CONNECTION_NAME", ""),
-        "database": os.getenv("POSTGRES_DB", "trip_planner"),
-        "user": os.getenv("POSTGRES_USER", "trip_planner"),
-        "password": os.getenv("MYSQL_PASSWORD", ""),
+        "database": os.getenv("POSTGRES_DB", "wayfarer-improv"),
+        "user": os.getenv("POSTGRES_USER", "wayfarer-user"),
+        "password": os.getenv("MYSQL_PASSWORD", ""),  # Can rename to POSTGRES_PASSWORD if desired
     }
 
-def validate_mysql_config():
+def validate_postgres_config():
     """Validate that Cloud SQL config is complete"""
     config = get_database_config()
 
@@ -42,8 +42,8 @@ def validate_mysql_config():
     return True
 
 def get_database():
-    """Factory function to get MySQLDatabaseManager instance"""
-    validate_mysql_config()
+    """Factory function to get PostgresDatabaseManager instance"""
+    validate_postgres_config()
     from cloudsql_database import db
     return db
 
