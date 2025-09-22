@@ -71,20 +71,19 @@ class VertexAITripPlanner:
     def _initialize_vertex_ai(self):
         """Initialize Vertex AI with proper authentication"""
         try:
-            # Try to get credentials from service account file
-            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            logger.info(f"Using credential path: {credentials_path if credentials_path else 'Default credentials'}")
-            if credentials_path and os.path.exists(credentials_path):
-                logger.info("Path to credentials exists!")
-                credentials = service_account.Credentials.from_service_account_file(credentials_path)
-                vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
+            credentials_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            if credentials_json:
+                try:
+                    creds_dict = json.loads(credentials_json)  # secret content is JSON
+                    credentials = service_account.Credentials.from_service_account_info(creds_dict)
+                    vertexai.init(project=self.project_id, location=self.location, credentials=credentials)
+                    aiplatform.init(project=self.project_id, location=self.location, credentials=credentials)
+                except json.JSONDecodeError:
+                    logger.error("GOOGLE_APPLICATION_CREDENTIALS is set but not valid JSON.")
             else:
-                logger.error("Path to credentials NOT found!")
-                # Try to use default credentials
+                logger.info("Falling back to default Cloud Run service account credentials")
                 vertexai.init(project=self.project_id, location=self.location)
-            
-            # Initialize AI Platform
-            aiplatform.init(project=self.project_id, location=self.location)
+                aiplatform.init(project=self.project_id, location=self.location)
             
         except Exception as e:
             logger.error(f"Error initializing Vertex AI: {str(e)}")
