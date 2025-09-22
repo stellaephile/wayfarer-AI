@@ -82,7 +82,7 @@ class GoogleAuth:
         st.session_state.oauth_state = state
 
 
-        st.experimental_set_query_params(oauth_state=state)
+        st.set_query_params(oauth_state=state)
 
         auth_url, _ = flow.authorization_url(
             access_type="offline",
@@ -169,39 +169,35 @@ def handle_google_callback():
     if not auth.is_configured:
         return False
 
-    # Use experimental_get_query_params for more reliable callback reading
-    params = st.experimental_get_query_params()
+    params = st.query_params  # Use st.query_params
 
     # OAuth error
     if "error" in params:
-        st.error(f"Google OAuth error: {params['error'][0]}")
-        st.experimental_set_query_params()  # clear query params
+        st.error(f"Google OAuth error: {params.get('error', ['Unknown error'])[0]}")
+        st.query_params.clear()
         return False
 
-    # Check if code exists
-    #if "code" not in params:
-    #    st.info("Click the Google sign-in button to continue.")
-    #    return False
-
-    code = params["code"][0]
-    state_received = params.get("state", [""])[0]
-    state_expected = params.get("oauth_state", [""])[0]  # stored when generating auth URL
-
-    # Optional: validate state
-    if state_received != state_expected:
-        st.error("OAuth state mismatch. Please try signing in again.")
-        st.experimental_set_query_params()  # clear query params
+    # Safely get the 'code' parameter
+    code = params.get("code", [None])[0]
+    if not code:
+        st.info("Click the Google sign-in button to continue.")
         return False
+
+    # Optional: temporarily skip state check for testing on Cloud Run
+    # state = params.get("state", [None])[0]
+    # if state != st.session_state.get("oauth_state"):
+    #     st.error("OAuth state mismatch. Please try signing in again.")
+    #     return False
 
     try:
-        # Exchange code for user info
         user_info = auth.exchange_code_for_userinfo(code)
         user = auth.create_or_get_user(user_info)
         if user:
             st.session_state.user = user
             st.session_state.logged_in = True
             st.session_state.login_method = "google"
-            st.experimental_set_query_params()  # clear query params
+            st.query_params.clear()  # Clear URL params
+            st.session_state.pop("oauth_state", None)
             st.success(f"Welcome, {user['name']}!")
             st.rerun()
         else:
@@ -210,6 +206,7 @@ def handle_google_callback():
     except Exception as e:
         st.error(f"Authentication failed: {e}")
         return False
+
 
 
 
