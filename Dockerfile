@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-COPY .env ./
+#COPY .env ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -25,7 +25,7 @@ RUN pip freeze
 COPY src/ ./src/
 COPY .streamlit/ ./.streamlit/
 COPY misc/ ./misc/
-COPY credentials/ ./credentials/
+#COPY credentials/ ./credentials/
 
 # Create directories
 RUN mkdir -p /app/data ./logs
