@@ -29,7 +29,7 @@ class MySQLDatabaseManager:
         self.connection_name = os.getenv("CLOUDSQL_CONNECTION_NAME")  # project:region:instance
         self.database = os.getenv("POSTGRES_DB", "trip_planner")
         self.user = os.getenv("POSTGRES_USER", "trip_planner")
-        self.password = os.getenv("POSTGRES_PASSWORD", "")
+        self.password = os.getenv("MYSQL_PASSWORD", "")
 
         self.connector = Connector()
 
