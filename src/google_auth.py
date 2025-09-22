@@ -61,14 +61,14 @@ class GoogleAuth:
         if not self.is_configured:
             return None
 
+
         flow = Flow.from_client_config(
             {
                 "web": {
                     "client_id": self.client_id,
                     "client_secret": self.client_secret,
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "redirect_uris": [self.redirect_uri]
+                    "redirect_uris": [self.redirect_uri],
+                    "server_metadata_url": "https://accounts.google.com/.well-known/openid-configuration"
                 }
             },
             scopes=self.scopes
