@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 import base64
 import hashlib
 import secrets
-import sqlalchemy
+import sqlalchemy,requests
 from cloudsql_database_config import get_database
 db = get_database()
 from dotenv import load_dotenv
@@ -44,24 +44,24 @@ SCOPES = [
     'openid'
 ]
 
+
+db = get_database()
+
 class GoogleAuth:
+
     def __init__(self):
-        self.client_id = GOOGLE_CLIENT_ID
-        self.client_secret = GOOGLE_CLIENT_SECRET
-        self.redirect_uri = GOOGLE_REDIRECT_URI
-        self.scopes = SCOPES
-        
-        # Check if Google OAuth is configured
+        self.client_id = os.getenv("GOOGLE_CLIENT_ID")
+        self.client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+        self.redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501")
         self.is_configured = bool(self.client_id and self.client_secret)
-        
         if not self.is_configured:
-            st.warning("⚠️ Google OAuth not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.")
-    
+            st.warning("⚠️ Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.")
+
     def get_authorization_url(self):
-        """Get Google OAuth authorization URL"""
+        """Return Google OAuth URL with state"""
         if not self.is_configured:
             return None
-            
+
         flow = Flow.from_client_config(
             {
                 "web": {
@@ -72,228 +72,134 @@ class GoogleAuth:
                     "redirect_uris": [self.redirect_uri]
                 }
             },
-            scopes=self.scopes
+            scopes=self.SCOPES
         )
         flow.redirect_uri = self.redirect_uri
-        
-        # Generate state parameter for security
+
+        # Secure random state
         state = secrets.token_urlsafe(32)
-        
-        # Store state in session state
         st.session_state.oauth_state = state
-        
-        authorization_url, _ = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true',
+
+        auth_url, _ = flow.authorization_url(
+            access_type="offline",
+            include_granted_scopes="true",
             state=state
         )
-        
-        return authorization_url
-    
-    def get_user_info(self, authorization_response):
-        """Get user information from Google OAuth response"""
-        if not self.is_configured:
-            return None
-            
-        try:
-            # Verify state parameter (silent validation)
-            if 'state' in authorization_response:
-                if 'oauth_state' in st.session_state:
-                    stored_state = st.session_state['oauth_state']
-                received_state = authorization_response['state']
-                
-                if stored_state and stored_state != received_state:
-                    st.error("Authentication failed. Please try signing in again.")
-                    # Clear the invalid state
-                    if 'oauth_state' in st.session_state:
-                        del st.session_state['oauth_state']
-                    return None
-            
-            # Use requests to exchange code for tokens directly
-            import requests
-            
-            token_url = "https://oauth2.googleapis.com/token"
-            token_data = {
-                'client_id': self.client_id,
-                'client_secret': self.client_secret,
-                'code': authorization_response['code'],
-                'grant_type': 'authorization_code',
-                'redirect_uri': self.redirect_uri
+        return auth_url
+
+    def exchange_code_for_userinfo(self, code):
+        """Exchange authorization code for user info"""
+        token_response = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": self.redirect_uri
             }
-            
-            # Exchange code for tokens
-            token_response = requests.post(token_url, data=token_data)
-            token_response.raise_for_status()
-            tokens = token_response.json()
-            
-            # Get user info using the access token
-            access_token = tokens['access_token']
-            user_info_url = f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
-            
-            user_response = requests.get(user_info_url)
-            user_response.raise_for_status()
-            user_info = user_response.json()
-            
-            return {
-                'id': user_info.get('id'),
-                'email': user_info.get('email'),
-                'name': user_info.get('name'),
-                'given_name': user_info.get('given_name'),
-                'family_name': user_info.get('family_name'),
-                'picture': user_info.get('picture'),
-                'verified_email': user_info.get('verified_email', False)
-            }
-            
-        except Exception as e:
-            st.error("Authentication failed. Please try again.")
-            return None
-    
-    def create_or_get_user(self, google_user_info):
-        """Create or get user from Google OAuth info"""
-        if not google_user_info:
-            return None
-            
-        email = google_user_info['email']
-        name = google_user_info['name']
-        google_id = google_user_info['id']
-        
-        # Check if user already exists
-        existing_user = db.get_user_by_email(email)
-        if existing_user:
-            # If user exists, check if it's already a Google user
-            if existing_user.get('login_method') == 'google':
-                return existing_user
-            else:
-                # User exists but with different login method - link Google account
-                try:
-                    with db.get_connection() as conn:
-                        conn.execute(
-                            sqlalchemy.text("""
-                                UPDATE users 
-                                SET google_id = :google_id, picture = :picture, verified_email = :verified_email, login_method = 'google'
-                                WHERE email = :email
-                            """),
-                            {
-                                "google_id": google_id,
-                                "picture": google_user_info.get('picture', ''),
-                                "verified_email": google_user_info.get('verified_email', False),
-                                "email": email
-                            }
-                        )
-                    
-                    return db.get_user_by_email(email)
-                except Exception as e:
-                    st.error("Authentication failed. Please try again.")
-                    return None
-        
-        # Create new user with Google info
-        username = self._generate_username_from_email(email)
-        success, message = db.create_google_user(
-            username=username,
-            email=email,
-            name=name,
-            google_id=google_id,
-            picture=google_user_info.get('picture', ''),
-            verified_email=google_user_info.get('verified_email', False)
         )
-        
+        token_response.raise_for_status()
+        access_token = token_response.json()["access_token"]
+
+        user_info_response = requests.get(
+            f"https://www.googleapis.com/oauth2/v2/userinfo?access_token={access_token}"
+        )
+        user_info_response.raise_for_status()
+        return user_info_response.json()
+
+    def create_or_get_user(self, user_info):
+        """Create or retrieve user in DB"""
+        email = user_info["email"]
+        google_id = user_info["id"]
+        name = user_info.get("name", "")
+        picture = user_info.get("picture", "")
+        verified = user_info.get("verified_email", False)
+
+        # Check existing user
+        user = db.get_user_by_email(email)
+        if user:
+            # Update Google info if needed
+            if user.get("login_method") != "google":
+                conn = db.get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    UPDATE users
+                    SET google_id = %s, picture = %s, verified_email = %s, login_method = 'google'
+                    WHERE email = %s
+                """, (google_id, picture, verified, email))
+                conn.commit()
+                conn.close()
+            return db.get_user_by_email(email)
+
+        # New user creation
+        username = self._generate_username_from_email(email)
+        success, _ = db.create_google_user(
+            username=username, email=email, name=name, google_id=google_id,
+            picture=picture, verified_email=verified
+        )
         if success:
             return db.get_user_by_email(email)
-        else:
-            st.error("Authentication failed. Please try again.")
-            return None
-    
+        return None
+
     def _generate_username_from_email(self, email):
-        """Generate username from email"""
-        local_part = email.split('@')[0]
-        # Remove special characters and make it unique
-        username = ''.join(c for c in local_part if c.isalnum() or c in '._-')
-        # Add random suffix to ensure uniqueness
-        random_suffix = secrets.token_hex(4)
-        return f"{username}_{random_suffix}"
+        local = ''.join(c for c in email.split('@')[0] if c.isalnum() or c in '._-')
+        return f"{local}_{secrets.token_hex(4)}"
+
 
 def show_google_signin_button():
-    """Show Google sign-in button"""
-    google_auth = GoogleAuth()
-    
-    if not google_auth.is_configured:
-        st.info("Google sign-in is not configured. Please contact administrator.")
+    auth = GoogleAuth()
+    if not auth.is_configured:
+        st.info("Google sign-in not configured.")
         return False
-    
-    # Get authorization URL
-    auth_url = google_auth.get_authorization_url()
-    if not auth_url:
-        st.error("Failed to generate Google OAuth URL")
-        return False
-    
-    # Create Google sign-in button using st.link_button (more reliable)
-    st.link_button(
-        "🔐 Sign in with Google", 
-        auth_url, 
-        use_container_width=True,
-        type="primary",
-        help="Click the button above to sign in with Google. You'll be redirected to Google's authentication page."
-    )
-
+    url = auth.get_authorization_url()
+    st.link_button("🔐 Sign in with Google", url, use_container_width=True)
     return True
 
+
+
+
 def handle_google_callback():
-    """Handle Google OAuth callback"""
-    google_auth = GoogleAuth()
-    
-    if not google_auth.is_configured:
+    """Handle OAuth callback and log in user"""
+    auth = GoogleAuth()
+    if not auth.is_configured:
         return False
-    
-    # Check if we have authorization response in URL
-    query_params = st.query_params
-    
-    if 'code' in query_params:
-        # Show loading spinner
-        with st.spinner("Signing you in..."):
-            try:
-                # Create authorization response with or without state
-                authorization_response = {
-                    'code': query_params['code']
-                }
-                
-                # Add state if present
-                if 'state' in query_params:
-                    authorization_response['state'] = query_params['state']
-                
-                # Get user info from Google
-                google_user_info = google_auth.get_user_info(authorization_response)
-                
-                if google_user_info:
-                    # Create or get user
-                    user = google_auth.create_or_get_user(google_user_info)
-                    
-                    if user:
-                        st.session_state.user = user
-                        st.session_state.logged_in = True
-                        st.session_state.login_method = 'google'
-                        # Clear the URL parameters after successful login
-                        st.query_params.clear()
-                        # Clear OAuth state
-                        if 'oauth_state' in st.session_state:
-                            del st.session_state['oauth_state']
-                        # Show success message briefly
-                        st.success(f"Welcome, {user['name']}!")
-                        st.rerun()
-                    else:
-                        st.error("Authentication failed. Please try again.")
-                else:
-                    st.error("Authentication failed. Please try again.")
-            except Exception as e:
-                st.error("Authentication failed. Please try again.")
-    
-    # Check for error in OAuth response
-    elif 'error' in query_params:
-        error = query_params.get('error', 'Unknown error')
-        st.error("Authentication failed. Please try again.")
-        # Clear error parameters from URL
+
+    params = st.query_params
+
+    # OAuth error
+    if "error" in params:
+        st.error(f"Google OAuth error: {params['error']}")
         st.query_params.clear()
-    
-    return False
+        return False
+
+    if "code" not in params:
+        st.info("Click the Google sign-in button to continue.")
+        return False
+
+    # Validate state
+    if "state" not in params or params["state"] != st.session_state.get("oauth_state"):
+        st.error("OAuth state mismatch. Please try signing in again.")
+        return False
+
+    try:
+        user_info = auth.exchange_code_for_userinfo(params["code"])
+        user = auth.create_or_get_user(user_info)
+        if user:
+            st.session_state.user = user
+            st.session_state.logged_in = True
+            st.session_state.login_method = "google"
+            st.query_params.clear()
+            st.session_state.pop("oauth_state", None)
+            st.success(f"Welcome, {user['name']}!")
+            st.rerun()
+        else:
+            st.error("Failed to log in user.")
+            return False
+    except Exception as e:
+        st.error(f"Authentication failed: {e}")
+        return False
+
 
 # Initialize Google Auth
 google_auth = GoogleAuth()
