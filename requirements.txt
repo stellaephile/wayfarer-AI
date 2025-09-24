@@ -24,3 +24,4 @@ SQLAlchemy
 #pg8000
 bcrypt
 authlib
+ics

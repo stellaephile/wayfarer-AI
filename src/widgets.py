@@ -1,20 +1,27 @@
 # widgets.py
 
 import streamlit as st
-import time,os,json
+import time,os,json,re
 import threading
-import random
+import random,urllib.parse
 from functools import wraps
-
-from datetime import datetime
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, PageBreak
+    SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-import re
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from datetime import datetime,timedelta
+from ics import Calendar, Event
+import pytz
+import requests
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+
+
+
+
 
 
 def get_fun_spinner_messages():
@@ -72,7 +79,7 @@ def get_fun_spinner_messages():
 
 
 
-def with_dynamic_spinner(messages=None, delay=1.75, color_pairs=None):
+def with_dynamic_spinner(messages=None, delay=2, color_pairs=None):
     """
     Decorator that shows rotating messages inside a readable colored box.
     Each text color is paired with a compatible light background.
@@ -150,7 +157,7 @@ def get_day_suffix(day):
     else:
         return 'th'
 
-def format_date_pretty(date_input):
+def format_date_pretty(date_input,type=1):
     """
     Accepts a datetime object or string (YYYY-MM-DD).
     Returns a pretty formatted date string like '23rd September, 2025'.
@@ -163,7 +170,10 @@ def format_date_pretty(date_input):
 
     day = date_obj.day
     suffix = get_day_suffix(day)
-    return f"{day}{suffix} {date_obj.strftime('%B')}, {date_obj.year}"
+    if type==1:
+        return f"({day}{suffix} {date_obj.strftime('%B')}, {date_obj.year})"
+    if type==2:
+        return f"({day}{suffix} {date_obj.strftime('%b')}, {date_obj.year})"
 
 
 
@@ -192,16 +202,13 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
         start_date_str = itinerary[0].get("date", "")
         end_date_str = itinerary[-1].get("date", "")
 
-        # Logo (optional, must exist inside container)
+        # Logo
         logo = os.getenv("LOGO_IMG")
-        if logo:
-            try:
-                img = Image(logo, width=200, height=200)
-                img.hAlign = "CENTER"
-                elements.append(Spacer(1, 120))
-                elements.append(img)
-            except Exception:
-                pass  # skip if logo file is missing
+        if logo and os.path.exists(logo):
+            elements.append(Spacer(1, 120))
+            img = Image(logo, width=200, height=200)
+            img.hAlign = "CENTER"
+            elements.append(img)
 
         elements.append(Spacer(1, 60))
         elements.append(Paragraph(f"<b>{destination} Itinerary</b>", styles["Title"]))
@@ -229,9 +236,11 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
 
             activity_data = [["Time/Meal", "Plan"]]
 
+            # Wrap activities in Paragraphs
             for act in day_plan.get("activities", []):
                 activity_data.append(["Activity", Paragraph(act, styles["Normal"])])
 
+            # Wrap meals in Paragraphs
             for meal, desc in day_plan.get("meals", {}).items():
                 activity_data.append([meal.capitalize(), Paragraph(desc, styles["Normal"])])
 
@@ -243,10 +252,11 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
                 ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),  # keep text aligned top
             ]))
             elements.append(table)
             elements.append(Spacer(1, 20))
+
 
         # --- BUDGET BREAKDOWN ---
         if "budget_breakdown" in trip_data:
@@ -264,35 +274,174 @@ def generate_trip_pdf(trip_data, itinerary, weather_data=None):
     return pdf
 
 
+
+
 def generate_and_display_pdf_options(trip_data, ai_suggestions, weather_data=None):
     try:
         # ai_suggestions can be JSON string or dict
         if isinstance(ai_suggestions, str):
             ai_suggestions = json.loads(ai_suggestions)
-
+        
         # ✅ Pull itinerary from ai_suggestions
         itinerary = ai_suggestions.get("itinerary", []) if ai_suggestions else []
-
-        # Fallback to trip_data itinerary
+        
+        # If itinerary is missing, fall back
         if not itinerary:
             itinerary = trip_data.get("itinerary", [])
-
-        # Generate PDF bytes
-        pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=weather_data)
-
-        # Sanitize filename (remove spaces/special chars)
-        destination = trip_data.get('destination', 'trip')
-        safe_destination = re.sub(r'[^a-zA-Z0-9_-]', '_', destination)
-        file_name = f"trip_itinerary_{safe_destination}.pdf"
+        
+        # Now pass itinerary into PDF generator
+        pdf_bytes = generate_trip_pdf(trip_data, itinerary, weather_data=None)
 
         st.download_button(
-            label="📥 Download Itinerary PDF",
+            label="📥 Download as PDF",
             data=pdf_bytes,
-            file_name=file_name,
+            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.pdf",
             mime="application/pdf",
+            type="primary"
         )
-
     except Exception as e:
         st.error(f"❌ Error generating PDF: {str(e)}")
 
+
+
+places_api_key=os.getenv('GOOGLE_PLACES_SECRET')
+
+# Simple cache to avoid duplicate lookups
+place_cache = {}
+
+def get_place_info(query, city=None, delay=0.3):
+    """
+    Fetch place info from Google Places API with caching + delay.
+    Args:
+        query (str): Activity/meal description.
+        city (str): Destination city (to narrow search).
+        delay (float): Seconds to wait between API calls.
+    """
+    search_key = f"{query}|{city}"
+    if search_key in place_cache:
+        return place_cache[search_key]
+
+    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
+    params = {
+        "input": f"{query} {city}" if city else query,
+        "inputtype": "textquery",
+        "fields": "formatted_address,name,place_id",
+        "key": places_api_key,
+    }
+
+    try:
+        res = requests.get(url, params=params, timeout=5).json()
+        candidates = res.get("candidates", [])
+        if candidates:
+            place = candidates[0]
+            maps_url = f"https://www.google.com/maps/place/?q=place_id:{place['place_id']}"
+            info = {
+                "name": place["name"],
+                "address": place["formatted_address"],
+                "maps_url": maps_url,
+            }
+            place_cache[search_key] = info
+            time.sleep(delay)  # wait before next API call
+            return info
+    except Exception as e:
+        print(f"⚠️ Error fetching place info for {query}: {e}")
+
+    # fallback
+    place_cache[search_key] = None
+    return None
+
+
+def generate_trip_ics(trip_data, itinerary=None, weather_data=None, tz_name="Asia/Kolkata"):
+    """
+    Generate an .ics file buffer from AI trip_data JSON with meals + activities.
+    Adds Google Maps links for activities.
+    """
+    calendar = Calendar()
+    destination = trip_data.get("destination", "Trip")
+    itinerary = itinerary or trip_data.get("itinerary", [])
+
+    # Timezone object
+    tz = pytz.timezone(tz_name)
+
+    # Define meal anchor times
+    meal_times = {"breakfast": 8, "lunch": 13, "dinner": 19}
+
+    for day_plan in itinerary:
+        date_str = day_plan.get("date")
+        activities = day_plan.get("activities", [])
+        meals = day_plan.get("meals", {})
+
+        if not date_str:
+            continue
+
+        try:
+            base_date = datetime.strptime(date_str, "%Y-%m-%d")
+        except Exception:
+            continue
+
+        # Add meals as fixed events
+        for meal, desc in meals.items():
+            if meal.lower() in meal_times:
+                event = Event()
+                event.name = f"{meal.capitalize()}"
+                event.begin = tz.localize(base_date + timedelta(hours=meal_times[meal.lower()]))
+                event.end = event.begin + timedelta(hours=1)
+                event.description = desc
+
+                # Add place info if possible
+                place = get_place_info(desc, destination)
+                if place:
+                    event.location = place["address"]
+                    event.url = place["maps_url"]
+                else:
+                    event.location = destination
+
+                calendar.events.add(event)
+
+        # Place activities between meals
+        start_hour = 9
+        for idx, act in enumerate(activities, start=1):
+            event = Event()
+            event.name = act if len(act) < 60 else act[:57] + "…"
+            event.begin = tz.localize(base_date + timedelta(hours=start_hour + (idx-1)*3))
+            event.end = event.begin + timedelta(hours=2)
+            event.description = act
+
+            # Add place info if possible
+            place = get_place_info(act, destination)
+            if place:
+                event.location = place["address"]
+                event.url = place["maps_url"]
+            else:
+                event.location = destination
+
+            calendar.events.add(event)
+
+    # Export calendar to memory
+    buffer = BytesIO()
+    buffer.write(calendar.serialize().encode("utf-8"))
+    buffer.seek(0)
+    return buffer
+
+
+def generate_and_display_ics_options(trip_data, ai_suggestions, weather_data=None):
+    try:
+        if isinstance(ai_suggestions, str):
+            ai_suggestions = json.loads(ai_suggestions)
+
+        itinerary = ai_suggestions.get("itinerary", []) if ai_suggestions else []
+        if not itinerary:
+            itinerary = trip_data.get("itinerary", [])
+
+        ics_buffer = generate_trip_ics(trip_data, itinerary, weather_data)
+
+        st.download_button(
+            label="📅 Download as Calendar (.ics)",
+            data=ics_buffer,
+            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.ics",
+            type="primary",
+            mime="text/calendar",
+        )
+    except Exception as e:
+        st.error(f"❌ Error generating .ics file: {str(e)}")
 

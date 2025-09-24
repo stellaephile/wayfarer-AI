@@ -6,7 +6,7 @@ db = get_database()
 from vertex_ai_utils import VertexAITripPlanner
 from css_styles import inject_css, inject_compact_css, inject_app_header
 from credit_widget import credit_widget
-from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty,generate_and_display_pdf_options
+from widgets import with_dynamic_spinner, get_fun_spinner_messages,format_date_pretty,generate_and_display_pdf_options, generate_and_display_ics_options
 from currency import currency_mapping,get_currency_options
 
 log_file = os.getenv("TRIP_PLANNER_LOG")
@@ -988,9 +988,15 @@ def show_my_trips():
         unsafe_allow_html=True
         )
         trip = st.session_state.selected_trip
+        exp1,exp2,exp3 = st.columns([1,2,1]):
+        with exp1:
+            generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
+        with exp2:
+            generate_and_display_ics_options(trip, trip['ai_suggestions'], weather_data=None)
         #print(trip)
         show_trip_details(trip)
-        generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
+
+        
         
         if st.button("Close Details"):
             del st.session_state.selected_trip
