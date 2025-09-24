@@ -988,7 +988,7 @@ def show_my_trips():
         unsafe_allow_html=True
         )
         trip = st.session_state.selected_trip
-        exp1,exp2,exp3 = st.columns([1,2,1]):
+        exp1,exp2,exp3 = st.columns([1,2,1])
         with exp1:
             generate_and_display_pdf_options(trip, trip['ai_suggestions'], weather_data=None) ##Generate pdf itinerary
         with exp2:
