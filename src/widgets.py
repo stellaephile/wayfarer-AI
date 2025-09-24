@@ -433,15 +433,18 @@ def generate_and_display_ics_options(trip_data, ai_suggestions, weather_data=Non
         if not itinerary:
             itinerary = trip_data.get("itinerary", [])
 
-        ics_buffer = generate_trip_ics(trip_data, itinerary, weather_data)
-
-        st.download_button(
-            label="📅 Download as Calendar (.ics)",
-            data=ics_buffer,
-            file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.ics",
-            type="primary",
-            mime="text/calendar",
-        )
+        # Instead of generating upfront, wait for button press
+        if st.button("📅 Prepare Calendar (.ics)"):
+            with st.spinner("Generating calendar..."):
+                ics_buffer = generate_trip_ics(trip_data, itinerary, weather_data)
+                st.download_button(
+                    label="⬇️ Download .ics file",
+                    data=ics_buffer,
+                    file_name=f"trip_itinerary_{trip_data.get('destination','trip')}.ics",
+                    type="primary",
+                    mime="text/calendar",
+                )
     except Exception as e:
         st.error(f"❌ Error generating .ics file: {str(e)}")
+
 
