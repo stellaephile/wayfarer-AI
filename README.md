@@ -11,7 +11,7 @@
 Wayfarer AI is an intelligent trip planning platform that leverages Google GenAI to generate curated itineraries, integrate real-time booking options, and streamline the travel experience from inspiration to confirmation.
 
 - **Hackathon:** Google GenAI Exchange 2025  
-- **Team Name:** Personalized Trip Planner with AI
+- **Team Name:** Pirates of the Neural Seas
 - **Team Members:**  
   - [Sonal Ganvir](https://github.com/sonalgan)  
   - [Bhupendra Choudhary](https://github.com/Bhupendrachaudhary2001)
